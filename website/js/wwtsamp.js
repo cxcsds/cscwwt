@@ -20,7 +20,7 @@ const wwtsamp = (function () {
     var sampClientTracker = null;
     var sampIsRegistered = false;
 
-    var sampUpdate = null;
+    var sampReport = null;
     var sampTrace = null;
 
     // The arguments are functions which take a single paremerter and
@@ -116,6 +116,7 @@ const wwtsamp = (function () {
     // Provide an explicit error handler as the default one appears to
     // cause an error to be reported in the JS console.
     //
+    // Currently unused.
     function ignoreSAMPError(event) {
 	sampTrace("Ignoring a SAMP error");
     }
@@ -163,7 +164,7 @@ const wwtsamp = (function () {
 	    if (n === 0) {
 		msg = "No Virtual Observatory application responded to the " +
 		    mtype + " request!";
-	    } else if (n == 1) {
+	    } else if (n === 1) {
 		msg = "One application responded to " +
 		    "the " + mtype + " request.";
 	    } else {
@@ -189,7 +190,7 @@ const wwtsamp = (function () {
 	console.log("pointAt.sky sent"); console.log(typeof ra); console.log(typeof dec);
 
         wwt.gotoRaDecZoom(ra, dec, wwt.get_fov(), false);
-	sampUpdate("Moving to α=" + ra + " δ=" + dec);
+	sampReport("Moving to α=" + ra + " δ=" + dec);
     }
 
     // Tell others we've moved.

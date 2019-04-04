@@ -241,7 +241,7 @@ const wwtplots = (function () {
 	if (p2 !== null) {
 	    // Plotly.newPlot(plot2, p2.data, p2.opts, genOpts);
 	    Plotly.react(plot2, p2.data, p2.opts, genOpts);
-	    if (nplots == 0) { defaultPlot = 2; }
+	    if (nplots === 0) { defaultPlot = 2; }
 	    plotShown[1] = true;
 	    nplots += 1;
 	}
@@ -249,7 +249,7 @@ const wwtplots = (function () {
 	if (p3 !== null) {
 	    // Plotly.newPlot(plot3, p3.data, p3.opts, genOpts);
 	    Plotly.react(plot3, p3.data, p3.opts, genOpts);
-	    if (nplots == 0) { defaultPlot = 3; }
+	    if (nplots === 0) { defaultPlot = 3; }
 	    plotShown[2] = true;
 	    nplots += 1;
 	}
@@ -257,7 +257,7 @@ const wwtplots = (function () {
 	if (p4 !== null) {
 	    // Plotly.newPlot(plot4, p4.data, p4.opts, genOpts);
 	    Plotly.react(plot4, p4.data, p4.opts, genOpts);
-	    if (nplots == 0) { defaultPlot = 4; }
+	    if (nplots === 0) { defaultPlot = 4; }
 	    plotShown[3] = true;
 	    nplots += 1;
 	}
@@ -287,16 +287,16 @@ const wwtplots = (function () {
 	plot3sel.checked = false;
 	plot4sel.checked = false;
 
-	if (defaultPlot == 1) {
+	if (defaultPlot === 1) {
 	    plot1area.style.display = 'block';
 	    plot1sel.checked = true;
-	} else if (defaultPlot == 2) {
+	} else if (defaultPlot === 2) {
 	    plot2area.style.display = 'block';
 	    plot2sel.checked = true;
-	} else if (defaultPlot == 2) {
+	} else if (defaultPlot === 2) {
 	    plot3area.style.display = 'block';
 	    plot3sel.checked = true;
-	} else if (defaultPlot == 3) {
+	} else if (defaultPlot === 3) {
 	    plot4area.style.display = 'block';
 	    plot4sel.checked = true;
 	}	    

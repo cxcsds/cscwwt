@@ -54,25 +54,25 @@ const lookup = (() => {
 
     function process(objectname, callback, errhandle, d) {
 
-	if(typeof d=="undefined" || (d.type && d.type=="error")) {
+	if(typeof d === "undefined" || (d.type && d.type === "error")) {
 	    errhandle('There was a problem querying the lookUP service.');
             return;
         }
 
 	if(d.target && d.target.suggestion) {
-            var msg = "<p>Target '" + objectname + "' not found.</p><p>Did you mean '" +
+            let msg = "<p>Target '" + objectname + "' not found.</p><p>Did you mean '" +
                 d.target.suggestion + "'?</p>";
             errhandle(msg);
             return;
         }
 
 	if(d.ra) {
-	    var service = null;
+	    let service = null;
 	    if (d.service) {
 		service = d.service.name;
 	    }
 
-	    var category = null;
+	    let category = null;
 	    if (d.category) {
 		category = d.category;
 	    }
@@ -81,7 +81,7 @@ const lookup = (() => {
             return;
         }
 
-	var msg;
+	let msg;
 	if(d.message) {
             /* Could add objectname here, but not sure what
                LookUp is returning */

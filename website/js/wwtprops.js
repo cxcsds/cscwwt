@@ -541,8 +541,8 @@ const wwtprops = (function () {
 	    return;
 	}
 
-	const confused = src.conf_flag != "FALSE";
-	const saturated = src.sat_src_flag != "FALSE";
+	const confused = src.conf_flag !== "FALSE";
+	const saturated = src.sat_src_flag !== "FALSE";
 
 	if (confused || saturated) {
 	    let stext;
@@ -558,7 +558,7 @@ const wwtprops = (function () {
 	    addPara(parent, stext);
 	}
 
-	if (src.var_flag != "FALSE") {
+	if (src.var_flag !== "FALSE") {
 	    addPara(parent,
 		    'Source is variable (within or between observations).');
 	}
