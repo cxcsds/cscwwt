@@ -761,6 +761,60 @@ var wwt = (function () {
 
 
 
+  // manual version of CHS toggle code
+  //
+  var shownCHS = false;
+  function toggleCHS() {
+    if (!haveCHSData) {
+      const el = document.querySelector('#togglechs');
+      el.innerHTML = 'Loading CHS Sources';
+      el.disabled = true;
+
+      downloadCHSData();
+      return;
+    }
+
+    if (shownCHS === false) {
+      showCHS();
+    } else {
+      hideCHS();
+    }
+  }
+
+  // Show all CHS
+  //
+  function showCHS() {
+    if (annotationsCHS == null) {
+      console.log('Internal error: showCHS ' +
+		  ' called when no data exists!');
+      return;
+    }
+
+    // This assumes they are not already shown
+    annotationsCHS.forEach(wwt.addAnnotation);
+
+    document.querySelector('#togglechs').innerHTML =
+      'Hide CHS';
+    shownCHS = true;
+  }
+
+
+  function hideCHS() {
+    if (annotationsCHS == null) {
+      console.log('Internal error: hideCHS ' +
+		  ' called when no data exists!');
+      return;
+    }
+
+    // This assumes they are being shown
+    annotationsCHS.forEach(wwt.removeAnnotation);
+
+    document.querySelector('#togglechs').innerHTML =
+      'Show CHS';
+    shownCHS = false;
+  }
+
+
   function toggleFlexById(elname) {
     const el = document.querySelector('#' + elname);
     if (el === null) {
@@ -1177,6 +1231,41 @@ var wwt = (function () {
 
     trace("Created source_annotations");
   }
+
+  function makeCHS(coords) {
+    const ann = wwt.createPolygon(false);
+    ann.set_lineColor('pink');
+    ann.set_lineWidth(2);
+    ann.set_fillColor('pink');
+    ann.set_opacity(0.6);
+
+    coords.forEach(p => { ann.addPoint(p[0], p[1]); });
+
+    return ann;
+  }
+
+  var annotationsCHS = null;
+  function createCHSAnnotations() {
+
+    annotationsCHS = [];
+    chsData.forEach(coords => {
+      const ann = makeCHS(coords);
+      if (ann !== null) {
+	annotationsCHS.push(ann);
+      }
+    });
+
+    const el = document.querySelector('#togglechs');
+    el.innerHTML = 'Show CHS';
+    el.disabled = false;
+
+    // For the moment we can not change the display properties
+    //
+    // showBlockElement('sourcecolor');
+
+    trace("Created CHS annotations");
+  }
+
 
   function createSource11Annotations() {
 
@@ -2589,6 +2678,28 @@ var wwt = (function () {
 
   }
 
+  var chsData = [];
+  var haveCHSData = false;
+  function processCHSData(json) {
+    if (json === null) {
+      console.log("ERROR: unable to download CHS data");
+
+      // leave as disabled
+      document.querySelector('#togglechs')
+        .innerHTML = 'Unable to load CHS catalog';
+      return;
+    }
+
+    haveCHSData = true;
+    chsData = json;
+    createCHSAnnotations();
+
+    document.querySelector('#togglechs')
+      .style.display = 'inline-block';
+
+  }
+
+
   var catalog11Data = [];
   var haveCatalog11Data = false;
   function processCatalog11Data(json) {
@@ -2695,6 +2806,37 @@ var wwt = (function () {
     httpRequest.send();	
 
   }
+
+  // VERY experimental
+  function downloadCHSData() {
+    const httpRequest = new XMLHttpRequest();
+    if (!httpRequest) {
+      console.log("ERROR: unable to download CHS data.");
+
+      // leave as disabled
+      document.querySelector('#toggleschs')
+        .innerHTML = 'Unable to load CHS';
+      return;
+    }
+
+    startSpinner();
+    httpRequest.addEventListener("load", () => {
+      trace("-- downloaded chs data");
+      processCHSData(httpRequest.response);
+      stopSpinner();
+    });
+    httpRequest.addEventListener("error", () => {
+      trace("-- error downloading chs");
+      stopSpinner();
+    });
+
+    // Try without any cache-busting identifier
+    httpRequest.open('GET', 'wwtdata/chs.json');
+    httpRequest.responseType = 'json';
+    httpRequest.send();	
+
+  }
+
 
   
   function downloadCatalog11Data() {
@@ -2812,6 +2954,8 @@ var wwt = (function () {
           toggleSources11: toggleSources11,
           toggleXMMSources: toggleXMMSources,
           toggleStacks: toggleStacks,
+
+	  toggleCHS: toggleCHS,
 
 	  toggleFlexById: toggleFlexById,
 
