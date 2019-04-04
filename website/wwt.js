@@ -1461,7 +1461,7 @@ var wwt = (function () {
     // Only interested in the closest item
     //
     const selid = seps[0][1];
-    const src = catalogProps.csc20.annotations[selid];
+    const src = catalogProps.csc20.annotations[selid][2];
 
     nearest_source = [src,
 		      src.get_lineColor(),
