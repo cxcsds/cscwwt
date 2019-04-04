@@ -2854,7 +2854,7 @@ var wwt = (function () {
   // version number of the stack event file available in the archive.
   //
   var stackEventVersions = null;
-  const loadStackEventVersions = makeDownloadData('wwtdta/version.stkevt3.json',
+  const loadStackEventVersions = makeDownloadData('wwtdata/version.stkevt3.json',
 						  null, null,
 						  (d) => { stackEventVersions = d; });
 
