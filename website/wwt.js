@@ -27,10 +27,10 @@ var wwt = (function () {
   // here means they are shown).
   //
   const displaySettings = 
-	{ coordinateGrid: false,
-	  crosshairs: false,
-	  constellations: false,
-	  boundaries: true };
+        { coordinateGrid: false,
+          crosshairs: false,
+          constellations: false,
+          boundaries: true };
 
   /***
    // starting location: Sgr A*
@@ -64,17 +64,17 @@ var wwt = (function () {
   //
   const catalogProps = {
     csc20: { label: 'CSC2.0', button: '#togglesources',
-	     changeWidget: '#sourceprops',
-	     color: 'cyan', size: 5.0 / 3600.0,
-	     annotations: null, shown: null },
+             changeWidget: '#sourceprops',
+             color: 'cyan', size: 5.0 / 3600.0,
+             annotations: null, shown: null },
     csc11: { label: 'CSC1.1', button: '#togglesources11',
-	     changeWidget: 'source11props',
-	     color: 'orange', size: 7.0 / 3600.0,
-	     annotations: null, shown: null },
+             changeWidget: 'source11props',
+             color: 'orange', size: 7.0 / 3600.0,
+             annotations: null, shown: null },
     xmm: { label: 'XMM', button: '#toggleXMMsources',
-	   changeWidget: 'xmmsourceprops',
-	   color: 'green', size: 10.0 / 3600.0,
-	   annotations: null, shown: null }
+           changeWidget: 'xmmsourceprops',
+           color: 'green', size: 10.0 / 3600.0,
+           annotations: null, shown: null }
   };
 
   // Trying to rationalize the use and display of catalog data,
@@ -215,8 +215,8 @@ var wwt = (function () {
       const cir = ann[2];
       var x = cir.get_label();
       if (typeof x === "undefined") {
-	cir.set_lineColor(color);
-	// cir.set_fillColor(color);
+        cir.set_lineColor(color);
+        // cir.set_fillColor(color);
       }
     });
   }
@@ -230,9 +230,9 @@ var wwt = (function () {
       const color = '#' + val;
       props.color = color;
       props.annotations.forEach(ann => {
-	const cir = ann[2];
-	cir.set_lineColor(color);
-	cir.set_fillColor(color);
+        const cir = ann[2];
+        cir.set_lineColor(color);
+        cir.set_fillColor(color);
       });
     };
   }
@@ -247,8 +247,8 @@ var wwt = (function () {
   function makeSizeUpdate(props) {
     return (newSize) => {
       if (newSize <= 0) {
-	console.log("Invalid source size: [" + newSize + "]");
-	return;
+        console.log("Invalid source size: [" + newSize + "]");
+        return;
       }
 
       const size = newSize * 1.0 / 3600.0;
@@ -281,9 +281,9 @@ var wwt = (function () {
     el.style.left = '-9999px';
     document.body.appendChild(el);
     const selected =            
-	  document.getSelection().rangeCount > 0
-	  ? document.getSelection().getRangeAt(0)
-	  : false;
+          document.getSelection().rangeCount > 0
+          ? document.getSelection().getRangeAt(0)
+          : false;
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
@@ -417,7 +417,7 @@ var wwt = (function () {
     const fillColor = src.nh_gal === null ? 'grey' : 'white';
     
     const ann = makeAnnotation(src.ra, src.dec, catalogProps.csc20.size,
-			       1, lineColor, fillColor, true, 0.1);
+                               1, lineColor, fillColor, true, 0.1);
 
     // Note: add a label to indicate that this is unprocessed, so we know not to
     //       change the color later.
@@ -438,7 +438,7 @@ var wwt = (function () {
 
     const color = catalogProps.csc11.color;
     return makeAnnotation(src.ra, src.dec, catalogProps.csc11.size,
-			  1, color, color, true, 0.1);
+                          1, color, color, true, 0.1);
   }
     
   function makeXMMSource(src) {
@@ -453,7 +453,7 @@ var wwt = (function () {
 
     const color = catalogProps.xmm.color;
     return makeAnnotation(ra, dec, catalogProps.xmm.size,
-			  1, color, color, true, 0.1);
+                          1, color, color, true, 0.1);
   }
     
   // Let's see how the WWT does with all the stacks
@@ -645,16 +645,16 @@ var wwt = (function () {
   function makeShowCatalog(props) {
     return () => {
       if (props.annotations === null) {
-	console.log('Internal error: showCatalog ' + props.label +
-		    ' called when no data exists!');
-	return;
+        console.log('Internal error: showCatalog ' + props.label +
+                    ' called when no data exists!');
+        return;
       }
 
       // Shouldn't be any shown, but just in case.
       //
       if (props.shown !== null) {
-	props.shown.forEach(wwt.removeAnnotation);
-	props.shown = null;
+        props.shown.forEach(wwt.removeAnnotation);
+        props.shown = null;
       }
 
       const ra0 = 15.0 * wwt.getRA(); // convert from hours
@@ -665,22 +665,22 @@ var wwt = (function () {
       //
       props.shown = [];
       props.annotations.forEach((d) => {
-	const sep = separation(ra0, dec0, d[0], d[1]);
-	if (sep < fov) {
-	  const ann = d[2];
-	  wwt.addAnnotation(ann);
-	  props.shown.push(ann);
-	}
+        const sep = separation(ra0, dec0, d[0], d[1]);
+        if (sep < fov) {
+          const ann = d[2];
+          wwt.addAnnotation(ann);
+          props.shown.push(ann);
+        }
       });
 
       if (props.shown.length === 0) {
-	reportUpdateMessage('No ' + props.label +
-			    ' sources found in this area of the sky.');
-	return;
+        reportUpdateMessage('No ' + props.label +
+                            ' sources found in this area of the sky.');
+        return;
       }
 
       document.querySelector(props.button).innerHTML =
-	'Hide ' + props.label + ' Sources';
+        'Hide ' + props.label + ' Sources';
     };
   }
 
@@ -690,22 +690,22 @@ var wwt = (function () {
   function makeHideCatalog(props) {
     return () => {
       if (props.annotations === null) {
-	console.log('Internal error: hideCatalog ' + props.label +
-		    ' called when no data exists!');
-	return;
+        console.log('Internal error: hideCatalog ' + props.label +
+                    ' called when no data exists!');
+        return;
       }
 
       if (props.shown === null) {
-	console.log('Internal error: hideCatalog ' + props.label +
-		    ' called when no data plotted!');
-	return;
+        console.log('Internal error: hideCatalog ' + props.label +
+                    ' called when no data plotted!');
+        return;
       }
 
       props.shown.forEach(wwt.removeAnnotation);
       props.shown = null;
 
       document.querySelector(props.button).innerHTML =
-	'Show ' + props.label + ' Sources';
+        'Show ' + props.label + ' Sources';
 
       hideElement(props.changeWidget);
 
@@ -732,32 +732,32 @@ var wwt = (function () {
 
     return () => {
       if (props.annotations === null) {
-	const el = document.querySelector(props.button);
-	el.innerHTML = 'Loading ' + props.label + ' Sources';
-	el.disabled = true;
+        const el = document.querySelector(props.button);
+        el.innerHTML = 'Loading ' + props.label + ' Sources';
+        el.disabled = true;
 
-	download();
-	return;
+        download();
+        return;
       }
 
       if (props.shown === null) {
-	show();
+        show();
       } else {
-	hide();
+        hide();
       }
     };
   }
 
 
   const toggleSources = makeToggleCatalog(catalogProps.csc20,
-					  downloadCatalog20Data,
-					  showSources,
-					  hideSources);
+                                          downloadCatalog20Data,
+                                          showSources,
+                                          hideSources);
   const toggleSources11 = makeToggleCatalog(catalogProps.csc11,
-					    downloadCatalog11Data);
+                                            downloadCatalog11Data);
 ;
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
-					     downloadXMMData);
+                                             downloadXMMData);
 
 
 
@@ -786,7 +786,7 @@ var wwt = (function () {
   function showCHS() {
     if (annotationsCHS == null) {
       console.log('Internal error: showCHS ' +
-		  ' called when no data exists!');
+                  ' called when no data exists!');
       return;
     }
 
@@ -802,7 +802,7 @@ var wwt = (function () {
   function hideCHS() {
     if (annotationsCHS == null) {
       console.log('Internal error: hideCHS ' +
-		  ' called when no data exists!');
+                  ' called when no data exists!');
       return;
     }
 
@@ -914,7 +914,7 @@ var wwt = (function () {
       // assume that the label can only have been changed
       // if the sources have been loaded
       document.querySelector('#togglesources').innerHTML =
-	'Show CSC2.0 Sources';
+        'Show CSC2.0 Sources';
     }
 
     document.querySelector('#selectionmode').innerHTML =
@@ -1017,59 +1017,59 @@ var wwt = (function () {
 
     const raIdx = get_csc_colidx('ra');
     const decIdx = get_csc_colidx('dec');
-	
+
     const props = catalogProps.csc20;
     props.shown = [];
 
     for (var i = 0; i < catalogData.length; i++) {
       const srcrow = catalogData[i];
       const sep = separation(ra0, dec0,
-			     srcrow[raIdx], srcrow[decIdx]);
+                             srcrow[raIdx], srcrow[decIdx]);
       if (sep < fov) {
-	// could access the elements without creating an object
-	// but I don't want to change existing code too much
-	const src = get_csc_object(srcrow);
+        // could access the elements without creating an object
+        // but I don't want to change existing code too much
+        const src = get_csc_object(srcrow);
 
-	const circle = props.annotations[i][2];
+        const circle = props.annotations[i][2];
         wwt.addAnnotation(circle);
-	props.shown.push(circle);
-	shown_srcs_ids.push(i);
+        props.shown.push(circle);
+        shown_srcs_ids.push(i);
 
-	// plot data
-	if (src.err_ellipse_r0 !== null && 
-	    src.err_ellipse_r1 !== null) {
-	  r0.push(src.err_ellipse_r0);
-	  r1.push(src.err_ellipse_r1);
-	}
+        // plot data
+        if (src.err_ellipse_r0 !== null &&
+            src.err_ellipse_r1 !== null) {
+          r0.push(src.err_ellipse_r0);
+          r1.push(src.err_ellipse_r1);
+        }
 
-	// For hardness ratio, we want to remove undefined values
-	// AND those that are pegged at +1 or -1, since the latter
-	// dominate the data and makes the plot hard to see
-	//
-	if ((src.hard_hm !== null) && 
-	    (src.hard_ms !== null) &&
-	    (src.hard_hm > -0.999) && (src.hard_hm < 0.999) &&
-	    (src.hard_ms > -0.999) && (src.hard_ms < 0.999)) {
-	  hr_hm.push(src.hard_hm);
-	  hr_ms.push(src.hard_ms);
-	}
-		
-	if ((src.acis_num !== null) && (src.acis_num > 0)) {
-	  acis_num.push(src.acis_num);
-	}
-	if ((src.hrc_num !== null) && (src.hrc_num > 0)) {
-	  hrc_num.push(src.hrc_num);
-	}
-		
-	if (src.significance !== null) {
-	  if (src.fluxband === "broad") {
-	    flux_b.push(src.flux);
-	    sig_b.push(src.significance);
-	  } else if (src.fluxband === "wide") {
-	    flux_w.push(src.flux);
-	    sig_w.push(src.significance);
-	  }
-	}
+        // For hardness ratio, we want to remove undefined values
+        // AND those that are pegged at +1 or -1, since the latter
+        // dominate the data and makes the plot hard to see
+        //
+        if ((src.hard_hm !== null) &&
+            (src.hard_ms !== null) &&
+            (src.hard_hm > -0.999) && (src.hard_hm < 0.999) &&
+            (src.hard_ms > -0.999) && (src.hard_ms < 0.999)) {
+          hr_hm.push(src.hard_hm);
+          hr_ms.push(src.hard_ms);
+        }
+
+        if ((src.acis_num !== null) && (src.acis_num > 0)) {
+          acis_num.push(src.acis_num);
+        }
+        if ((src.hrc_num !== null) && (src.hrc_num > 0)) {
+          hrc_num.push(src.hrc_num);
+        }
+
+        if (src.significance !== null) {
+          if (src.fluxband === "broad") {
+            flux_b.push(src.flux);
+            sig_b.push(src.significance);
+          } else if (src.fluxband === "wide") {
+            flux_w.push(src.flux);
+            sig_w.push(src.significance);
+          }
+        }
 
       }
     }
@@ -1080,7 +1080,7 @@ var wwt = (function () {
     // Combine the plot data
     //
     const out = {flux_b: null, flux_w: null, hr: null, poserr: null,
-		 obscount: null};
+                 obscount: null};
 
     if (flux_b.length > 0) {
       out.flux_b = {sig: sig_b, flux: flux_b};
@@ -1096,9 +1096,9 @@ var wwt = (function () {
 
     if (r0.length > 0) {
       const eccen = zip([r0, r1]).map((z) => {
-	const a = z[0];
-	const b = z[1];
-	return Math.sqrt(1 - b * b * 1.0 / (a * a));
+        const a = z[0];
+        const b = z[1];
+        return Math.sqrt(1 - b * b * 1.0 / (a * a));
       });
       out.poserr = {r0: r0, r1: r1, eccentricity: eccen};
     }
@@ -1217,7 +1217,7 @@ var wwt = (function () {
     catalogData.forEach(src => {
       const ann = makeSource(src);
       if (ann !== null) {
-	props.annotations.push(ann);
+        props.annotations.push(ann);
       }
     });
 
@@ -1251,7 +1251,7 @@ var wwt = (function () {
     chsData.forEach(coords => {
       const ann = makeCHS(coords);
       if (ann !== null) {
-	annotationsCHS.push(ann);
+        annotationsCHS.push(ann);
       }
     });
 
@@ -1274,7 +1274,7 @@ var wwt = (function () {
     catalog11Data.forEach(src => {
       const ann = makeSource11(src);
       if (ann !== null) {
-	props.annotations.push(ann);
+        props.annotations.push(ann);
       }
     });
 
@@ -1317,8 +1317,8 @@ var wwt = (function () {
     const dec = pos.get_dec();
 
     /***
-	console.log("User selected " + ra.toString() + " " +
-	dec.toString());
+        console.log("User selected " + ra.toString() + " " +
+        dec.toString());
     ***/
 
     clickMode(ra, dec);
@@ -1375,8 +1375,8 @@ var wwt = (function () {
     const fovs = stack_annotations[seps[0][2]];
     for (var j = 0; j < fovs.length; j++) {
       const old_fov = [fovs[j],
-		       fovs[j].get_lineColor(),
-		       fovs[j].get_lineWidth()];
+                       fovs[j].get_lineColor(),
+                       fovs[j].get_lineWidth()];
             
       fovs[j].set_lineColor('cyan');
       fovs[j].set_lineWidth(4);
@@ -1438,7 +1438,7 @@ var wwt = (function () {
       const sep = separation(ra0, dec0, ra, dec);
       if (sep <= maxSep) {
         seps.push([sep, srcid]);
-	maxSep = sep;
+        maxSep = sep;
       }
     }
 
@@ -1457,9 +1457,9 @@ var wwt = (function () {
     const src = catalogProps.csc20.annotations[selid][2];
 
     nearest_source = [src,
-		      src.get_lineColor(),
-		      src.get_fillColor(),
-		      src.get_opacity()];
+                      src.get_lineColor(),
+                      src.get_fillColor(),
+                      src.get_opacity()];
 
     src.set_lineColor(selectedSourceColor);
     src.set_fillColor(selectedSourceColor);
@@ -1514,18 +1514,18 @@ var wwt = (function () {
     // Set up the drag handlers
     //
     host.addEventListener('dragover',
-			  event => event.preventDefault());
+                          event => event.preventDefault());
     host.addEventListener('drop',
-			  event => draggable.stopDrag(event));
+                          event => draggable.stopDrag(event));
 
     ["#stackinfo", "#sourceinfo", "#preselected", "#plot"].forEach((n) => {
       const pane = host.querySelector(n);
       if (pane !== null) {
-	pane.draggable = true;
-	pane.addEventListener('dragstart',
-			      event => draggable.startDrag(event));
+        pane.draggable = true;
+        pane.addEventListener('dragstart',
+                              event => draggable.startDrag(event));
       } else {
-	console.log("INTERNAL error: unable to find '" + n + "'");
+        console.log("INTERNAL error: unable to find '" + n + "'");
       }
     });
 
@@ -1563,6 +1563,13 @@ var wwt = (function () {
       //
       loadStackEventVersions();
 
+      // Try and restore the user's last settings.
+      //
+      const selImg = window.localStorage.getItem('wwt-foreground');
+      if (selImg !== null) {
+        setImage(selImg);
+      }
+
       resetLocation();
       removeSetupBanner();
 
@@ -1572,9 +1579,9 @@ var wwt = (function () {
       //
       const panel = document.querySelector('#wwtusercontrol');
       if (panel === null) {
-	console.log("Internal error: unable to find #wwtusercontrol!");
+        console.log("Internal error: unable to find #wwtusercontrol!");
       } else {
-	panel.style.display = 'block';
+        panel.style.display = 'block';
       }
 
       trace("Finished wwtReadyFunc");
@@ -1713,14 +1720,14 @@ var wwt = (function () {
     }
 
     if (typeof timeout === "undefined") { timeout = 3; }
-	
+
     // what does a time out of 0 do?
     if (timeout <= 0) { timeout = 0; }
 
     const el = document.querySelector('#' + name);
     if (el === null) {
       console.log("Internal error [tooltip]: no element called '" +
-		  name + "'");
+                  name + "'");
       return;
     }
 
@@ -1728,7 +1735,7 @@ var wwt = (function () {
     const tt = document.querySelector('#' + tooltip);
     if (tt === null) {
       console.log("Internal error [tooltip]: no element called '" +
-		  tooltip + "'");
+                  tooltip + "'");
       return;
     }
 
@@ -1737,11 +1744,11 @@ var wwt = (function () {
     el.addEventListener("mouseenter", () => {
       clearToolTipTimer(name);
       const timer = setTimeout(() => {
-	tt.style.display = "inline";
-	const timer2 = setTimeout(() => {
-	  tt.style.display = "none";
-	}, timeout * 1000 );
-	tooltipTimers[name] = timer2;
+        tt.style.display = "inline";
+        const timer2 = setTimeout(() => {
+          tt.style.display = "none";
+        }, timeout * 1000 );
+        tooltipTimers[name] = timer2;
       }, 500);
       tooltipTimers[name] = timer;
 
@@ -1858,7 +1865,7 @@ var wwt = (function () {
     //
     host.querySelector("#export-samp")
       .addEventListener("click", () => {
-	wwtsamp.sendSourcePropertiesNear(source_ra, source_dec, source_fov);
+        wwtsamp.sendSourcePropertiesNear(source_ra, source_dec, source_fov);
       });
 
     host.querySelector("#plot-properties")
@@ -1988,10 +1995,10 @@ var wwt = (function () {
     if (wwtscreen.isFullScreen()) {
 
       if (wwtscreen.isEnteringFullScreen()) {
-	wwtscreen.clearEnteringFullScreen();
+        wwtscreen.clearEnteringFullScreen();
       } else {
-	el.innerHTML = 'Full screen';
-	wwtscreen.clearFullScreen();
+        el.innerHTML = 'Full screen';
+        wwtscreen.clearFullScreen();
       }
     } else if (el.innerHTML !== 'Full screen') {
       el.innerHTML = 'Full screen';
@@ -2072,11 +2079,11 @@ var wwt = (function () {
 
   function strToRA(str) {
     let sval = str.trim();
-	
+
     if (posFloat(sval)) {
       const ra = parseFloat(sval);
       if ((ra < 0) | (ra > 360.0)) {
-	return null;
+        return null;
       }
       return ra;
     }
@@ -2106,11 +2113,11 @@ var wwt = (function () {
     if (posFloat(sval)) {
       m = parseFloat(sval);
       if ((m < 0.0) || (m > 60.0)) {
-	return null;
+        return null;
       }
       return 15.0 * (h + (m / 60.0));
     }
-	    
+
     const mr = minRegex.exec(sval);
     if (mr === null) {
       return null;
@@ -2132,7 +2139,7 @@ var wwt = (function () {
     if (posFloat(sval)) {
       s = parseFloat(sval);
       if ((s < 0.0) || (s > 60.0)) {
-	return null;
+        return null;
       }
       return 15.0 * (h + (m + (s / 60.0)) / 60.0);
     }
@@ -2171,11 +2178,11 @@ var wwt = (function () {
 
   function strToDec(str) {
     var sval = str.trim();
-	
+
     if (anyFloat(sval)) {
       var dec = parseFloat(sval);
       if ((dec < -90) || (dec > 90.0)) {
-	return null;
+        return null;
       }
       return dec;
     }
@@ -2187,7 +2194,7 @@ var wwt = (function () {
     } else if (sval.startsWith('+')) {
       sval = sval.slice(1).trim();
     }
-	
+
     // Separators can be ' ', ':', 'd', 'm', 's', ' and "" although
     // some of these are positional (e.g. d/m/s)
     //
@@ -2214,11 +2221,11 @@ var wwt = (function () {
     if (posFloat(sval)) {
       var m = parseFloat(sval);
       if ((m < 0.0) || (m > 60.0)) {
-	return null;
+        return null;
       }
       return sign * (d + (m / 60.0));
     }
-	    
+
     const mr = dminRegex.exec(sval);
     if (mr === null) {
       return null;
@@ -2239,7 +2246,7 @@ var wwt = (function () {
     if (posFloat(sval)) {
       var s = parseFloat(sval);
       if ((s < 0.0) || (s > 60.0)) {
-	return null;
+        return null;
       }
       return sign * (d + (m + (s / 60.0)) / 60.0);
     }
@@ -2391,19 +2398,19 @@ var wwt = (function () {
     if (toks.length === 2) {
       const ra = strToRA(toks[0]);
       if (ra !== null) {
-	const dec = strToDec(toks[1]);
-	if (dec !== null) {
+        const dec = strToDec(toks[1]);
+        if (dec !== null) {
 
-	  var raVal = wwtprops.raToHTML(ra);
-	  var decVal = wwtprops.decToHTML(dec);
+          var raVal = wwtprops.raToHTML(ra);
+          var decVal = wwtprops.decToHTML(dec);
 
-	  const lbl = toks[0].trim() + ", " + toks[1].trim();
+          const lbl = toks[0].trim() + ", " + toks[1].trim();
 
-	  setPosition(ra, dec, lbl);
-	  reportLookupSuccess("Moving to " + raVal + " " +
-			      decVal);
-	  return;
-	}
+          setPosition(ra, dec, lbl);
+          reportLookupSuccess("Moving to " + raVal + " " +
+                              decVal);
+          return;
+        }
       }
     }
 
@@ -2412,22 +2419,22 @@ var wwt = (function () {
     //
     if (target.startsWith('2CXO J')) {
       if (haveCatalogData) {
-	const nameIdx = get_csc_colidx('name');
-	const matches = catalogData.filter(d => d[nameIdx] === target);
+        const nameIdx = get_csc_colidx('name');
+        const matches = catalogData.filter(d => d[nameIdx] === target);
 
-	// Take the first match if any (shouldn't be multiple matches)
-	//
-	if (matches.length > 0) {
-	  const ra = get_csc_row(matches[0], 'ra');
-	  const dec = get_csc_row(matches[0], 'dec');
-	  setPosition(ra, dec, target);
-	  reportLookupSuccess("Moving to " + target);
-	  return;
-	}
+        // Take the first match if any (shouldn't be multiple matches)
+        //
+        if (matches.length > 0) {
+          const ra = get_csc_row(matches[0], 'ra');
+          const dec = get_csc_row(matches[0], 'dec');
+          setPosition(ra, dec, target);
+          reportLookupSuccess("Moving to " + target);
+          return;
+        }
       } else {
-	reportLookupFailure('<p>The CSC 2.0 sources must be loaded ' +
-			    'before they can be used in a search.</p>');
-	return;
+        reportLookupFailure('<p>The CSC 2.0 sources must be loaded ' +
+                            'before they can be used in a search.</p>');
+        return;
       }
     }
 
@@ -2472,9 +2479,9 @@ var wwt = (function () {
       var msg;
       if (service) {
         msg = '<p>Location provided for ' + target +
-	  ' by ' + service + '.</p>';
+          ' by ' + service + '.</p>';
       } else {
-	msg = '<p>Location found.</p>';
+        msg = '<p>Location found.</p>';
       }
 
       // Augment this with ancillary information if available.
@@ -2483,8 +2490,8 @@ var wwt = (function () {
       // "Object of unknown category" which doesn't look good.
       //
       if (category && category.avmcode !== "") {
-	msg += "<p>Source category: <span class='source-category'>" +
-	  category.avmdesc + "</span></p>";
+        msg += "<p>Source category: <span class='source-category'>" +
+          category.avmdesc + "</span></p>";
       }
 
       reportLookupSuccess(msg);
@@ -2539,9 +2546,15 @@ var wwt = (function () {
 
   // Special case the DSS image, since can just hide the foreground image
   // in this case.
+  //
+  // This also changes the window localStorage field: 'wwt-foreground'
+  //
   function setImage(name) {
+    const key = 'wwt-foreground';
+
     if (name === "dss") {
       wwt.setForegroundOpacity(0.0);
+      window.localStorage.setItem(key, name);
       return;
     }
     const fullName = wtml[name];
@@ -2551,6 +2564,7 @@ var wwt = (function () {
     }
     wwt.setForegroundImageByName(fullName);
     wwt.setForegroundOpacity(100.0);
+    window.localStorage.setItem(key, name);
   }
 
   // The CSC2 data is returned as an array of values
@@ -2627,7 +2641,7 @@ var wwt = (function () {
   function processCatalogData(json, ctr) {
     if (json === null) {
       console.log("WARNING: unable to download catalog data " +
-		  ctr);
+                  ctr);
       return;
     }
 
@@ -2640,7 +2654,7 @@ var wwt = (function () {
       console.log("ERROR: The catalog data is not correctly formatted!");
       return;
     }
-	
+
     const diff = zip([catalogDataCols, json.cols]).reduce(
       (oflag, xs) => oflag || (xs[0] !== xs[1]),
       false);
@@ -2666,7 +2680,7 @@ var wwt = (function () {
     //
     for (var chunk of chunkedCatalogData) {
       for (var src of chunk) {
-	catalogData.push(src);
+        catalogData.push(src);
       }
     }
 
@@ -2746,7 +2760,7 @@ var wwt = (function () {
     for (let source of xmm_sources) {
       const ann = makeXMMSource(source);
       if (ann !== null) {
-	props.annotations.push(ann);
+        props.annotations.push(ann);
       }
     }
 
@@ -2767,14 +2781,14 @@ var wwt = (function () {
 
   function downloadCatalog20Data() {
       for (var i = 1; i <= NCHUNK; i++) {
-	downloadCatalogDataChunk(i);
+        downloadCatalogDataChunk(i);
       }
   }
 
   function downloadCatalogDataChunk(ctr) {
     if ((ctr < 1) || (ctr > NCHUNK)) {
       console.log("Internal error: downloadCatalogDataChunk sent ctr=" +
-		  ctr);
+                  ctr);
       return;
     }
 
@@ -2801,9 +2815,9 @@ var wwt = (function () {
 
     // Try without any cache-busting identifier
     httpRequest.open('GET', 'wwtdata/wwt_srcprop.' + ctr.toString() +
-		     '.json.gz');
+                     '.json.gz');
     httpRequest.responseType = 'json';
-    httpRequest.send();	
+    httpRequest.send();
 
   }
 
@@ -2833,7 +2847,7 @@ var wwt = (function () {
     // Try without any cache-busting identifier
     httpRequest.open('GET', 'wwtdata/chs.json');
     httpRequest.responseType = 'json';
-    httpRequest.send();	
+    httpRequest.send();
 
   }
 
@@ -2864,7 +2878,7 @@ var wwt = (function () {
     // Try without any cache-busting identifier
     httpRequest.open('GET', 'wwtdata/csc1.json.gz');
     httpRequest.responseType = 'json';
-    httpRequest.send();	
+    httpRequest.send();
 
   }
 
@@ -2890,7 +2904,7 @@ var wwt = (function () {
     // httpRequest.open('GET', 'xmm.json');
     httpRequest.open('GET', 'wwtdata/xmm.json.gz');
     httpRequest.responseType = 'json';
-    httpRequest.send();	
+    httpRequest.send();
 
   }
 
@@ -2922,30 +2936,30 @@ var wwt = (function () {
   // (i.e. not removed when no-longer needed).
   //
   return {initialize: initialize,
-	  reinitialize: wwtReadyFunc(),
+          reinitialize: wwtReadyFunc(),
           resize: resize,
-	  unload: unload,
+          unload: unload,
 
-	  clearNearestSource: clearNearestSource,
+          clearNearestSource: clearNearestSource,
           clearNearestStack: clearNearestStack,
-	  
-	  copyToClipboard: copyToClipboard,
 
-	  zoomToSource: zoomToSource,
-	  zoomToStack: zoomToStack,
+          copyToClipboard: copyToClipboard,
 
-	  addToolTipHandler: addToolTipHandler,
-	  removeToolTipHandler: removeToolTipHandler,
+          zoomToSource: zoomToSource,
+          zoomToStack: zoomToStack,
 
-	  // debug/testing access below
-	  //
-	  getWWTControl: function () { return wwt; },
+          addToolTipHandler: addToolTipHandler,
+          removeToolTipHandler: removeToolTipHandler,
+
+          // debug/testing access below
+          //
+          getWWTControl: function () { return wwt; },
             
-	  toggleCoordinateGrid: toggleCoordinateGrid,
+          toggleCoordinateGrid: toggleCoordinateGrid,
           toggleCrosshairs: toggleCrosshairs,
           toggleConstellations: toggleConstellations,
           toggleBoundaries: toggleBoundaries,
-	  
+
           setPosition: setPosition,
             
           hideSources: hideSources,
@@ -2955,16 +2969,16 @@ var wwt = (function () {
           toggleXMMSources: toggleXMMSources,
           toggleStacks: toggleStacks,
 
-	  toggleCHS: toggleCHS,
+          toggleCHS: toggleCHS,
 
-	  toggleFlexById: toggleFlexById,
+          toggleFlexById: toggleFlexById,
 
           showPreSelected: showPreSelected,
           hidePreSelected: hidePreSelected,
           togglePreSelected: togglePreSelected,
 
           findNearestStack: findNearestStack,
-	  
+
           toggleMW: toggleMW,
           toggleBanners: toggleBanners,
 
@@ -2974,26 +2988,26 @@ var wwt = (function () {
           setImage: setImage,
           setTargetName: setTargetName,
             
-	  zoom: zoom,
-	  zoomIn: zoomIn,
-	  zoomOut: zoomOut,
+          zoom: zoom,
+          zoomIn: zoomIn,
+          zoomOut: zoomOut,
 
-	  // 1.1 test
-	  loadSource11: downloadCatalog11Data,
+          // 1.1 test
+          loadSource11: downloadCatalog11Data,
 
-	  colorUpdate: colorUpdate,
-	  colorUpdate11: colorUpdate11,
-	  xmmColorUpdate: xmmColorUpdate,
+          colorUpdate: colorUpdate,
+          colorUpdate11: colorUpdate11,
+          xmmColorUpdate: xmmColorUpdate,
 
-	  changeSourceSize: changeSourceSize,
-	  changeSource11Size: changeSource11Size,
-	  changeXMMSourceSize: changeXMMSourceSize,
+          changeSourceSize: changeSourceSize,
+          changeSource11Size: changeSource11Size,
+          changeXMMSourceSize: changeXMMSourceSize,
 
-	  strToRA: strToRA, strToDec: strToDec,
+          strToRA: strToRA, strToDec: strToDec,
 
-	  getProps: () => catalogProps,
+          getProps: () => catalogProps,
 
-	  switchSelectionMode: switchSelectionMode
+          switchSelectionMode: switchSelectionMode
          };
     
 })();
