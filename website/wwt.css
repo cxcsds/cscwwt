@@ -1,0 +1,805 @@
+.pagetitle {
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 0.3em;
+}
+
+/* Tweak the header/footer for this page */
+
+body { margin: 0; }
+
+div.topbarcontainer { display: none; }
+div.bottombar { display: none; }
+
+/*
+div#cxcheader { display: none; }
+div#cxcfooter { display: none; }
+*/
+
+div#cxcheader {
+  background: none;
+  border-radius: 0;
+  -moz-border-radius: 0;
+  -webkit-border-radius: 0; 
+  padding: 0;
+  position: fixed;
+}
+
+div#cxcheaderleft { display: none; }
+div#cxcheaderright {
+  /*
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom-color: #D9D9D9;
+  border-left-color: #D9D9D9;
+  */
+  background: rgba(153, 204, 102, 0.8);
+  border-bottom-color: rgb(115, 172, 57);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-left-color: rgb(115, 172, 57);
+  border-left-style: solid;
+  border-left-width: 1px;
+  margin: 0;
+  position: fixed;
+  right: 0;
+}
+div#cxcheaderright ul {
+  float: left;
+}
+div#cxcheaderright ul li {
+  padding-top: 0;
+}
+div#cxcheaderright ul li a:hover {
+  /* background-color: rgba(255, 255, 255, 0.6); */
+  background-color: rgba(153, 204, 102, 0.8);
+}
+
+div#cxcfooter {
+  padding: 0;
+  position: fixed;
+}
+div#cxcfooterleft { display: none; }
+div#cxcfooterright ul { display: none; }
+div#cxcfooterright p {
+  /*
+  background: rgba(255, 255, 255, 0.6);
+  border-top-color: #D9D9D9;
+  */
+  background: rgba(153, 204, 102, 0.8);
+  border-top-color: rgb(115, 172, 57);
+  border-top-style: solid;
+  border-top-width: 1px;
+  bottom: 0;
+  margin: 0;
+  padding: 0.3em 0.5em 0 0.5em;
+  position: fixed;
+  width: 100%;
+}
+
+div.mainbar { padding: 0; }
+
+/* back to page elements */
+
+.filename { font-family: monospace; }
+.term { font-family: monospace; }
+
+div.stackid { font-family: monospace; }
+div.stackid output {
+  border: 1px solid gray;
+  border-radius: 0.4em;
+  display: inline-block;
+  padding: 0.2em;
+}
+
+output#stackid { width: 16em; }
+output#stackdesc { width: 25em; }
+
+div#WorldWideTelescopeControlHost {
+  overflow: hidden;
+/***
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+***/
+}
+
+/* Since this is not a selectable element, use a different style to
+ * the buttons
+ */
+#numbers, #selectionmode {
+  background-color: rgba(153, 204, 102, 0.8); /* #99CC66 made transparent */
+  border: 1px solid rgb(115, 172, 57); /* from http://www.colorhexa.com/99cc66 */
+  color: rgba(0, 0, 0, 0.8);
+  display: inline-block;
+  font-family: monospace;
+  margin-bottom: 0.4em;
+  padding: 0.5em;
+  text-align: center;
+  vertical-align: middle;
+  width: 15.8em; /* this seems to make it the same width as explanation */
+}
+
+#location {
+  background-color: rgba(153, 204, 102, 0.8); /* #99CC66 made transparent */
+  border: 1px solid rgb(115, 172, 57); /* from http://www.colorhexa.com/99cc66 */
+  color: rgba(0, 0, 0, 0.8);
+  font-family: monospace;
+  padding: 0.5em;
+  vertical-align: middle;
+}
+
+span#coordinate {
+  display: none;
+}
+span#explanation {
+  display: inline-block;
+  text-align: center;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+  width: 15.8em; /* this seems to make it the same width as explanation */
+}
+
+output.pos {
+  display: inline-block;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+  text-align: right;
+  width: 1.5em;
+}
+output#dec_d { width: 2em; }
+output#ra_s { width: 3.5em; }
+output#dec_s { width: 2.5em; }
+
+/* Should differentiate stack and source boxes */
+div#stackinfo , div#sourceinfo {
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid white;
+  cursor: move;
+  display: none;
+  overflow: auto;  /* scroll bar looks ugly when shown */
+  padding: 0;
+  position: absolute;
+  right: 2em;
+  top: 3em;
+}
+
+/* appear to need a max height/width given my grab/move code for
+   the windows. This feels wrong. */
+
+div#stackinfo {
+  max-height: 500px;
+  max-width: 650px;
+}
+
+div#sourceinfo {
+  /* background: rgba(255, 255, 255, 1); */
+
+  max-height: 700px;
+  max-width: 700px;
+}
+
+div#stackinfo div.main , div#sourceinfo div.main {
+  background: rgba(255, 255, 255, 1);
+}
+
+div#sourceinfo div.main img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div#sourceinfo div.main img#export-samp-source {
+  display: none;
+}
+
+.namelink {
+  font-size: small;
+  font-family: monospace;
+}
+
+div.not-semantic-name {
+  display: flex;
+  flex-direction: row;
+}
+
+div.coords {
+  font-weight: bold;
+  padding-bottom: 1em;
+  text-align: left;
+  flex: auto;
+}
+
+.requires-samp {
+  display: none;
+}
+
+div.samp {
+  text-align: right;  /* does this center the image? */
+  flex: auto;
+}
+
+/* note: using a table for layout as easy to do */
+
+div#sourceinfo td.label {
+  font-size: 100%;    /* there is a generic label which makes the font larger */
+  font-style: italic;
+  padding-right: 2em;
+}
+
+div#sourceinfo td.labellimit {
+  font-style: italic;
+  padding-left: 2em;
+  padding-right: 2em;
+}
+
+div.name {
+  background: rgba(255, 255, 255, 0.6);
+  float: left;
+  margin-bottom: 0;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  margin-top: 0.3em;
+  padding-bottom: 0.2em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-top: 0.2em;
+  vertical-align: middle;
+}
+
+button.close {
+  float: right;
+  /* font-size: x-small; */
+  /* position: fixed; */
+  /* vertical-align: middle; */
+}
+
+img.close {
+  cursor: pointer;
+  float: right;
+}
+
+#about > img.close , #credits > img.close {
+  margin-top: 0.5em;
+}
+
+#preselected > img.close , #stackinfo > img.close ,
+#sourceinfo > img.close , #plot > img.close {
+  margin-right: 0.4em;
+  margin-top: 0.4em;
+}
+
+
+div.iconarea {
+  /* background-color: rgba(255, 255, 255, 0.6); */
+  background-color: rgba(0, 0, 0, 0.3); /* adjusted to look like panel background */
+  border: 1px solid #D9D9D9;
+  border-radius: 0.5em;
+  clear: both;
+  float: left;
+  margin-bottom: 0.5em;
+  margin-right: 0.5em;
+  padding: 0.3em;
+}
+
+div.iconarea img {
+  padding-left: 0.25em;
+  padding-right: 0.25em;
+}
+
+
+div.main {
+  background: rgba(255, 255, 255, 0.6);  /* is this used anymore ? */
+  clear: both;
+  padding: 1em;
+}
+
+div.main div.basicinfo {
+  display: flex;
+  flex-direction: row;
+  font-size: smaller;
+}
+
+div.main div.basicinfo span.clipboard {
+  flex: auto;
+  padding-right: 1em;
+  text-align: left;
+}
+
+div.main div.basicinfo span.search {
+  flex: auto;
+  text-align: center;
+}
+
+div.main div.basicinfo span.zoomto {
+  flex: auto;
+  padding-left: 1em;
+  text-align: right;
+}
+
+/* is this needed
+div.basicinfo + br {
+  clear: both;
+}
+*/
+
+/* bootstrap-inspired styling */
+.button {
+  background-color: rgba(217, 83, 79, 0.8);  /* red-ish */
+  border: 1px solid rgb(212, 63, 58);
+  border-radius: 0.5em;
+  color: white;
+  cursor: pointer;
+  display: inline-block;
+  margin-top: 0.4em;
+  padding: 0.5em;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.button:hover {
+  background-color: rgba(210, 35, 45, 0.8);
+  border-color: rgb(172, 41, 37);
+  /* color: white; */
+  /* text-decoration: none; */
+}
+
+/* what is the best way to style this button when it is disbled? */
+.button:disabled {
+  /* color: rgba(255, 255, 255, 0.05); */
+  background-color: rgba(217, 83, 79, 0.4);  /* red-ish */
+}
+
+/* turn off "hover" on disabled */
+.button:disabled:hover {
+  background-color: rgba(217, 83, 79, 0.4);  /* red-ish */
+  border: 1px solid rgb(212, 63, 58);
+  cursor: pointer;
+}
+
+#sourcebar , #source11bar , #xmmsourcebar {
+  display: flex;
+  flex-direction: row;
+}
+
+#sourceprops , #source11props , #xmmsourceprops {
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid #D9D9D9;
+  border-radius: 0.5em;
+  display: none;
+  flex-direction: row;
+  left: 100%;
+  margin-left: 0.5em;
+  position: absolute;
+  transform: translateY(-100%);
+  -webkit-transform: translateY(-100%);
+}
+
+#togglesources , #togglesources11 , #toggleXMMsources {
+  flex: auto;
+}
+
+/* Looks like may need to explicitly replace margin/padding settings
+ * as seeing significant variationson different browsers
+ */
+#togglesourceprops , #togglesource11props , #togglexmmsourceprops {
+  border-radius: 0.5em;
+  display: none;
+  flex: 18px;
+  margin-left: 0.5em;
+  margin-top: 0.2em;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
+}
+
+#togglesourceprops img , #togglesource11props img , #togglexmmsourceprops img {
+  /* height: 1em; */
+}
+
+/* color buttons for sources */
+#sourcecolor , #source11color , #xmmsourcecolor {
+  border-radius: 0.5em;
+  height: 2em;
+  margin-left: 0.5em;
+  margin-bottom: 0.4em;
+  margin-top: 0.4em;
+  vertical-align: middle;
+  width: 2em;
+}
+
+#sourcesize , #source11size , #xmmsourcesize {
+  margin-right: 0.5em;
+  width: 4em;
+}
+
+#wwtuserbuttons {
+  padding-top: 0.5em;
+}
+
+#userSelection {
+  /* width: 100%; */
+}
+
+#resizeusercontrol {
+  cursor: pointer;
+  margin-right: 0.5em;
+  position: relative;
+}
+
+/*
+ * This seems to get a better result for the width of the tooltip than
+ * having the float attached to resizeusercontrol
+ */
+#resizeusercontrol img {
+  float: left;
+}
+
+#zoom0, #zoomin, #zoomout, #export-samp {
+}
+
+.usercontrol {
+  cursor: pointer;
+  float: right;
+  margin-left: 0.2em;
+  margin-right: 0.2em;
+}
+
+/* override pointer where appropriate */
+#zoomin {
+  cursor: zoom-in;
+}
+
+#zoomout {
+  cursor: zoom-out;
+}
+
+
+.with-tooltip-static , .with-tooltip {
+  position: relative;
+}
+
+.with-tooltip {
+  float: right;
+}
+
+/* ugly */
+.with-tooltip-static img {
+  float: left;
+}
+
+.tooltip {
+  background: black;
+  border: solid 1px white;  /* not 100% sure about this */
+  color: white;
+  display: none;
+  font-size: smaller;
+  left: 1em;
+  padding: 0.5em 1em;
+  position: absolute;
+  text-align: center;
+  top: 0.5em;
+}
+
+#smallify-tooptip , #biggify-tooltip {
+  width: 10em;
+}
+
+#zoomin-tooltip , #zoomout-tooltip {
+  width: 8em;
+}
+
+#zoom0-tooltip {
+  width: 18em;
+}
+
+#export-samp-tooltip {
+  width: 26em;
+}
+
+#plot-properties-tooltip {
+  width: 26em;
+}
+
+#targetName-tooltip {
+  top: 2em;
+  width: 15em;
+}
+
+#targetFind-tooltip {
+  top: 1.5em;
+}
+
+#refreshify {
+  cursor: pointer;
+  display: none; /* not quite ready for prime time */
+  float: right;
+}
+
+#smallify {
+  /* margin-bottom: 0.4em; */
+}
+
+#bigify {
+  display: none;
+}
+
+#register-samp {
+  display: none;
+}
+
+#export-samp {
+  display: none;
+}
+
+#plot-properties {
+  display: none;
+}
+
+#targetName {
+  margin-top: 0.4em;
+  width: 10em;
+}
+
+#targetFind img {
+  float: right;
+}
+
+#targetFind img {
+  height: 1em;
+}
+
+/* temporary information panes */
+#targetSuccess, #stackUpdateStatus {
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid white;
+  display: none;
+  max-width: 650px;
+  padding: 1em;
+  position: absolute;
+  top: 3em;
+  right: 1em;
+  z-index: 200;
+}
+
+#targetFailure {
+  background: white;
+  border: 2px solid rgba(255, 0, 0, 0.8);
+  display: none;
+  max-width: 650px;
+  padding: 1em;
+  position: absolute;
+  top: 3em;
+  right: 1em;
+  z-index: 200;
+}
+
+#wwtusercontrol {
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid #D9D9D9;
+  border-radius: 0.5em;
+  /* cursor: move;   currently have disabled drag on this window */
+
+  display: none;
+
+  left: 1em;
+  padding: 0.5em;
+  position: absolute;
+  top: 1em;
+  z-index: 100;
+}
+
+/* move down for narrow screens; guess at size, which looks to be
+   not that narrow */
+@media all and (max-width: 1000px) {
+  #wwtusercontrol {
+    top: 3em;
+  }
+}
+
+#wwtusercontrol p.title {
+  clear: both; /* do not share vertical space with the resize button */
+  font-variant: small-caps;
+  margin-bottom: 0.5em;
+  text-align: center;
+}
+
+img#csclogo {
+  display: block;
+  margin-bottom: 0.4em;  /* match span#numbers */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#imagechoice {
+}
+
+#togglesources {
+}
+
+#togglemw {
+}
+
+div#preselected {
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 2px solid #D9D9D9;
+  cursor: move;
+  display: none;
+  left: 2em;
+  padding: 0;
+  position: absolute;
+  top: 2em;
+}
+
+/* Use a grid to align the "zoom to location" buttons; should allow
+ * for fallback for those browsers which do not support grid CSS.
+ */
+div.gridable {
+  display: grid;
+  grid-gap: 0.2em;
+  grid-template-columns: repeat(5, 8em);
+}
+
+/* should look at using a grid for the toggle/help/credits buttons */
+
+#togglefullscreen {
+  display: none;
+}
+
+#togglebanners {
+  float: right;
+}
+
+/*
+ * Want the about/credits buttons to be on the same line; this is
+ * not pretty CSS...
+ */
+#showabout {
+  width: 48%;
+}
+
+#showcredits {
+  float: right;
+  width: 48%;
+}
+
+div.pane {
+  background: rgba(255, 255, 255, 1);
+  border: 2px solid rgba(0, 0, 0, 0.8);
+  bottom: 2em;
+  display: none;
+  left: 2em;
+  overflow: auto;  /* scroll bar looks ugly when shown */
+  padding-left: 1em;
+  padding-right: 1em;
+  position: absolute;
+  right: 2em;
+  top: 2em;
+}
+
+#welcome {
+  background: rgba(255, 255, 255, 1.0);
+  border: 2px solid black;
+  /* display: none; */
+  left: 50%;
+  max-width: 50em;
+  padding: 1em;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 300;
+  -webkit-transform: translate(-50%, -50%);
+  
+}
+
+#welcome h2 { text-align: center; }
+
+div#about , div#credits {
+  z-index: 150;
+}
+
+img.thumbnail {
+  float: left;
+  padding-right: 0.5em;
+}
+
+div.pane h2 {
+  text-align: center;
+}
+
+div.pane dt {
+  clear: left;  /* avoid thumbnail from preceeding item */
+}
+
+div.pane dl {
+  padding-bottom: 1em;
+}
+
+/*
+ * For some reason there is excess vertical space at the bottom of
+ * the page. This removes some of it.
+ */
+div.mainbar + br {
+  float: left;
+}
+
+
+/* plots */
+
+#plot {
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid gray;
+  cursor: move;
+  display: none;
+  left: 17em;
+  /* max-height: 170px; */
+  max-width: 800px;
+  overflow: auto;  /* scroll bar looks ugly when shown */
+  padding: 0;
+  position: absolute;
+  /* right: 2em; */
+  top: 3em;
+  z-index: 250;
+}
+
+#plotarea {
+  background: rgba(255, 255, 255, 1.0);
+  clear: both;
+  padding: 0.5em 1em;
+}
+
+div#plotchoice {
+  margin-bottom: 1em;
+}
+
+input.plotchoice { display: none; }
+
+label.plotchoice {
+  /* background-color: rgba(217, 83, 79, 0.8);  */ /* red-ish */
+  background-color: rgba(217, 83, 79, 0.7);  /* red-ish ; reduce opacity to make selected more obvious */
+  border: 1px solid rgb(212, 63, 58);
+  border-radius: 0.5em;
+  color: white;
+  cursor: pointer;
+  font-size: smaller;
+  margin-top: 0.4em;
+  padding: 0.5em;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%;
+}
+
+label.plotchoice:hover {
+  background-color: rgba(210, 35, 45, 0.8);
+  border-color: rgb(172, 41, 37);
+}
+
+input.plotchoice:checked + label.plotchoice {
+  background-color: rgba(217, 83, 79, 1.0);
+}
+
+#plot1area , #plot2area , #plot3area , #plot4area {
+  display: none;
+}
+
+div.overview {
+  border-top: solid 3px rgba(0, 0, 0, 0.6);
+  margin-bottom: 0.5em;
+}
+
+
+/* Try and look like a button */
+span.example-button {
+  background-color: rgba(217, 83, 79, 0.8);  /* red-ish */
+  border: 1px solid rgb(212, 63, 58);
+  border-radius: 0.5em;
+  color: white;
+  padding: 0 0.3em;
+  font-size: smaller;
+}
+
+/* Try and fit the glyphicons into text */
+img.example-icons {
+  height: 1em;
+}

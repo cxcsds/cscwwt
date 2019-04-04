@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE page>
+
+<page>
+  <!-- THIS FILE IS AUTO_GENERATED: SEE /data/dburke2/L3/rel2.0/status/make_page.py -->
+  <info>
+
+    <title>
+      <short>Processing status: CSC 2.0</short>
+    </title>
+    <navbar>main</navbar>
+    <version>2.0</version>
+
+    <css>
+h1 { text-align: center; }
+td { text-align: center; }
+.qlinkbar { text-align: center; }
+
+.filename { font-family: monospace; }
+.term { font-family: monospace; }
+
+div.cscimage {
+  left: auto;
+  right: auto;
+  text-align: center;
+}
+
+.caption {
+  text-align: center;
+}
+
+    </css>
+
+  </info>
+
+  <text>
+
+    <h1>Processing status of CSC 2.0</h1>
+    <div class="qlinkbar">
+      <cxclink href="news.html">What's New?</cxclink> |
+      <cxclink href="caveats.html">Watch Out</cxclink> 
+    </div>
+
+    <hr/>
+
+    <p>
+      This page is periodically updated to reflect the current
+      status of the CSC 2.0. Up until the Galactic center - which is,
+      by far, our largest set of overlapping
+      <dictionary id="stack">stacks</dictionary> - the observations were
+      processed in chunks, with all sources from a set of contiguous
+      stacks being processed together. As the Galactic center region
+      is so large, and is the only area of the sky left to process,
+      the sources are now being added to the 
+      <span class="term">Current Database</span>
+      as they get processed.
+      The list of stacks in CSC 2.0 and whether they have been
+      fully processed is available as the text file:
+      <cxclink class="filename"  href="stacks.txt">stacks.txt</cxclink>.
+    </p>
+
+    <p>
+      The catalog can also be viewed using the 
+      <cxclink href="wwt.html">WorldWide Telescope</cxclink>,
+      which lets users select stacks or sources.
+    </p>
+
+    <table class="csctable">
+      <!-- this date is not reliable
+      <caption id="tabular">
+	The last data added to CSC 2.0 was at
+	<span id="last-update">2019-03-29 20:34</span>.
+      </caption>
+      -->
+      <caption id="tabular">
+	The catalog was last checked at
+	<span id="last-update">2019-04-04 06:08</span>.
+      </caption>
+      <thead>
+	<tr>
+	  <th/>
+	  <th>Number processed</th>
+	  <th>Total number</th>
+	  <th>Completed</th>
+	</tr>
+      </thead>
+      <tbody>
+	<tr>
+	  <td>Sources</td>
+	  <td><span id="nsrc-proc">315875</span></td>
+	  <td><span id="nsrc-total">315884</span></td>
+	  <td><span id="nsrc-pcen">99%</span></td>
+	</tr>
+	<!-- the following aren't really much use any more
+             as they are being shown as 100%
+	<tr>
+	  <td><dictionary id="stack">Stacks</dictionary></td>
+	  <td><span id="nstk-proc">7287</span></td>
+	  <td><span id="nstk-total">7287</span></td>
+	  <td><span id="nstk-pcen">100%</span></td>
+	</tr>
+	<tr>
+	  <td><dictionary id="ensemble">Ensembles</dictionary></td>
+	  <td><span id="nens-proc">4404</span></td>
+	  <td><span id="nens-total">4404</span></td>
+	  <td><span id="nens-pcen">100%</span></td>
+	</tr>
+	-->
+      </tbody>
+    </table>
+
+    <!--
+    <div id="timeseries-sources" class="cscimage">
+      <img src="timeplot.png" alt="[The increase in the number of processed sources as a function of time. It increases in bursts, as sets of overlapping stacks finish processing.]"/>
+      <p class="caption">
+	The growth in the number of sources in CSC 2.0 as a function of time.
+      </p>
+    </div>
+
+    <div id="coverage-stacks" class="cscimage">
+      <img src="coverage_pcen.png" alt="[The percentage coverage of the sky, when binned in 2 hour (RA) and 15 degree (declination) chunks.]"/>
+      <p class="caption">
+	The percentage completeness of the stacks in Equatorial
+	coordinates, binned into 2<sup>h</sup> and 15&#176; blocks.
+	The contours show the approximate outline
+	of the Milky Way, and are taken from the
+	<extlink href="https://github.com/ofrohn/d3-celestial">d3-celestial project</extlink>, which converted the
+	original 
+	<extlink href="http://www.skymap.com/milkyway_cat.htm">Milky Way
+	  Outline Catalogs</extlink> data by
+	Jose R. Vieira.
+      </p>
+    </div>
+    -->
+
+  </text>
+</page>
+
