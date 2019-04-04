@@ -20,10 +20,6 @@ var wwt = (function () {
 
     var wwt;
 
-    // Id of the timer for the update code; if undefined then the
-    // timer is not running.
-    var updateId = undefined;
-
     // Why not ask WWT rather than keep track of these settings?
     //
     // Also, since they are initialized with a call to toggleXXX(),
@@ -200,6 +196,10 @@ var wwt = (function () {
     // (and, if not, do not change it)? For now use a label
     // to indicate it is unprocessed.
     //
+    // Note that the CSC 2.0 values (currently) have processed vs
+    // unprocessed, but also we are not setting the fill color,
+    // which is different from the other catalogs.
+    //
     function colorUpdate(val) {
 	const props = catalogProps.csc20;
 
@@ -315,7 +315,7 @@ var wwt = (function () {
         };
         
         var annotations = [];
-        var ctr = 1;
+        // var ctr = 1;
         for (var i = 0; i < stack.polygons.length; i++) {
 
             // First is inclusive, the rest are exclusive
@@ -351,40 +351,11 @@ var wwt = (function () {
                 wwt.addAnnotation(fov);
                 annotations.push(fov);
                 
-                ctr += 1;
+                // ctr += 1;
             }
         }
 
         stack_annotations[stack.stackid] = annotations;
-    }
-
-    // Update the annotation to match the latest status: at present
-    // this is just the edge color.
-    //
-    // Changes stack_annotations
-    // 
-    function updateStackFOV(stack, status) {
-        var edge_color = "gold";
-        var line_width = 2;
-        // Assumption is that most stacks are processed now, so use
-        // the processed values as the default.
-        if (!status) {
-            edge_color = "grey";
-            line_width = 1;
-        }
-        stack_annotations[stack].forEach(fov => {
-            fov.set_lineColor(edge_color);
-            fov.set_lineWidth(line_width);
-        });
-    }
-
-    // Updates the stack FOV outlines to match the latest status
-    // stored in input_stackdata. It might make sense to only change
-    // those that need changing, but at present that requires a
-    // bit of thinking about, so do it this way for now.
-    //
-    function updateStacks() {
-        input_stackdata.stacks.forEach(stack => updateStackFOV(stack.stackid, stack.status));
     }
 
     // timeout is in seconds; a value <= 0 means no timeout
@@ -403,30 +374,10 @@ var wwt = (function () {
 
         if (timeout <= 0) { return; }
         
-        const cb = () => pane.style.display = 'none';
+        const cb = () => { pane.style.display = 'none' };
         setTimeout(cb, timeout * 1000);
     }
     
-    // briefly inform the user that the database has been changed
-    //
-    function reportUpdate(changed) {
-        if (changed.changed === 0) { return; }
-
-        var msg = changed.updated + " - ";
-        
-        var plural = "";
-        if (Math.abs(changed.changed) > 1) { plural = "s"; }
-
-        if (changed.changed > 0) {
-            msg += "completed ";
-        } else {
-            msg += "changed ";
-        }
-
-        msg += changed.changed.toString() + " stack" + plural + ".";
-        reportUpdateMessage(msg);
-    }
-
     // Note: set fill color if it has not been processed yet - not ideal
     //       as no way to change this color.
     //
@@ -587,7 +538,7 @@ var wwt = (function () {
         // most of id=ol1 isn't actually shown by WWT (as the polyline
         // is too large).
         //
-        var ctr = 1;
+        // var ctr = 1;
         for (var f = 0; f < mw.features.length; f++) {
 
             var features = mw.features[f];
@@ -595,7 +546,7 @@ var wwt = (function () {
                 (features.type !== 'Feature') ||
                 (typeof features.id === 'undefined') ||
                 (typeof features.geometry === 'undefined') ||
-                (typeof features.geometry.type == 'undefined') ||
+                (typeof features.geometry.type === 'undefined') ||
                 (features.geometry.type !== 'MultiPolygon')) {
                 console.log("MW problem with feature " + f.toString());
                 return;
@@ -642,7 +593,7 @@ var wwt = (function () {
 
                 mw_outlines.push(outline);
                 
-                ctr += 1;
+                // ctr += 1;
             }
         }
 
@@ -838,17 +789,15 @@ var wwt = (function () {
     }
     
     function toggleStacks() {
-        var func, label, opacity;
+        var func, label;
         if (stacks_shown) {
             func = wwt.removeAnnotation;
             label = 'Show Stack Outlines';
             stacks_shown = false;
-            opacity = 0.2;
         } else {
             func = wwt.addAnnotation;
             label = 'Hide Stack Outlines';
             stacks_shown = true;
-            opacity = 0.8;
         }
 
         for (var stack in stack_annotations) {
@@ -1244,18 +1193,13 @@ var wwt = (function () {
     // (this can be -ve, or 0 but still stacks have changed, but
     // not worth tracking this complexity here).
     //
+    // Note: this is used to set up the original data as well
+    // as the now-removed update functionality. Should really
+    // rename.
+    //
     function updateCompletionInfo(status, stackdata) {
 
         const nstack_total = stackdata.stacks.length;
-
-        /* add in completion status from status.stacks[stackid] to
-           stackdata */
-        var old_done = 0;
-        if (typeof stackdata.stacks[0].status !== "undefined") {
-            for (var i = 0; i < nstack_total; i++) {
-                if (stackdata.stacks[i].status) { old_done += 1; }
-            }
-        }
 
         var lmod_start, lmod_end;
         for (var i = 0; i < nstack_total; i++) {
@@ -1280,40 +1224,17 @@ var wwt = (function () {
         stackdata.completed_start = lmod_start;
         stackdata.completed_end = lmod_end;
         
-        const nstack_proc = stackdata.stacks.filter(function (d) {
-            return d.status; }).length;
-
-        // var pcen = 100.0 * nstack_proc / nstack_total;
-        // pcen = Math.floor(pcen);
-
-        /***  two decimal places is too much
-        pcen = Math.floor(pcen * 100);
-        pcen = pcen / 100.0;
-        ***/
-	
-	/*
-        document.getElementById('nstack_proc').innerHTML = '' + nstack_proc;
-        document.getElementById('nstack_proc_pcen').innerHTML = '' + pcen;
-	*/
-
         document.querySelector('#nsrc_proc').innerHTML = '' +
 	    status.srcs_proc;
         document.querySelector('#nsrc_proc_pcen').innerHTML = '' +
 	    status.srcs_pcen;
 
-        /***
-        document.getElementById('nstack_total').innerHTML = '' + nstack_total;
-        ***/
-        
-        // document.getElementById('lastmod').innerHTML = status.lastupdate;
         document.querySelector('#lastmod').innerHTML = status.lastupdate_db;
 
-        return {updated: status.lastupdate,
-                changed: nstack_proc - old_done};
     }
 
     function setTargetName(name) {
-        if (typeof name === undefined) { name = ""; }
+        if (typeof name === 'undefined') { name = ""; }
         name = name.trim();
         
         document.querySelector('#targetName').value = name;
@@ -1657,14 +1578,6 @@ var wwt = (function () {
             resetLocation();
 	    removeSetupBanner();
 
-            // Set up the auto-update to reload the CSC2 status file
-            // and update the UI appropriately.
-            //
-	    // Actually, given the update frequency for the source
-	    // properties is now at best 6-hourly, remove this.
-	    //
-            // setUpdateInterval(30);
-
 	    wwtsamp.setup(reportUpdateMessage, trace);
 
 	    // Display the control panel
@@ -1694,9 +1607,9 @@ var wwt = (function () {
         // Expect the stackid to be 23 or 24 characters long,
         // with the coordinates in (6,20) or (5,19)
         var coords;
-        if (stackid.length == 24) {
+        if (stackid.length === 24) {
             coords = stackid.slice(6, 20);
-        } else if (stackid.length == 23) {
+        } else if (stackid.length === 23) {
             coords = stackid.slice(5, 19);
         } else {
             // just return an invalid position
@@ -1711,7 +1624,7 @@ var wwt = (function () {
         // a decimal point, so need to correct that here
         const ra = 15.0 * (ras[0] + (ras[1] + (ras[2] / 600.0)) / 60.0);
         let dec = decs[0] + (decs[1] + (decs[2] / 60.0)) / 60.0;
-        if (coords[7] == 'm') { dec *= -1; }
+        if (coords[7] === 'm') { dec *= -1; }
         return [ra, dec];
     }
 
@@ -1998,19 +1911,6 @@ var wwt = (function () {
 	} else {
 	    trace("no full screen support :-(");
 	}
-
-        // Trigger a refresh and reset the timer (at the moment always
-        // reset the timer since there's no UI for stopping the timer,
-        // only low-level access to this functionality).
-        //
-	/*** CURRENTLY UNUSED
-        document.getElementById("refreshify")
-            .addEventListener("click",
-                              function() {
-                                  updateUI();
-                                  setUpdateInterval(30);
-                              });
-	***/
 
         // Start up the WWT initialization and then load in
         // the current status.
@@ -2395,7 +2295,7 @@ var wwt = (function () {
         pane.style.display = "inline-block";
 
         if (close) {
-            const cb = () => pane.style.display = 'none';
+            const cb = () => { pane.style.display = 'none' };
             setTimeout(cb, 4000);  // 4 seconds
         }
 
@@ -2668,84 +2568,6 @@ var wwt = (function () {
         wwt.setForegroundOpacity(100.0);
     }
 
-    // How often should the update code be called (to reload
-    // the stack status information and to update the UI)? The
-    // argument is in minutes and a value <= 0 removes the
-    // timer.
-    //
-    // nmins is assumed to be an integer but it isn't required
-    // (the display message may not be nicely formatted).
-    //
-    // TODO: the 'status updates every ...' message is not useful
-    //       when a manual refresh is selected; what is the best text
-    //       for this? Maybe no text from this, and just make
-    //       sure that updateUI reports "no changes".
-    //
-    function setUpdateInterval(nmins) {
-        if (typeof update_id !== undefined) {
-            clearInterval(updateId);
-            updateId = undefined;
-        }
-
-        if (nmins <= 0) {
-            reportUpdateMessage("Cancelled automatic updates.");
-            return;
-        }
-        
-        const updateInterval = nmins * 60 * 1000;
-        var plural = "s";
-        if (nmins == 1) { plural = ""; }
-        const msg = "Status updates every " + nmins.toString() + " minute" +
-            plural + ".";
-        
-        updateId = setInterval(updateUI, updateInterval);
-        reportUpdateMessage(msg);
-    }
-    
-    /*
-     * Query for the latest stack status information and then
-     * update the UI with this information.
-     *
-     * Should the timer be stopped if there's an error?
-     */
-    function updateUI() {
-        const httpRequest = new XMLHttpRequest();
-        if (!httpRequest) {
-            alert("Unable to create a XMLHttpRequest!");
-            return;
-        }
-        httpRequest.addEventListener("load", () => {
-            const status = httpRequest.response;
-            const changed = updateCompletionInfo(status, input_stackdata);
-            if (changed.changed !== 0) {
-                updateStacks();
-                reportUpdate(changed);
-            }
-        });
-        httpRequest.addEventListener("error", () => {
-            // alert("Unable to download the status of the CSC!");
-            //
-            // Do we assume this is a transient failure, and allow
-            // the load to retry, or something more serious and stop
-            // the download? $eally want some sort
-            // of a UI element that indicates whether the update is
-            // running or not, and can be changed.
-            //
-            // For now, cancel the update as it seems the safest
-            // idea.
-            //
-            // clearInterval(updateId);
-            // updateId = undefined;
-        });
-
-        // Do I need to add a cache-busting identifier?
-        httpRequest.open('GET',
-                         'wwtdata/wwt_status.json?' +
-                         (new Date()).getTime());
-        httpRequest.responseType = 'json';
-        httpRequest.send();
-    }
-
     // The CSC2 data is returned as an array of values
     // which we used to convert to a Javascript object (ie
     // one per row) since it makes it easier to handle.
@@ -2806,7 +2628,7 @@ var wwt = (function () {
     //
     function get_csc_object(row) {
 	const out = Object.create({});
-	zip([catalogDataCols, row]).forEach(el => out[el[0]] = el[1]);
+	zip([catalogDataCols, row]).forEach(el => { out[el[0]] = el[1] });
 	return out
 
     }
@@ -2835,7 +2657,7 @@ var wwt = (function () {
 	}
 	
 	const diff = zip([catalogDataCols, json.cols]).reduce(
-	    (oflag, xs) => oflag || (xs[0] != xs[1]),
+	    (oflag, xs) => oflag || (xs[0] !== xs[1]),
 	    false);
 	if (diff) {
 	    console.log("ERROR: invalid CSC schema!");
@@ -2892,7 +2714,6 @@ var wwt = (function () {
 
     }
 
-    var haveXMMData = false;
     function processXMMData(json) {
 	if (json === null) {
 	    console.log("WARNING: unable to download XMM catalog data");
@@ -2916,8 +2737,6 @@ var wwt = (function () {
 		props.annotations.push(ann);
 	    }
         }
-
-	haveXMMData = true;
 
 	// Let the user know they can "show XMM sources"
 	//
@@ -3104,9 +2923,6 @@ var wwt = (function () {
             setImage: setImage,
             setTargetName: setTargetName,
             
-            updateUI: updateUI,
-            setUpdateInterval: setUpdateInterval,
-
 	    zoom: zoom,
 	    zoomIn: zoomIn,
 	    zoomOut: zoomOut,
