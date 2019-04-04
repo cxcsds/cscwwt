@@ -63,11 +63,17 @@ var wwt = (function () {
   //
   //
   const catalogProps = {
-    csc20: { color: 'cyan', size: 5.0 / 3600.0,
+    csc20: { label: 'CSC2.0', button: '#togglesources',
+	     changeWidget: '#sourceprops',
+	     color: 'cyan', size: 5.0 / 3600.0,
 	     annotations: null, shown: null },
-    csc11: { color: 'orange', size: 7.0 / 3600.0,
+    csc11: { label: 'CSC1.1', button: '#togglesources11',
+	     changeWidget: 'source11props',
+	     color: 'orange', size: 7.0 / 3600.0,
 	     annotations: null, shown: null },
-    xmm: { color: 'green', size: 10.0 / 3600.0,
+    xmm: { label: 'XMM', button: '#toggleXMMsources',
+	   changeWidget: 'xmmsourceprops',
+	   color: 'green', size: 10.0 / 3600.0,
 	   annotations: null, shown: null }
   };
 
@@ -219,11 +225,11 @@ var wwt = (function () {
   // set of annotations. properties is an object with color
   // and annotations fields.
   //
-  function makeColorUpdate(properties) {
+  function makeColorUpdate(props) {
     return (val) => {
       const color = '#' + val;
-      properties.color = color;
-      properties.annotations.forEach(ann => {
+      props.color = color;
+      props.annotations.forEach(ann => {
 	const cir = ann[2];
 	cir.set_lineColor(color);
 	cir.set_fillColor(color);
@@ -238,7 +244,7 @@ var wwt = (function () {
   // set of annotations. properties is an object with size
   // and annotations fields.
   //
-  function makeSizeUpdate(properties) {
+  function makeSizeUpdate(props) {
     return (newSize) => {
       if (newSize <= 0) {
 	console.log("Invalid source size: [" + newSize + "]");
@@ -246,8 +252,8 @@ var wwt = (function () {
       }
 
       const size = newSize * 1.0 / 3600.0;
-      properties.size = size;
-      properties.annotations.forEach(ann => ann[2].set_radius(size));
+      props.size = size;
+      props.annotations.forEach(ann => ann[2].set_radius(size));
     };
   }
 
@@ -377,7 +383,23 @@ var wwt = (function () {
     const cb = () => { pane.style.display = 'none' };
     setTimeout(cb, timeout * 1000);
   }
-    
+  
+  // Return an "annotation", which is a three-element array containing
+  //    ra, dec, circle
+  //
+  function makeAnnotation(ra, dec, size, lineWidth, lineColor, fillColor, fillFlag, opacity) {
+    const cir = wwt.createCircle(fillFlag);
+    cir.setCenter(ra, dec);
+    cir.set_skyRelative(true);
+    cir.set_radius(size);
+    cir.set_lineWidth(lineWidth);
+    cir.set_lineColor(lineColor);
+    cir.set_fillColor(fillColor);
+    cir.set_opacity(opacity);
+
+    return [ra, dec, cir];
+  }
+
   // Note: set fill color if it has not been processed yet - not ideal
   //       as no way to change this color.
   //
@@ -390,99 +412,48 @@ var wwt = (function () {
       return null;
     }
 
-    // const fill_flag = false;
-    const fill_flag = true;
-        
-    const fill_color = "white";
-    const line_width = 1;
-    const opacity = 0.1;
-
-    const circle = wwt.createCircle(fill_flag);
-
-    circle.setCenter(src.ra, src.dec);
-        
-    // radius in degrees of arc, so pick a small size
-    // I started with one arcsecond but it wasn't very visible
-    circle.set_skyRelative(true);
-    circle.set_radius(catalogProps.csc20.size);
+    const lineColor = src.nh_gal === null ? 'grey' :
+      catalogProps.csc20.color;
+    const fillColor = src.nh_gal === null ? 'grey' : 'white';
+    
+    const ann = makeAnnotation(src.ra, src.dec, catalogProps.csc20.size,
+			       1, lineColor, fillColor, true, 0.1);
 
     // Note: add a label to indicate that this is unprocessed, so we know not to
     //       change the color later.
     //
     if (src.nh_gal === null) {
-      circle.set_lineColor("grey");  // "#FFA500"
-      circle.set_fillColor("grey");  // "#FFA500"
-      circle.set_label('unprocessed');
-    } else {
-      circle.set_lineColor(catalogProps.csc20.color);
-      circle.set_fillColor(fill_color);
+      ann[2].set_label('unprocessed');
     }
 
-    circle.set_lineWidth(line_width);
-    circle.set_opacity(opacity);
-
-    return [src.ra, src.dec, circle];
+    return ann;
   }
     
   function makeSource11(src) {
-
-    // const fill_flag = false;
-    const fill_flag = true;
-
-    const line_width = 1;
-    const opacity = 0.2;
+    if ((src.ra === null) || (src.dec == null)) {
+      console.log("Err, no location for CSC 1.1 source:");
+      console.log(src);
+      return null;
+    }
 
     const color = catalogProps.csc11.color;
-
-    const circle = wwt.createCircle(fill_flag);
-
-    circle.setCenter(src.ra, src.dec);
-        
-    circle.set_skyRelative(true);
-
-    circle.set_radius(catalogProps.csc11.size);
-
-    circle.set_lineColor(color);
-    circle.set_fillColor(color);
-
-    circle.set_lineWidth(line_width);
-    circle.set_opacity(opacity);
-
-    return [src.ra, src.dec, circle];
+    return makeAnnotation(src.ra, src.dec, catalogProps.csc11.size,
+			  1, color, color, true, 0.1);
   }
     
   function makeXMMSource(src) {
 
     const ra = src[0];
     const dec = src[1];
-
     if ((ra === null) || (dec === null)) {
       console.log("Err, no location for XMM source:");
       console.log(src);
       return null;
     }
 
-    // const fill_flag = false;
-    const fill_flag = true;
-
-    const line_width = 1;
-    const opacity = 0.1;
-
     const color = catalogProps.xmm.color;
-
-    const circle = wwt.createCircle(fill_flag);
-
-    circle.setCenter(ra, dec);
-        
-    circle.set_skyRelative(true);
-    circle.set_radius(catalogProps.xmm.size);
-        
-    circle.set_lineColor(color);
-    circle.set_fillColor(color);
-    circle.set_lineWidth(line_width);
-    circle.set_opacity(opacity);
-
-    return [ra, dec, circle];
+    return makeAnnotation(ra, dec, catalogProps.xmm.size,
+			  1, color, color, true, 0.1);
   }
     
   // Let's see how the WWT does with all the stacks
@@ -668,63 +639,127 @@ var wwt = (function () {
     }
   }
 
-  // This also changes the "select stack/source" label
+  // Create the function to show the catalog.
+  //   properties is the catalogProps.catalog field
   //
-  function toggleSources() {
-    if (!haveCatalogData) {
-
-      const el = document.querySelector('#togglesources');
-      el.innerHTML = 'Loading CSC2.0 Sources';
-      el.disabled = true;
-
-      for (var i = 1; i <= NCHUNK; i++) {
-	downloadCatalogData(i);
+  function makeShowCatalog(props) {
+    return () => {
+      if (props.annotations === null) {
+	console.log('Internal error: showCatalog ' + props.label +
+		    ' called when no data exists!');
+	return;
       }
-      return;
-    }
 
-    if (catalogProps.csc20.shown === null) {
-      showSources();
-    } else {
-      hideSources();
-    }
+      // Shouldn't be any shown, but just in case.
+      //
+      if (props.shown !== null) {
+	props.shown.forEach(wwt.removeAnnotation);
+	props.shown = null;
+      }
+
+      const ra0 = 15.0 * wwt.getRA(); // convert from hours
+      const dec0 = wwt.getDec();
+      const fov = wwt.get_fov();
+
+      // The following forEach loop can alter props.shown
+      //
+      props.shown = [];
+      props.annotations.forEach((d) => {
+	const sep = separation(ra0, dec0, d[0], d[1]);
+	if (sep < fov) {
+	  const ann = d[2];
+	  wwt.addAnnotation(ann);
+	  props.shown.push(ann);
+	}
+      });
+
+      if (props.shown.length === 0) {
+	reportUpdateMessage('No ' + props.label +
+			    ' sources found in this area of the sky.');
+	return;
+      }
+
+      document.querySelector(props.button).innerHTML =
+	'Hide ' + props.label + ' Sources';
+    };
   }
 
-  function toggleSources11() {
-    if (!haveCatalog11Data) {
+  // Create the function to hide the catalog.
+  //   properties is the catalogProps.catalog field
+  //
+  function makeHideCatalog(props) {
+    return () => {
+      if (props.annotations === null) {
+	console.log('Internal error: hideCatalog ' + props.label +
+		    ' called when no data exists!');
+	return;
+      }
 
-      const el = document.querySelector('#togglesources11');
-      el.innerHTML = 'Loading CSC1.1 Sources';
-      el.disabled = true;
+      if (props.shown === null) {
+	console.log('Internal error: hideCatalog ' + props.label +
+		    ' called when no data plotted!');
+	return;
+      }
 
-      downloadCatalog11Data();
-      return;
-    }
+      props.shown.forEach(wwt.removeAnnotation);
+      props.shown = null;
 
-    if (catalogProps.csc11.shown === null) {
-      showSources11();
-    } else {
-      hideSources11();
-    }
+      document.querySelector(props.button).innerHTML =
+	'Show ' + props.label + ' Sources';
+
+      hideElement(props.changeWidget);
+
+    };
   }
 
-  function toggleXMMSources() {
-    if (catalogProps.xmm.annotations === null) {
+  // properties is the element in catalogProps
+  // download is the download function to call (no arguments);
+  //   it must set the annotations field of the properties object
+  // show is the function to show the sources, hide to hide them
+  // (no arguments); if these are undefined then use
+  // makeShowCatalog/makeHideCatalog to create them.
+  //
 
-      const el = document.querySelector('#toggleXMMsources');
-      el.innerHTML = 'Loading XMM Sources';
-      el.disabled = true;
+  function makeToggleCatalog(props, download, show, hide) {
 
-      downloadXMMData();
-      return;
+    if (typeof show === 'undefined') {
+      show = makeShowCatalog(props);
     }
 
-    if (catalogProps.xmm.shown === null) {
-      showXMMSources();
-    } else {
-      hideXMMSources();
+    if (typeof hide === 'undefined') {
+      hide = makeHideCatalog(props);
     }
+
+    return () => {
+      if (props.annotations === null) {
+	const el = document.querySelector(props.button);
+	el.innerHTML = 'Loading ' + props.label + ' Sources';
+	el.disabled = true;
+
+	download();
+	return;
+      }
+
+      if (props.shown === null) {
+	show();
+      } else {
+	hide();
+      }
+    };
   }
+
+
+  const toggleSources = makeToggleCatalog(catalogProps.csc20,
+					  downloadCatalog20Data,
+					  showSources,
+					  hideSources);
+  const toggleSources11 = makeToggleCatalog(catalogProps.csc11,
+					    downloadCatalog11Data);
+;
+  const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
+					     downloadXMMData);
+
+
 
   function toggleFlexById(elname) {
     const el = document.querySelector('#' + elname);
@@ -825,7 +860,7 @@ var wwt = (function () {
       // assume that the label can only have been changed
       // if the sources have been loaded
       document.querySelector('#togglesources').innerHTML =
-	'Show CSC 2.0 Sources';
+	'Show CSC2.0 Sources';
     }
 
     document.querySelector('#selectionmode').innerHTML =
@@ -874,7 +909,7 @@ var wwt = (function () {
 
     // could cache these
     document.querySelector('#togglesources').innerHTML =
-      'Hide CSC 2.0 Sources';
+      'Hide CSC2.0 Sources';
     document.querySelector('#selectionmode').innerHTML =
       'Select nearest source';
 
@@ -1039,137 +1074,6 @@ var wwt = (function () {
     return true;
   }
 
-  // Follow showXMMSources/hideXMMSources for CSC 1.1
-  //
-  function showSources11() {
-    const props = catalogProps.csc11;
-
-    if (props.annotations === null) {
-      console.log("Internal error: showSources11 called when no data exists!");
-      return;
-    }
-
-    // Shouldn't be any shown, but just in case.
-    //
-    if (props.shown !== null) {
-      props.shown.forEach(wwt.removeAnnotation);
-      props.shown = null;
-    }
-
-    const ra0 = 15.0 * wwt.getRA(); // convert from hours
-    const dec0 = wwt.getDec();
-    const fov = wwt.get_fov();
-
-    // The following forEach loop can alter props.shown
-    //
-    props.shown = [];
-    props.annotations.forEach((d) => {
-      const sep = separation(ra0, dec0, d[0], d[1]);
-      if (sep < fov) {
-	const ann = d[2];
-	wwt.addAnnotation(ann);
-	props.shown.push(ann);
-      }
-    });
-
-    if (props.shown.length === 0) {
-      reportUpdateMessage("No CSC 1.1 sources found in this area of the sky.");
-      return;
-    }
-
-    document.querySelector('#togglesources11').innerHTML =
-      'Hide CSC1.1 Sources';
-  }
-
-  function hideSources11() {
-    const props = catalogProps.csc11;
-
-    if (props.annotations === null) {
-      console.log("Internal error: hideSources11 called when no data exists!");
-      return;
-    }
-
-    if (props.shown === null) {
-      console.log("Internal error: hideSources11 called when no data plotted!");
-      return;
-    }
-
-    props.shown.forEach(wwt.removeAnnotation);
-    props.shown = null;
-
-    document.querySelector('#togglesources11').innerHTML =
-      'Show CSC1.1 Sources';
-
-    hideElement('source11props');
-
-  }
-
-  // What happens if we try to show all XMM sources?
-  // Not very responsive. So use a circle again (but don't add
-  // a circle marker)
-  //
-  function showXMMSources() {
-    const props = catalogProps.xmm;
-
-    if (props.annotations === null) {
-      console.log("Internal error: showXMMSources called when no data exists!");
-      return;
-    }
-
-    // Shouldn't be any shown, but just in case.
-    //
-    if (props.shown !== null) {
-      props.shown.forEach(wwt.removeAnnotation);
-      props.shown = null;
-    }
-
-    const ra0 = 15.0 * wwt.getRA(); // convert from hours
-    const dec0 = wwt.getDec();
-    const fov = wwt.get_fov();
-
-    // The following forEach loop can alter props.shown
-    //
-    props.shown = [];
-    props.annotations.forEach((d) => {
-      const sep = separation(ra0, dec0, d[0], d[1]);
-      if (sep < fov) {
-	const ann = d[2];
-	wwt.addAnnotation(ann);
-	props.shown.push(ann);
-      }
-    });
-
-    if (props.shown.length === 0) {
-      reportUpdateMessage("No XMM sources found in this area of the sky.");
-      return;
-    }
-
-    document.querySelector('#toggleXMMsources').innerHTML =
-      'Hide ' + xmm_catalog + ' Sources';
-  }
-
-  function hideXMMSources() {
-    const props = catalogProps.xmm;
-
-    if (props.annotations === null) {
-      console.log("Internal error: hideXMMSources called when no data exists!");
-      return;
-    }
-
-    if (props.shown === null) {
-      console.log("Internal error: hideXMMSources called when no data plotted!");
-      return;
-    }
-
-    props.shown.forEach(wwt.removeAnnotation);
-    props.shown = null;
-
-    document.querySelector('#toggleXMMsources').innerHTML =
-      'Show ' + xmm_catalog + ' Sources';
-
-    hideElement('xmmsourceprops');
-
-  }
 
   // Return the angular sepration between the two points
   // Based on https://en.wikipedia.org/wiki/Great-circle_distance
@@ -2722,6 +2626,11 @@ var wwt = (function () {
     xmm_sources = json.sources;
 
     const props = catalogProps.xmm;
+
+    console.log(' from [' + props.label + ']');
+    props.label = xmm_catalog;
+    console.log('   to [' + props.label + ']');
+
     props.annotations = [];
     for (let source of xmm_sources) {
       const ann = makeXMMSource(source);
@@ -2745,9 +2654,15 @@ var wwt = (function () {
 
   }
 
-  function downloadCatalogData(ctr) {
+  function downloadCatalog20Data() {
+      for (var i = 1; i <= NCHUNK; i++) {
+	downloadCatalogDataChunk(i);
+      }
+  }
+
+  function downloadCatalogDataChunk(ctr) {
     if ((ctr < 1) || (ctr > NCHUNK)) {
-      console.log("Internal error: downloadCatalogData sent ctr=" +
+      console.log("Internal error: downloadCatalogDataChunk sent ctr=" +
 		  ctr);
       return;
     }
