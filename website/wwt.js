@@ -26,7 +26,7 @@ var wwt = (function () {
   // the actual starting value is the inverse of this (so false
   // here means they are shown).
   //
-  const displaySettings = 
+  const displaySettings =
         { coordinateGrid: false,
           crosshairs: false,
           constellations: false,
@@ -82,7 +82,7 @@ var wwt = (function () {
   // catalog, so it isn't completely possible.
   //
   var shown_srcs_ids = [];
-  
+
   var nearest_source = [];
 
   var xmm_catalog = null;
@@ -189,7 +189,7 @@ var wwt = (function () {
     for (var src of catalogData) {
       const sname = src[nameIdx];
       if (sname !== sourcename) { continue; }
-      
+
       const ra = get_csc_row(src, 'ra');
       const dec = get_csc_row(src, 'dec');
       wwt.gotoRaDecZoom(ra, dec, 0.06);
@@ -214,7 +214,7 @@ var wwt = (function () {
     props.annotations.forEach(ann => {
       const cir = ann[2];
       var x = cir.get_label();
-      if (typeof x === "undefined") {
+      if (typeof x === 'undefined') {
         cir.set_lineColor(color);
         // cir.set_fillColor(color);
       }
@@ -247,7 +247,7 @@ var wwt = (function () {
   function makeSizeUpdate(props) {
     return (newSize) => {
       if (newSize <= 0) {
-        console.log("Invalid source size: [" + newSize + "]");
+        console.log('Invalid source size: [' + newSize + ']');
         return;
       }
 
@@ -280,7 +280,7 @@ var wwt = (function () {
     el.style.position = 'absolute';
     el.style.left = '-9999px';
     document.body.appendChild(el);
-    const selected =            
+    const selected =
           document.getSelection().rangeCount > 0
           ? document.getSelection().getRangeAt(0)
           : false;
@@ -299,13 +299,13 @@ var wwt = (function () {
   function addStackFOV(stack) {
 
     var edge_color;
-    var fill_color = "white";
+    var fill_color = 'white';
     var line_width;
     var opacity = 0.1;
     var fill_flag = stack;
-        
+
     if (stack.status) {
-      edge_color = "gold";
+      edge_color = 'gold';
       line_width = 2;
       /* not sure having a filled region helps, so trying without it
          (the problem is the white fill can make the area look like
@@ -315,11 +315,11 @@ var wwt = (function () {
       */
       fill_flag = false;
     } else {
-      edge_color = "grey";
+      edge_color = 'grey';
       line_width = 1;
       fill_flag = false;
     };
-        
+
     var annotations = [];
     // var ctr = 1;
     for (var i = 0; i < stack.polygons.length; i++) {
@@ -337,12 +337,12 @@ var wwt = (function () {
          * so so not try setting them (as they don't
          * do anything anyway).
          *
-         var lbl = "fov_" + ctr + "_" + j + "_" + stack.stackid;
+         var lbl = 'fov_' + ctr + '_' + j + '_' + stack.stackid;
          fov.set_id(lbl);
          fov.set_label(stack.stackid);
          fov.set_showHoverLabel(true);
         */
-                
+
         fov.set_lineColor(edge_color);
         fov.set_lineWidth(line_width);
 
@@ -356,7 +356,7 @@ var wwt = (function () {
 
         wwt.addAnnotation(fov);
         annotations.push(fov);
-                
+
         // ctr += 1;
       }
     }
@@ -374,16 +374,16 @@ var wwt = (function () {
 
     if (typeof timeout === 'undefined') { timeout = 10; }
 
-    const pane = document.querySelector("#stackUpdateStatus");
+    const pane = document.querySelector('#stackUpdateStatus');
     pane.innerHTML = msg;
-    pane.style.display = "inline-block";
+    pane.style.display = 'inline-block';
 
     if (timeout <= 0) { return; }
-        
+
     const cb = () => { pane.style.display = 'none' };
     setTimeout(cb, timeout * 1000);
   }
-  
+
   // Return an "annotation", which is a three-element array containing
   //    ra, dec, circle
   //
@@ -407,7 +407,7 @@ var wwt = (function () {
 
     const src = get_csc_object(srcrow);
     if ((src.ra === null) || (src.dec === null)) {
-      console.log("Err, no location for source:");
+      console.log('Err, no location for source:');
       console.log(src);
       return null;
     }
@@ -415,7 +415,7 @@ var wwt = (function () {
     const lineColor = src.nh_gal === null ? 'grey' :
       catalogProps.csc20.color;
     const fillColor = src.nh_gal === null ? 'grey' : 'white';
-    
+
     const ann = makeAnnotation(src.ra, src.dec, catalogProps.csc20.size,
                                1, lineColor, fillColor, true, 0.1);
 
@@ -428,10 +428,10 @@ var wwt = (function () {
 
     return ann;
   }
-    
+
   function makeSource11(src) {
     if ((src.ra === null) || (src.dec == null)) {
-      console.log("Err, no location for CSC 1.1 source:");
+      console.log('Err, no location for CSC 1.1 source:');
       console.log(src);
       return null;
     }
@@ -440,13 +440,13 @@ var wwt = (function () {
     return makeAnnotation(src.ra, src.dec, catalogProps.csc11.size,
                           1, color, color, true, 0.1);
   }
-    
+
   function makeXMMSource(src) {
 
     const ra = src[0];
     const dec = src[1];
     if ((ra === null) || (dec === null)) {
-      console.log("Err, no location for XMM source:");
+      console.log('Err, no location for XMM source:');
       console.log(src);
       return null;
     }
@@ -455,7 +455,7 @@ var wwt = (function () {
     return makeAnnotation(ra, dec, catalogProps.xmm.size,
                           1, color, color, true, 0.1);
   }
-    
+
   // Let's see how the WWT does with all the stacks
   function addFOV(stackdata) {
     for (let stack of stackdata.stacks) {
@@ -463,7 +463,7 @@ var wwt = (function () {
     }
     stacks_shown = true;
 
-    trace("Added FOV");
+    trace('Added FOV');
   }
 
   // Add outlines based on the Milky Way, data is from the
@@ -486,7 +486,7 @@ var wwt = (function () {
   function addMW() {
 
     if (mw_outlines.length !== 0) {
-      console.log("MW already added in!");
+      console.log('MW already added in!');
       return;
     }
 
@@ -498,7 +498,7 @@ var wwt = (function () {
       return;
     }
 
-    var edge_color = "white";
+    var edge_color = 'white';
     var line_width = 1;
     var fill_flag = false;
 
@@ -519,18 +519,18 @@ var wwt = (function () {
           (typeof features.geometry === 'undefined') ||
           (typeof features.geometry.type === 'undefined') ||
           (features.geometry.type !== 'MultiPolygon')) {
-        console.log("MW problem with feature " + f.toString());
+        console.log('MW problem with feature ' + f.toString());
         return;
       }
 
       var coords = features.geometry.coordinates;
-      if (typeof coords === "undefined") {
-        console.log("MW no coordinates for feature " + f.toString());
+      if (typeof coords === 'undefined') {
+        console.log('MW no coordinates for feature ' + f.toString());
         return;
       }
       if (coords.length !== 1) {
-        console.log("MW feature " + f.toString() +
-                    " length=" + coords.length.toString());
+        console.log('MW feature ' + f.toString() +
+                    ' length=' + coords.length.toString());
         return;
       }
 
@@ -544,12 +544,12 @@ var wwt = (function () {
          * For now don't add an id/label based on issues
          * with the stack labels (see notes there).
          *
-         var lbl = "MW_" + ctr + "_" + j + "_" + features.id;
+         var lbl = 'MW_' + ctr + '_' + j + '_' + features.id;
          outline.set_id(lbl);
          outline.set_label(features.id);
          outline.set_showHoverLabel(true);
         */
-                
+
         outline.set_lineColor(edge_color);
         outline.set_lineWidth(line_width);
 
@@ -563,12 +563,12 @@ var wwt = (function () {
         }
 
         mw_outlines.push(outline);
-                
+
         // ctr += 1;
       }
     }
 
-    trace("Added MW");
+    trace('Added MW');
   }
 
   var mw_shown = false;
@@ -590,9 +590,9 @@ var wwt = (function () {
 
     document.querySelector('#togglemw').innerHTML =
       label + ' Milky Way outline';
-        
+
   }
-    
+
   // Should perhaps determine the current state from the DOM,
   // but if anyone is messing around to affect this then they
   // can worry themselves.
@@ -616,7 +616,7 @@ var wwt = (function () {
 
     document.querySelector('#togglebanners').innerHTML =
       label + ' banners';
-        
+
     banners_shown = !banners_shown;
   }
 
@@ -631,11 +631,12 @@ var wwt = (function () {
   }
 
   function setDisplay(name, display) {
-    const el = document.querySelector('#' + name);
+    const sel = '#' + name;
+    const el = document.querySelector(sel);
     if (el !== null) {
       el.style.display = display;
     } else {
-      console.log("Internal error: unable to find '#" + name + "'");
+      console.log('Internal error: unable to find "' + sel + '"');
     }
   }
 
@@ -816,9 +817,10 @@ var wwt = (function () {
 
 
   function toggleFlexById(elname) {
-    const el = document.querySelector('#' + elname);
+    const sel = '#' + elname;
+    const el = document.querySelector(sel);
     if (el === null) {
-      console.log("Internal error: unable to find '#" + elname + "'");
+      console.log('Internal error: unable to find "' + elname + '"');
       return;
     }
 
@@ -856,19 +858,19 @@ var wwt = (function () {
     document.querySelector('#togglepreselected').innerHTML =
       'Show Popular Places';
   }
-    
+
   function showPreSelected(event) {
-    
+
     var pane = document.querySelector('#preselected');
 
     // Trying to work out a good place to start the pane
     //
-    // pane.style.left = evpos.x.toString() + "px";
-    // pane.style.top = evpos.y.toString() + "px";
+    // pane.style.left = evpos.x.toString() + 'px';
+    // pane.style.top = evpos.y.toString() + 'px';
 
     // these are platform/font dependent...
-    pane.style.left = "16em";
-    pane.style.top = "4em";
+    pane.style.left = '16em';
+    pane.style.top = '4em';
 
     pane.style.display = 'block';
 
@@ -876,7 +878,7 @@ var wwt = (function () {
     document.querySelector('#togglepreselected').innerHTML =
       'Hide Popular Places';
   }
-    
+
   function toggleStacks() {
     var func, label;
     if (stacks_shown) {
@@ -902,7 +904,7 @@ var wwt = (function () {
     // Only needed on 'hide stack' but do for both.
     clearNearestStack();
   }
-    
+
   // Note: this *can* be called before the sources are loaded
   //       (primarily when zooming to a new location)
   //
@@ -924,7 +926,7 @@ var wwt = (function () {
     sampEl.classList.remove('requires-samp');
     sampEl.style.display = 'none';
 
-    ["plot-properties", "sourceprops", "plot"].forEach(hideElement);
+    ['plot-properties', 'sourceprops', 'plot'].forEach(hideElement);
 
     // Not 100% convinced whether we want this
     // wwtprops.clearSourceInfo();
@@ -953,11 +955,11 @@ var wwt = (function () {
 
     source_plotData = null;
   }
-    
+
   function showSources() {
     const flag = _showSources();
     if (!flag) {
-      reportUpdateMessage("No CSC 2 sources found in this area of the sky.");
+      reportUpdateMessage('No CSC 2 sources found in this area of the sky.');
       return;
     }
 
@@ -1062,10 +1064,10 @@ var wwt = (function () {
         }
 
         if (src.significance !== null) {
-          if (src.fluxband === "broad") {
+          if (src.fluxband === 'broad') {
             flux_b.push(src.flux);
             sig_b.push(src.significance);
-          } else if (src.fluxband === "wide") {
+          } else if (src.fluxband === 'wide') {
             flux_w.push(src.flux);
             sig_w.push(src.significance);
           }
@@ -1140,7 +1142,7 @@ var wwt = (function () {
     const lat1 = dec1 * Math.PI / 180.0;
     const lat2 = dec2 * Math.PI / 180.0;
     const dlon = Math.abs(ra1 - ra2) * Math.PI / 180.0;
-        
+
     const term = Math.sin(lat1) * Math.sin(lat2) +
           Math.cos(lat1) * Math.cos(lat2) * Math.cos(dlon);
     return Math.acos(term) * 180.0 / Math.PI;
@@ -1160,9 +1162,9 @@ var wwt = (function () {
       stack.status = status.stacks[stack.stackid];
       /* if not completed then no element in the completed array */
       var completed = status.completed[stack.stackid]
-      if (typeof completed !== "undefined") {
+      if (typeof completed !== 'undefined') {
         stack.lastmod = completed;
-        if (typeof lmod_start === "undefined") {
+        if (typeof lmod_start === 'undefined') {
           lmod_start = completed;
           lmod_end = completed;
         } else if (completed < lmod_start) {
@@ -1176,7 +1178,7 @@ var wwt = (function () {
     // The assumption is that these are both set
     stackdata.completed_start = lmod_start;
     stackdata.completed_end = lmod_end;
-        
+
     document.querySelector('#nsrc_proc').innerHTML = '' +
       status.srcs_proc;
     document.querySelector('#nsrc_proc_pcen').innerHTML = '' +
@@ -1187,11 +1189,11 @@ var wwt = (function () {
   }
 
   function setTargetName(name) {
-    if (typeof name === 'undefined') { name = ""; }
+    if (typeof name === 'undefined') { name = ''; }
     name = name.trim();
-        
+
     document.querySelector('#targetName').value = name;
-    document.querySelector('#targetFind').disabled = (name === "");
+    document.querySelector('#targetFind').disabled = (name === '');
   }
 
   /* As I am using the "official" names it seems that I do not
@@ -1205,9 +1207,9 @@ var wwt = (function () {
    * Should this only be called once?
    */
   function createImageCollections() {
-    trace("adding image collection ...");
-    wwt.loadImageCollection("csc2.wtml");
-    trace("... added image collection");
+    trace('adding image collection ...');
+    wwt.loadImageCollection('csc2.wtml');
+    trace('... added image collection');
   }
 
   function createSourceAnnotations() {
@@ -1229,7 +1231,7 @@ var wwt = (function () {
 
     showBlockElement('sourcecolor');
 
-    trace("Created source_annotations");
+    trace('Created source_annotations');
   }
 
   function makeCHS(coords) {
@@ -1263,7 +1265,7 @@ var wwt = (function () {
     //
     // showBlockElement('sourcecolor');
 
-    trace("Created CHS annotations");
+    trace('Created CHS annotations');
   }
 
 
@@ -1284,7 +1286,7 @@ var wwt = (function () {
 
     showBlockElement('source11color');
 
-    trace("Created source11_annotations");
+    trace('Created source11_annotations');
   }
 
 
@@ -1294,7 +1296,7 @@ var wwt = (function () {
     toggleConstellations();
     toggleBoundaries();
     wwt.hideUI(true);
-    trace("Set settings");
+    trace('Set settings');
   }
 
   // A user click can mean
@@ -1317,7 +1319,7 @@ var wwt = (function () {
     const dec = pos.get_dec();
 
     /***
-        console.log("User selected " + ra.toString() + " " +
+        console.log('User selected ' + ra.toString() + ' ' +
         dec.toString());
     ***/
 
@@ -1331,14 +1333,14 @@ var wwt = (function () {
   // mode when no sources are displayed).
   //
   function switchSelectionMode(mode) {
-    if (mode === "stack") {
+    if (mode === 'stack') {
       clickMode = processStackSelection;
-    } else if (mode === "source") {
+    } else if (mode === 'source') {
       clickMode = processSourceSelection
-    } else if (mode === "region") {
+    } else if (mode === 'region') {
       clickMode = processRegionSelection;
     } else {
-      console.log("Unknown selection mode: " + mode);
+      console.log('Unknown selection mode: ' + mode);
     }
   }
 
@@ -1363,7 +1365,7 @@ var wwt = (function () {
     if (seps.length === 0) {
       return;
     }
-        
+
     // Sort the list by the separation
     seps.sort(function (a, b) { if (a[0] < b[0]) { return -1; }
                                 else if (a[0] > b[0]) { return 1; }
@@ -1377,16 +1379,16 @@ var wwt = (function () {
       const old_fov = [fovs[j],
                        fovs[j].get_lineColor(),
                        fovs[j].get_lineWidth()];
-            
+
       fovs[j].set_lineColor('cyan');
       fovs[j].set_lineWidth(4);
       nearest_fovs.push(old_fov);
     }
 
     wwtprops.addStackInfo(stack, stackEventVersions);
-            
+
   }
-    
+
   // Can we lasso a region?
   //
   // TODO:
@@ -1399,9 +1401,9 @@ var wwt = (function () {
   //
   var region_polygon = undefined;
   function processRegionSelection(ra0, dec0) {
-    if (typeof region_polygon === "undefined") {
+    if (typeof region_polygon === 'undefined') {
       region_polygon = wwt.createPolygon(true);
-      region_polygon.set_lineColor("white");
+      region_polygon.set_lineColor('white');
       region_polygon.set_opacity(0.2);
 
       // This seems to work, even with no points
@@ -1445,7 +1447,7 @@ var wwt = (function () {
     if (seps.length === 0) {
       return;
     }
-        
+
     // Sort the list by the separation
     seps.sort(function (a, b) { if (a[0] < b[0]) { return -1; }
                                 else if (a[0] > b[0]) { return 1; }
@@ -1488,7 +1490,7 @@ var wwt = (function () {
       return;
     }
 
-    const canvas = host.querySelector("#WWTCanvas");
+    const canvas = host.querySelector('#WWTCanvas');
 
     /*
      * This is from the ADS All-Sky Survey; not clear
@@ -1498,10 +1500,10 @@ var wwt = (function () {
      e.preventDefault();
      };
     */
-    canvas.addEventListener("mousewheel", function(e) {
+    canvas.addEventListener('mousewheel', function(e) {
       e.preventDefault();
     });
-    canvas.addEventListener("DOMMouseScroll", function(e) {
+    canvas.addEventListener('DOMMouseScroll', function(e) {
       e.preventDefault();
     });
 
@@ -1518,14 +1520,14 @@ var wwt = (function () {
     host.addEventListener('drop',
                           event => draggable.stopDrag(event));
 
-    ["#stackinfo", "#sourceinfo", "#preselected", "#plot"].forEach((n) => {
+    ['#stackinfo', '#sourceinfo', '#preselected', '#plot'].forEach((n) => {
       const pane = host.querySelector(n);
       if (pane !== null) {
         pane.draggable = true;
         pane.addEventListener('dragstart',
                               event => draggable.startDrag(event));
       } else {
-        console.log("INTERNAL error: unable to find '" + n + "'");
+        console.log('INTERNAL error: unable to find "' + n + '"');
       }
     });
 
@@ -1540,14 +1542,14 @@ var wwt = (function () {
     //
     setTargetName('');
     wwt.gotoRaDecZoom(ra0, dec0, startFOV, false);
-    trace("Set up zoom to starting location");
+    trace('Set up zoom to starting location');
   }
 
   // This used to be sent in data, hence the function returning a function,
   // but that should no-longer be needed.
   //
   function wwtReadyFunc() {
-    trace("in wwtReadyFunc (with restart)");
+    trace('in wwtReadyFunc (with restart)');
     return function () {
 
       createImageCollections();
@@ -1579,12 +1581,12 @@ var wwt = (function () {
       //
       const panel = document.querySelector('#wwtusercontrol');
       if (panel === null) {
-        console.log("Internal error: unable to find #wwtusercontrol!");
+        console.log('Internal error: unable to find #wwtusercontrol!');
       } else {
         panel.style.display = 'block';
       }
 
-      trace("Finished wwtReadyFunc");
+      trace('Finished wwtReadyFunc');
     };
   }
 
@@ -1594,7 +1596,7 @@ var wwt = (function () {
     const c = parseInt(s.slice(4));
     return [a, b, c];
   }
-    
+
   // TODO: review why this information can not be just sent in (or
   //       accessed from the data we already have).
   //
@@ -1608,7 +1610,7 @@ var wwt = (function () {
       coords = stackid.slice(5, 19);
     } else {
       // just return an invalid position
-      console.log("Error: invalid stackid=" + stackid);
+      console.log('Error: invalid stackid=' + stackid);
       return [-100, -100];
     }
 
@@ -1644,7 +1646,7 @@ var wwt = (function () {
     nearest_source = [];
     wwtprops.clearSourceInfo();
   }
-                
+
   function findNearestStack() {
 
     // getRA returns hours, not degrees, it seems.
@@ -1656,7 +1658,7 @@ var wwt = (function () {
 
   var _trace_ctr = 1;
   function trace(msg) {
-    console.log("TRACE[" + _trace_ctr.toString() + "] " + msg.toString());
+    console.log('TRACE[' + _trace_ctr.toString() + '] ' + msg.toString());
     _trace_ctr += 1;
   }
 
@@ -1672,16 +1674,16 @@ var wwt = (function () {
   //
   var setupBannerID;
   function addSetupBanner() {
-    var pane = document.querySelector("#stackUpdateStatus");
-    pane.innerHTML = "Creating the WWT visualization.";
-    pane.style.display = "inline-block";
+    var pane = document.querySelector('#stackUpdateStatus');
+    pane.innerHTML = 'Creating the WWT visualization.';
+    pane.style.display = 'inline-block';
 
     // There probably needs to be an additional timeout on the call to
     // wwtReadyFunc.
     //
     setupBannerID = setTimeout(() => {
-      pane.innerHTML = "There was a problem initializing the WWT." +
-        "<br>Trying to restart.";
+      pane.innerHTML = 'There was a problem initializing the WWT.' +
+        '<br>Trying to restart.';
       pane.style.color = 'darkblue';
       wwtReadyFunc()();  // NOTE: the use of '()()' is intentional.
     }, 10 * 1000);
@@ -1693,9 +1695,9 @@ var wwt = (function () {
     clearTimeout(setupBannerID);
     setupBannerID = null;
 
-    const pane = document.querySelector("#stackUpdateStatus");
-    pane.innerHTML = "";
-    pane.style.display = "none";
+    const pane = document.querySelector('#stackUpdateStatus');
+    pane.innerHTML = '';
+    pane.style.display = 'none';
   }
 
   // handle the tooltip display for the button
@@ -1715,55 +1717,55 @@ var wwt = (function () {
   // time out is in seconds, default is 3
   function addToolTipHandler(name, timeout) {
     if (name in tooltipTimers) {
-      console.log("WARNING: multiple calls to addToolTipHandler " + name);
+      console.log('WARNING: multiple calls to addToolTipHandler ' + name);
       return;
     }
 
-    if (typeof timeout === "undefined") { timeout = 3; }
+    if (typeof timeout === 'undefined') { timeout = 3; }
 
     // what does a time out of 0 do?
     if (timeout <= 0) { timeout = 0; }
 
     const el = document.querySelector('#' + name);
     if (el === null) {
-      console.log("Internal error [tooltip]: no element called '" +
-                  name + "'");
+      console.log('Internal error [tooltip]: no element called "' +
+                  name + '"');
       return;
     }
 
-    const tooltip = name + "-tooltip";
+    const tooltip = name + '-tooltip';
     const tt = document.querySelector('#' + tooltip);
     if (tt === null) {
-      console.log("Internal error [tooltip]: no element called '" +
-                  tooltip + "'");
+      console.log('Internal error [tooltip]: no element called "' +
+                  tooltip + '"');
       return;
     }
 
     tooltipTimers[name] = null;
 
-    el.addEventListener("mouseenter", () => {
+    el.addEventListener('mouseenter', () => {
       clearToolTipTimer(name);
       const timer = setTimeout(() => {
-        tt.style.display = "inline";
+        tt.style.display = 'inline';
         const timer2 = setTimeout(() => {
-          tt.style.display = "none";
+          tt.style.display = 'none';
         }, timeout * 1000 );
         tooltipTimers[name] = timer2;
       }, 500);
       tooltipTimers[name] = timer;
 
     });
-    el.addEventListener("mouseleave", () => {
+    el.addEventListener('mouseleave', () => {
       clearToolTipTimer(name);
-      tt.style.display = "none";
+      tt.style.display = 'none';
     });
 
-    trace("set up tooltips for " + name);
+    trace('set up tooltips for ' + name);
   }
 
   function removeToolTipHandler(name) {
     if (!(name in tooltipTimers)) {
-      console.log("WARNING: removeToolTipHandler sent unknown " + name);
+      console.log('WARNING: removeToolTipHandler sent unknown ' + name);
       return;
     }
 
@@ -1774,7 +1776,7 @@ var wwt = (function () {
   // Call on page load, when WWT is to be initialized.
   //
   var resize_state = true;
-   
+
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
@@ -1786,7 +1788,7 @@ var wwt = (function () {
       return;
     }
 
-    trace("initialize");
+    trace('initialize');
 
     // At present this just changes the box size/height
     resize();
@@ -1797,35 +1799,35 @@ var wwt = (function () {
       stack.pos = decodeStackName(stack.stackid);
     }
 
-    trace("recoded positions");
+    trace('recoded positions');
 
     input_stackdata = obsdata;
 
     // TODO: should this check that the name is not blank/empty?
-    const tfind = host.querySelector("#targetFind");
-    tfind.addEventListener("click", () => { findTargetName(); });
+    const tfind = host.querySelector('#targetFind');
+    tfind.addEventListener('click', () => { findTargetName(); });
 
     /* Allow the user to start the search by hitting enter in the
      * search text box. The search button is only active when
      * there is text.
      */
-    host.querySelector("#targetName")
-      .addEventListener("keyup",
+    host.querySelector('#targetName')
+      .addEventListener('keyup',
                         function(e) {
                           const val = this.value.trim();
-                                  
+
                           // Ensure the submit button is only enabled when there is
                           // any text.
-                          if (val === "") { tfind.disabled = true; return; }
+                          if (val === '') { tfind.disabled = true; return; }
                           else if (tfind.disabled) { tfind.disabled = false; };
-                                  
+
                           if (e.keyCode !== 13) { return; }
                           tfind.click();
                         });
 
     // resize the user-control area
-    host.querySelector("#resizeusercontrol")
-      .addEventListener("click",
+    host.querySelector('#resizeusercontrol')
+      .addEventListener('click',
                         function() {
                           const smallify = host.querySelector('#smallify');
                           const bigify = host.querySelector('#bigify');
@@ -1854,43 +1856,43 @@ var wwt = (function () {
 
     // Zoom buttons
     //
-    host.querySelector("#zoom0")
-      .addEventListener("click", () => { zoom(60); });
-    host.querySelector("#zoomin")
-      .addEventListener("click", () => { zoomIn(); });
-    host.querySelector("#zoomout")
-      .addEventListener("click", () => { zoomOut(); });
+    host.querySelector('#zoom0')
+      .addEventListener('click', () => { zoom(60); });
+    host.querySelector('#zoomin')
+      .addEventListener('click', () => { zoomIn(); });
+    host.querySelector('#zoomout')
+      .addEventListener('click', () => { zoomOut(); });
 
     // SAMP button
     //
-    host.querySelector("#export-samp")
-      .addEventListener("click", () => {
+    host.querySelector('#export-samp')
+      .addEventListener('click', () => {
         wwtsamp.sendSourcePropertiesNear(source_ra, source_dec, source_fov);
       });
 
-    host.querySelector("#plot-properties")
-      .addEventListener("click", () => { wwtplots.plotSources(source_plotData); });
+    host.querySelector('#plot-properties')
+      .addEventListener('click', () => { wwtplots.plotSources(source_plotData); });
 
-    addToolTipHandler("zoom0");
-    addToolTipHandler("zoomin");
-    addToolTipHandler("zoomout");
-    addToolTipHandler("export-samp");
-    addToolTipHandler("plot-properties");
+    addToolTipHandler('zoom0');
+    addToolTipHandler('zoomin');
+    addToolTipHandler('zoomout');
+    addToolTipHandler('export-samp');
+    addToolTipHandler('plot-properties');
 
-    addToolTipHandler("smallify");
-    addToolTipHandler("bigify");
+    addToolTipHandler('smallify');
+    addToolTipHandler('bigify');
 
-    addToolTipHandler("register-samp");
+    addToolTipHandler('register-samp');
 
-    addToolTipHandler("targetName", 20);
-    addToolTipHandler("targetFind");
+    addToolTipHandler('targetName', 20);
+    addToolTipHandler('targetFind');
 
     // Do we show the 'show fullscreen' button?
     //
     // TODO: perhaps should just hard-code widths to 48%
     //
     if (wwtscreen.hasFullScreen()) {
-      trace("found full screen support");
+      trace('found full screen support');
 
       host.querySelector('#togglebanners').style.width = '48%';
 
@@ -1901,33 +1903,33 @@ var wwt = (function () {
       el.addEventListener('click', () => wwtscreen.toggleFullScreen());
 
     } else {
-      trace("no full screen support :-(");
+      trace('no full screen support :-(');
     }
 
     // Start up the WWT initialization and then load in
     // the current status.
     //
-    trace("initializing wwtlib...");
-    wwt = wwtlib.WWTControl.initControl("WWTCanvas");
-    trace("...initialized wwtlib");
+    trace('initializing wwtlib...');
+    wwt = wwtlib.WWTControl.initControl('WWTCanvas');
+    trace('...initialized wwtlib');
 
     addSetupBanner();
 
     var httpRequest = new XMLHttpRequest();
     if (!httpRequest) {
-      alert("Unable to create a XMLHttpRequest!");
+      alert('Unable to create a XMLHttpRequest!');
       return;
     }
-    httpRequest.addEventListener("load", () => {
-      trace(" - in load listener");
+    httpRequest.addEventListener('load', () => {
+      trace(' - in load listener');
       const status = httpRequest.response;
       updateCompletionInfo(status, obsdata);
-      trace(" - updatedCompletionInfo");
+      trace(' - updatedCompletionInfo');
       wwt.add_ready(wwtReadyFunc());
-      trace(" - finished add_ready");
+      trace(' - finished add_ready');
     });
-    httpRequest.addEventListener("error", () => {
-      alert("Unable to download the status of the CSC!");
+    httpRequest.addEventListener('error', () => {
+      alert('Unable to download the status of the CSC!');
     });
 
     // Do I need to add a cache-busting identifier?
@@ -1937,7 +1939,7 @@ var wwt = (function () {
     httpRequest.responseType = 'json';
     httpRequest.send();
   }
-    
+
   function unload() {
     wwtsamp.teardown();
   }
@@ -1957,7 +1959,7 @@ var wwt = (function () {
       return;
     }
 
-    const div = host.querySelector("#WWTCanvas");
+    const div = host.querySelector('#WWTCanvas');
 
     /*
      * I want to leave some space to allow the page to be
@@ -1976,14 +1978,14 @@ var wwt = (function () {
     // var height = document.documentElement.clientHeight;
 
     // if (width > 160) { width -= 60; }
-        
-    var wstr = width.toString() + "px";
+
+    var wstr = width.toString() + 'px';
     if (div.style.width !== wstr ) {
       div.style.width = wstr;
       host.style.width = wstr;
     }
 
-    var hstr = height.toString() + "px";
+    var hstr = height.toString() + 'px';
     if (div.style.height !== hstr) {
       div.style.height = hstr;
       host.style.height = hstr;
@@ -2005,7 +2007,7 @@ var wwt = (function () {
     }
 
   }
-    
+
   function setPosition(ra, dec, label, fov) {
 
     // Could request the current FOV, but I think it makes
@@ -2032,7 +2034,7 @@ var wwt = (function () {
 
     hideSources();
     clearNearestStack();
-        
+
     wwt.gotoRaDecZoom(ra, dec, fov, false);
     wwtsamp.moveTo(ra, dec);
 
@@ -2070,7 +2072,7 @@ var wwt = (function () {
   //   23h 45.23
   //   23 45:23
   // are all supported.
-  // 
+  //
   // No guarantee on error checking, or nice, clean code.
   //
   const hourRegex = /^(\d\d?)\s*[:hH]?\s*(.*)$/;
@@ -2105,7 +2107,7 @@ var wwt = (function () {
     // now look for minutes
     sval = hr[2];
 
-    if (sval.trim() === "") {
+    if (sval.trim() === '') {
       return 15.0 * h;
     }
 
@@ -2131,7 +2133,7 @@ var wwt = (function () {
     // now look for seconds
     sval = mr[3];
 
-    if (sval.trim() === "") {
+    if (sval.trim() === '') {
       return 15.0 * (h + (m / 60.0));
     }
 
@@ -2169,7 +2171,7 @@ var wwt = (function () {
   //   23d 45.23
   //   23 45:23
   // are all supported.
-  // 
+  //
   // No guarantee on error checking.
   //
   const degRegex = /^(\d\d?)\s*[:dD]?\s*(.*)$/;
@@ -2214,7 +2216,7 @@ var wwt = (function () {
     // now look for minutes
     sval = dr[2];
 
-    if (sval.trim() === "") {
+    if (sval.trim() === '') {
       return sign * d;
     }
 
@@ -2239,7 +2241,7 @@ var wwt = (function () {
     // now look for seconds
     sval = mr[3];
 
-    if (sval.trim() === "") {
+    if (sval.trim() === '') {
       return sign * (d + (m / 60.0));
     }
 
@@ -2282,9 +2284,9 @@ var wwt = (function () {
 
     hideElement('targetFailure');
 
-    const pane = document.querySelector("#targetSuccess");
+    const pane = document.querySelector('#targetSuccess');
     pane.innerHTML = msg;
-    pane.style.display = "inline-block";
+    pane.style.display = 'inline-block';
 
     if (close) {
       const cb = () => { pane.style.display = 'none' };
@@ -2298,8 +2300,8 @@ var wwt = (function () {
 
   function reportLookupFailure(msg) {
     hideElement('targetSuccess');
-        
-    const pane = document.querySelector("#targetFailure");
+
+    const pane = document.querySelector('#targetFailure');
     if (pane === null) {
       // Assume it's not worth trying to recover
       return;
@@ -2320,7 +2322,7 @@ var wwt = (function () {
     const div = document.createElement('div');
     div.innerHTML = msg;
     pane.appendChild(div);
-    pane.style.display = "inline-block";
+    pane.style.display = 'inline-block';
   }
 
   // Add the spinner. If it's already displayed increase the
@@ -2338,11 +2340,11 @@ var wwt = (function () {
     }
 
     if (spinnerCounter < 0) {
-      console.log("Internal error: spinner counter < 0");
+      console.log('Internal error: spinner counter < 0');
       spinnerCounter = 0;
     }
     spinnerCounter += 1;
-    trace("Spinner count increased to " + spinnerCounter);
+    trace('Spinner count increased to ' + spinnerCounter);
 
     if (spinnerCounter > 1) {
       return;
@@ -2350,7 +2352,7 @@ var wwt = (function () {
 
     spin = spinner.createSpinner();
     host.appendChild(spin);
-    trace(" -> added spinner");
+    trace(' -> added spinner');
   }
 
   function stopSpinner() {
@@ -2360,13 +2362,13 @@ var wwt = (function () {
     }
 
     if (spinnerCounter <= 0) {
-      console.log("Internal error: spinner counter <= 0");
+      console.log('Internal error: spinner counter <= 0');
       spinnerCounter = 0;
       return;
     }
 
     spinnerCounter -= 1;
-    trace("Spinner count decreased to " + spinnerCounter);
+    trace('Spinner count decreased to ' + spinnerCounter);
 
     if (spinnerCounter > 0) {
       return;
@@ -2374,26 +2376,26 @@ var wwt = (function () {
 
     host.removeChild(spin);
     spin = null;
-    trace(" <- removed spinner");
+    trace(' <- removed spinner');
   }
-    
+
   // click handler for targetFind.
   // - get user-selected name
   // - is it a position; if so jump to it
   // - otherwise send it to the lookUP service
   //
   function findTargetName() {
-    const target = document.querySelector("#targetName").value.trim();
-    if (target === "") {
+    const target = document.querySelector('#targetName').value.trim();
+    if (target === '') {
       // this should not happen, but just in case
-      console.log("Unexpected targetName=[" + target + "]");
+      console.log('Unexpected targetName=[' + target + ']');
       return;
     }
 
     // For now use a single comma as a simple indicator that we have
     // a location, and not a target name.
     //
-    const toks = target.split(",");
+    const toks = target.split(',');
 
     if (toks.length === 2) {
       const ra = strToRA(toks[0]);
@@ -2404,10 +2406,10 @@ var wwt = (function () {
           var raVal = wwtprops.raToHTML(ra);
           var decVal = wwtprops.decToHTML(dec);
 
-          const lbl = toks[0].trim() + ", " + toks[1].trim();
+          const lbl = toks[0].trim() + ', ' + toks[1].trim();
 
           setPosition(ra, dec, lbl);
-          reportLookupSuccess("Moving to " + raVal + " " +
+          reportLookupSuccess('Moving to ' + raVal + ' ' +
                               decVal);
           return;
         }
@@ -2428,7 +2430,7 @@ var wwt = (function () {
           const ra = get_csc_row(matches[0], 'ra');
           const dec = get_csc_row(matches[0], 'dec');
           setPosition(ra, dec, target);
-          reportLookupSuccess("Moving to " + target);
+          reportLookupSuccess('Moving to ' + target);
           return;
         }
       } else {
@@ -2443,7 +2445,7 @@ var wwt = (function () {
     const smatches = input_stackdata.stacks.filter(d => d.stackid === target);
     if (smatches.length > 0) {
       setPosition(smatches[0].pos[0], smatches[0].pos[1], target);
-      reportLookupSuccess("Moving to stack " + target);
+      reportLookupSuccess('Moving to stack ' + target);
       return;
     }
 
@@ -2489,9 +2491,9 @@ var wwt = (function () {
       // Could search on avmdesc !== "" but then can get
       // "Object of unknown category" which doesn't look good.
       //
-      if (category && category.avmcode !== "") {
-        msg += "<p>Source category: <span class='source-category'>" +
-          category.avmdesc + "</span></p>";
+      if (category && category.avmcode !== '') {
+        msg += '<p>Source category: <span class="source-category">' +
+          category.avmdesc + '</span></p>';
       }
 
       reportLookupSuccess(msg);
@@ -2501,11 +2503,11 @@ var wwt = (function () {
       stopSpinner();
       targetName.removeAttribute('disabled');
       targetFind.removeAttribute('disabled');
-      
+
       reportLookupFailure(msg);
     };
 
-    lookup.lookupName(target, success, failure); 
+    lookup.lookupName(target, success, failure);
 
   }
 
@@ -2552,14 +2554,14 @@ var wwt = (function () {
   function setImage(name) {
     const key = 'wwt-foreground';
 
-    if (name === "dss") {
+    if (name === 'dss') {
       wwt.setForegroundOpacity(0.0);
       window.localStorage.setItem(key, name);
       return;
     }
     const fullName = wtml[name];
-    if (typeof fullName === "undefined") {
-      console.log("Unknown name: " + name);
+    if (typeof fullName === 'undefined') {
+      console.log('Unknown name: ' + name);
       return;
     }
     wwt.setForegroundImageByName(fullName);
@@ -2579,29 +2581,29 @@ var wwt = (function () {
   // be set from the input data.
   //
   const catalogDataCols = [
-    "name",
-    "ra",
-    "dec",
-    "err_ellipse_r0",
-    "err_ellipse_r1",
-    "err_ellipse_ang",
-    "conf_flag",
-    "sat_src_flag",
-    "acis_num",
-    "hrc_num",
-    "var_flag",
-    "significance",
-    "fluxband",
-    "flux",
-    "flux_lolim",
-    "flux_hilim",
-    "nh_gal",
-    "hard_hm",
-    "hard_hm_lolim",
-    "hard_hm_hilim",
-    "hard_ms",
-    "hard_ms_lolim",
-    "hard_ms_hilim"
+    'name',
+    'ra',
+    'dec',
+    'err_ellipse_r0',
+    'err_ellipse_r1',
+    'err_ellipse_ang',
+    'conf_flag',
+    'sat_src_flag',
+    'acis_num',
+    'hrc_num',
+    'var_flag',
+    'significance',
+    'fluxband',
+    'flux',
+    'flux_lolim',
+    'flux_hilim',
+    'nh_gal',
+    'hard_hm',
+    'hard_hm_lolim',
+    'hard_hm_hilim',
+    'hard_ms',
+    'hard_ms_lolim',
+    'hard_ms_hilim'
   ];
 
   // Given a row of catalogData, return the given column value,
@@ -2613,7 +2615,7 @@ var wwt = (function () {
   function get_csc_colidx(column) {
     const colidx = catalogDataCols.indexOf(column);
     if (colidx < 0) {
-      console.log("ERROR: unknown CSC column '" + column + "'");
+      console.log('ERROR: unknown CSC column "' + column + '"');
       return null;
     }
     return colidx;
@@ -2640,18 +2642,18 @@ var wwt = (function () {
   var haveCatalogData = false;
   function processCatalogData(json, ctr) {
     if (json === null) {
-      console.log("WARNING: unable to download catalog data " +
+      console.log('WARNING: unable to download catalog data ' +
                   ctr);
       return;
     }
 
-    console.log("Finalizing chunk " + ctr);
+    console.log('Finalizing chunk ' + ctr);
 
     // Validate the "schema"
     //
     const ncols = catalogDataCols.length;
     if (ncols !== json.cols.length) {
-      console.log("ERROR: The catalog data is not correctly formatted!");
+      console.log('ERROR: The catalog data is not correctly formatted!');
       return;
     }
 
@@ -2659,21 +2661,21 @@ var wwt = (function () {
       (oflag, xs) => oflag || (xs[0] !== xs[1]),
       false);
     if (diff) {
-      console.log("ERROR: invalid CSC schema!");
-      console.log(" expected: " + catalogDataCols);
-      console.log(" received: " + json.cols);
+      console.log('ERROR: invalid CSC schema!');
+      console.log(' expected: ' + catalogDataCols);
+      console.log(' received: ' + json.cols);
       return;
     }
 
     chunkedCatalogData[ctr - 1] = json.rows;
     haveCatalogData = true;
     for (var cd of chunkedCatalogData) {
-      haveCatalogData &= (typeof cd !== "undefined");
+      haveCatalogData &= (typeof cd !== 'undefined');
     }
 
     if (!haveCatalogData) { return; }
 
-    console.log("== unchunkifying");
+    console.log('== unchunkifying');
 
     // We know the total size and chunk sizes, so could
     // use slices here
@@ -2696,7 +2698,7 @@ var wwt = (function () {
   var haveCHSData = false;
   function processCHSData(json) {
     if (json === null) {
-      console.log("ERROR: unable to download CHS data");
+      console.log('ERROR: unable to download CHS data');
 
       // leave as disabled
       document.querySelector('#togglechs')
@@ -2718,7 +2720,7 @@ var wwt = (function () {
   var haveCatalog11Data = false;
   function processCatalog11Data(json) {
     if (json === null) {
-      console.log("ERROR: unable to download catalog 1.1 data");
+      console.log('ERROR: unable to download catalog 1.1 data');
 
       // leave as disabled
       document.querySelector('#togglesources11')
@@ -2737,7 +2739,7 @@ var wwt = (function () {
 
   function processXMMData(json) {
     if (json === null) {
-      console.log("WARNING: unable to download XMM catalog data");
+      console.log('WARNING: unable to download XMM catalog data');
 
       // leave as disabled
       document.querySelector('#toggleXMMsources')
@@ -2745,7 +2747,7 @@ var wwt = (function () {
       return;
     }
 
-    console.log("Processing XMM data");
+    console.log('Processing XMM data');
 
     xmm_catalog = json.catalog;
     xmm_sources = json.sources;
@@ -2775,7 +2777,7 @@ var wwt = (function () {
     document.querySelector('#togglexmmsourceprops')
       .style.display = 'inline-block';
 
-    trace("Created xmm_annotations");
+    trace('Created xmm_annotations');
 
   }
 
@@ -2787,14 +2789,14 @@ var wwt = (function () {
 
   function downloadCatalogDataChunk(ctr) {
     if ((ctr < 1) || (ctr > NCHUNK)) {
-      console.log("Internal error: downloadCatalogDataChunk sent ctr=" +
+      console.log('Internal error: downloadCatalogDataChunk sent ctr=' +
                   ctr);
       return;
     }
 
     const httpRequest = new XMLHttpRequest();
     if (!httpRequest) {
-      console.log("ERROR: unable to download catalog data.");
+      console.log('ERROR: unable to download catalog data.');
 
       // leave as disabled
       document.querySelector('#togglesources')
@@ -2803,13 +2805,13 @@ var wwt = (function () {
     }
 
     startSpinner();
-    httpRequest.addEventListener("load", () => {
-      trace("-- downloaded catalog data: ctr=" + ctr);
+    httpRequest.addEventListener('load', () => {
+      trace('-- downloaded catalog data: ctr=' + ctr);
       processCatalogData(httpRequest.response, ctr);
       stopSpinner();
     });
-    httpRequest.addEventListener("error", () => {
-      trace("-- error downloading catalog data: ctr=" + ctr);
+    httpRequest.addEventListener('error', () => {
+      trace('-- error downloading catalog data: ctr=' + ctr);
       stopSpinner();
     });
 
@@ -2825,7 +2827,7 @@ var wwt = (function () {
   function downloadCHSData() {
     const httpRequest = new XMLHttpRequest();
     if (!httpRequest) {
-      console.log("ERROR: unable to download CHS data.");
+      console.log('ERROR: unable to download CHS data.');
 
       // leave as disabled
       document.querySelector('#toggleschs')
@@ -2834,13 +2836,13 @@ var wwt = (function () {
     }
 
     startSpinner();
-    httpRequest.addEventListener("load", () => {
-      trace("-- downloaded chs data");
+    httpRequest.addEventListener('load', () => {
+      trace('-- downloaded chs data');
       processCHSData(httpRequest.response);
       stopSpinner();
     });
-    httpRequest.addEventListener("error", () => {
-      trace("-- error downloading chs");
+    httpRequest.addEventListener('error', () => {
+      trace('-- error downloading chs');
       stopSpinner();
     });
 
@@ -2851,12 +2853,10 @@ var wwt = (function () {
 
   }
 
-
-  
   function downloadCatalog11Data() {
     const httpRequest = new XMLHttpRequest();
     if (!httpRequest) {
-      console.log("ERROR: unable to download catalog 1.1 data.");
+      console.log('ERROR: unable to download catalog 1.1 data.');
 
       // leave as disabled
       document.querySelector('#togglesources11')
@@ -2865,13 +2865,13 @@ var wwt = (function () {
     }
 
     startSpinner();
-    httpRequest.addEventListener("load", () => {
-      trace("-- downloaded catalog 1.1 data");
+    httpRequest.addEventListener('load', () => {
+      trace('-- downloaded catalog 1.1 data');
       processCatalog11Data(httpRequest.response);
       stopSpinner();
     });
-    httpRequest.addEventListener("error", () => {
-      trace("-- error downloading catalog 1.1 data");
+    httpRequest.addEventListener('error', () => {
+      trace('-- error downloading catalog 1.1 data');
       stopSpinner();
     });
 
@@ -2885,18 +2885,18 @@ var wwt = (function () {
   function downloadXMMData() {
     const httpRequest = new XMLHttpRequest();
     if (!httpRequest) {
-      console.log("ERROR: unable to download XMM data.");
+      console.log('ERROR: unable to download XMM data.');
       return;
     }
 
     startSpinner();
-    httpRequest.addEventListener("load", () => {
-      trace("-- downloaded XMM data");
+    httpRequest.addEventListener('load', () => {
+      trace('-- downloaded XMM data');
       processXMMData(httpRequest.response);
       stopSpinner();
     });
-    httpRequest.addEventListener("error", () => {
-      trace("-- error downloading XMM data");
+    httpRequest.addEventListener('error', () => {
+      trace('-- error downloading XMM data');
       stopSpinner();
     });
 
@@ -2916,16 +2916,16 @@ var wwt = (function () {
 
     const httpRequest = new XMLHttpRequest();
     if (!httpRequest) {
-      alert("Unable to create a XMLHttpRequest!");
+      alert('Unable to create a XMLHttpRequest!');
       return;
     }
-    httpRequest.addEventListener("load", () => {
+    httpRequest.addEventListener('load', () => {
       stackEventVersions = httpRequest.response;
     });
-    httpRequest.addEventListener("error", () => {
-      alert("Unable to download the stack event file version numbers!");
+    httpRequest.addEventListener('error', () => {
+      alert('Unable to download the stack event file version numbers!');
     });
-    
+
     httpRequest.open('GET', 'wwtdata/version.stkevt3.json');
     httpRequest.responseType = 'json';
     httpRequest.send();
@@ -2935,79 +2935,80 @@ var wwt = (function () {
   // as they are here for debugging, or historical "accident"
   // (i.e. not removed when no-longer needed).
   //
-  return {initialize: initialize,
-          reinitialize: wwtReadyFunc(),
-          resize: resize,
-          unload: unload,
+  return {
+    initialize: initialize,
+    reinitialize: wwtReadyFunc(),
+    resize: resize,
+    unload: unload,
 
-          clearNearestSource: clearNearestSource,
-          clearNearestStack: clearNearestStack,
+    clearNearestSource: clearNearestSource,
+    clearNearestStack: clearNearestStack,
 
-          copyToClipboard: copyToClipboard,
+    copyToClipboard: copyToClipboard,
 
-          zoomToSource: zoomToSource,
-          zoomToStack: zoomToStack,
+    zoomToSource: zoomToSource,
+    zoomToStack: zoomToStack,
 
-          addToolTipHandler: addToolTipHandler,
-          removeToolTipHandler: removeToolTipHandler,
+    addToolTipHandler: addToolTipHandler,
+    removeToolTipHandler: removeToolTipHandler,
 
-          // debug/testing access below
-          //
-          getWWTControl: function () { return wwt; },
-            
-          toggleCoordinateGrid: toggleCoordinateGrid,
-          toggleCrosshairs: toggleCrosshairs,
-          toggleConstellations: toggleConstellations,
-          toggleBoundaries: toggleBoundaries,
+    // debug/testing access below
+    //
+    getWWTControl: function () { return wwt; },
 
-          setPosition: setPosition,
-            
-          hideSources: hideSources,
-          showSources: showSources,
-          toggleSources: toggleSources,
-          toggleSources11: toggleSources11,
-          toggleXMMSources: toggleXMMSources,
-          toggleStacks: toggleStacks,
+    toggleCoordinateGrid: toggleCoordinateGrid,
+    toggleCrosshairs: toggleCrosshairs,
+    toggleConstellations: toggleConstellations,
+    toggleBoundaries: toggleBoundaries,
 
-          toggleCHS: toggleCHS,
+    setPosition: setPosition,
 
-          toggleFlexById: toggleFlexById,
+    hideSources: hideSources,
+    showSources: showSources,
+    toggleSources: toggleSources,
+    toggleSources11: toggleSources11,
+    toggleXMMSources: toggleXMMSources,
+    toggleStacks: toggleStacks,
 
-          showPreSelected: showPreSelected,
-          hidePreSelected: hidePreSelected,
-          togglePreSelected: togglePreSelected,
+    toggleCHS: toggleCHS,
 
-          findNearestStack: findNearestStack,
+    toggleFlexById: toggleFlexById,
 
-          toggleMW: toggleMW,
-          toggleBanners: toggleBanners,
+    showPreSelected: showPreSelected,
+    hidePreSelected: hidePreSelected,
+    togglePreSelected: togglePreSelected,
 
-          showBlockElement: showBlockElement,
-          hideElement: hideElement,
-            
-          setImage: setImage,
-          setTargetName: setTargetName,
-            
-          zoom: zoom,
-          zoomIn: zoomIn,
-          zoomOut: zoomOut,
+    findNearestStack: findNearestStack,
 
-          // 1.1 test
-          loadSource11: downloadCatalog11Data,
+    toggleMW: toggleMW,
+    toggleBanners: toggleBanners,
 
-          colorUpdate: colorUpdate,
-          colorUpdate11: colorUpdate11,
-          xmmColorUpdate: xmmColorUpdate,
+    showBlockElement: showBlockElement,
+    hideElement: hideElement,
 
-          changeSourceSize: changeSourceSize,
-          changeSource11Size: changeSource11Size,
-          changeXMMSourceSize: changeXMMSourceSize,
+    setImage: setImage,
+    setTargetName: setTargetName,
 
-          strToRA: strToRA, strToDec: strToDec,
+    zoom: zoom,
+    zoomIn: zoomIn,
+    zoomOut: zoomOut,
 
-          getProps: () => catalogProps,
+    // 1.1 test
+    loadSource11: downloadCatalog11Data,
 
-          switchSelectionMode: switchSelectionMode
-         };
-    
+    colorUpdate: colorUpdate,
+    colorUpdate11: colorUpdate11,
+    xmmColorUpdate: xmmColorUpdate,
+
+    changeSourceSize: changeSourceSize,
+    changeSource11Size: changeSource11Size,
+    changeXMMSourceSize: changeXMMSourceSize,
+
+    strToRA: strToRA, strToDec: strToDec,
+
+    getProps: () => catalogProps,
+
+    switchSelectionMode: switchSelectionMode
+  };
+
 })();
