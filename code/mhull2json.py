@@ -10,6 +10,9 @@ Aim:
 Create a simple JSON representation of the master hulls. At present
 there is no ordering/labelling.
 
+There can be multiple mhull files for a given ensemble. The highest
+version is used (this slows things down a bit).
+
 """
 
 
@@ -17,6 +20,22 @@ import json
 import numpy as np
 
 import pycrates
+
+
+def get_ensemble(infile):
+    """What is the ensemble and revision of a mhull file?"""
+
+    # For now rely on the header, and hope they have been updated
+    #
+    cr = pycrates.read_file(infile)
+    ensemble = cr.get_key_value('ENSEMBLE')
+    chsver = cr.get_key_value('CHSVER')
+    if ensemble is None:
+        raise IOError("Missing ENSEMBLE in {}".format(infile))
+    if chsver is None:
+        raise IOError("Missing CHSVER in {}".format(infile))
+
+    return (ensemble, chsver)
 
 
 def read_mhull(infile):
@@ -66,13 +85,38 @@ def read_mhull(infile):
 
 def process(infiles, outfile):
 
-    store = []
+    norig = len(infiles)
+    print("# Input is {} files".format(norig))
+
+    # check on duplicates
+    store = {}
     for infile in infiles:
+        ensemble, ver = get_ensemble(infile)
+        try:
+            oldver, oldfile = store[ensemble]
+            if ver > oldver:
+                store[ensemble] = (ver, infile)
+            elif ver == oldver:
+                raise IOError("same version: {} {}".format(oldfile, infile))
+
+        except KeyError:
+            store[ensemble] = (ver, infile)
+
+
+    nrun = len(store)
+    if nrun < norig:
+        print("# Lost {} files due to repeats".format(norig - nrun))
+    elif nrun > norig:
+        raise RuntimeError("Loopy!")
+
+    print("# Starting")
+    coords = []
+    for _, infile in store.values():
         for hull in read_mhull(infile):
-            store.append(hull)
+            coords.append(hull)
 
     with open(outfile, 'w+') as fh:
-        fh.write(json.dumps(store))
+        fh.write(json.dumps(coords))
 
     print("Created: {}".format(outfile))
 
