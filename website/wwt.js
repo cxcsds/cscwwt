@@ -29,7 +29,7 @@ var wwt = (function () {
     const keys = [keyLocation, keyForeground];
     keys.forEach(window.localStorage.removeItem);
   }
-  
+
   // Why not ask WWT rather than keep track of these settings?
   //
   // Also, since they are initialized with a call to toggleXXX(),
@@ -110,6 +110,13 @@ var wwt = (function () {
   var nearest_fovs = [];
 
   var stacks_shown = false;
+
+  // add this to a URL and, hey presto, as long as you don't call it
+  // too often, we stop the cache.
+  //
+  function cacheBuster() {
+      return '?' + (new Date()).getTime();
+  }
 
   // Return the WWT div, or null (which indicates a serious problem).
   //
@@ -720,7 +727,9 @@ var wwt = (function () {
   }
 
   // VERY experimental
-  const downloadCHSData = makeDownloadData('wwtdata/chs.json',
+  // stick in a cache-busting identifier to help
+  const downloadCHSData = makeDownloadData('wwtdata/chs.json'
+					   + cacheBuster(),
 					   '#togglechs',
 					   'CHS data',
 					   processCHSData);
@@ -879,8 +888,12 @@ var wwt = (function () {
 
     if (shownCHS === false) {
       showCHS();
+      addAnnotationClicked();
     } else {
       hideCHS();
+      removeAnnotationClicked();
+      const pane = document.querySelector('#chspane');
+      pane.style.display = 'none';
     }
   }
 
@@ -894,7 +907,11 @@ var wwt = (function () {
     }
 
     // This assumes they are not already shown
-    annotationsCHS.forEach(wwt.addAnnotation);
+    // annotationsCHS.forEach(wwt.addAnnotation);
+    annotationsCHS.forEach(anns => {
+      wwt.addAnnotation(anns[0]);
+      wwt.addAnnotation(anns[1]);
+    });
 
     document.querySelector('#togglechs').innerHTML =
       'Hide CHS';
@@ -910,7 +927,11 @@ var wwt = (function () {
     }
 
     // This assumes they are being shown
-    annotationsCHS.forEach(wwt.removeAnnotation);
+    // annotationsCHS.forEach(wwt.removeAnnotation);
+    annotationsCHS.forEach(anns => {
+      wwt.removeAnnotation(anns[0]);
+      wwt.removeAnnotation(anns[1]);
+    });
 
     document.querySelector('#togglechs').innerHTML =
       'Show CHS';
@@ -1345,16 +1366,51 @@ var wwt = (function () {
     // Change the color based on whether it is an "original" hull
     // (pink) or a changed one (cyan)
     //
-    const color = chs[0] ? 'cyan' : 'pink';
+    const color = chs.changed ? 'cyan' : 'pink';
     ann.set_lineWidth(2);
     ann.set_lineColor(color);
     ann.set_fillColor(color);
     ann.set_opacity(0.6);
 
-    const coords = chs[1];
-    coords.forEach(p => { ann.addPoint(p[0], p[1]); });
+    chs.coords.forEach(p => { ann.addPoint(p[0], p[1]); });
 
-    return ann;
+    // Add a circle so I can attach a label. Although this doesn't
+    // seem to work.
+    //
+    const lbl = wwt.createCircle(true);
+    lbl.setCenter(chs.ra, chs.dec);
+    lbl.set_skyRelative(true);
+    lbl.set_radius(60 / 3600.0);
+    lbl.set_label(chs.label);
+    lbl.set_id(chs.label);  // do we need an ID to get click to work?
+    lbl.set_showHoverLabel(true);
+
+    return [ann, lbl];
+  }
+
+  // I want some feedback on the annotations, for the CHS work,
+  // but not clear yet what the best thing to do is.
+  //
+  var annotationClickedFlag = false;
+  function addAnnotationClicked() {
+    if (annotationClickedFlag) { return; }
+
+    wwt.add_annotationClicked((obj, eventArgs) => {
+      const id = eventArgs.get_id();
+
+      const pane = document.querySelector('#chspane');
+      pane.innerHTML = "CHS: " + id;
+      pane.style.display = 'inline-block';
+
+    });
+    annotationClickedFlag = true;
+  }
+
+  function removeAnnotationClicked() {
+    if (!annotationClickedFlag) { return; }
+
+    wwt.remove_annotationClicked();
+    annotationClickedFlag = false;
   }
 
   var annotationsCHS = null;
@@ -1734,6 +1790,21 @@ var wwt = (function () {
         panel.style.display = 'block';
       }
 
+      // So, can find out when zoom events finished, but do not need
+      // this at the moment (did this not used to work, or did I
+      // mis-understand its intent?)
+      //
+      /***
+      wwt.add_arrived((obj, eventArgs) => {
+	console.log("*** We have arrived...");
+	console.log("    ra = " + eventArgs.get_RA());
+	console.log("       = " + 15.0 * wwt.getRA());
+	console.log("   dec = " + eventArgs.get_dec());
+	console.log("       = " + wwt.getDec());
+	console.log("  zoom = " + wwt.get_fov()); // eventArg?
+      });
+      ***/
+
       trace('Finished wwtReadyFunc');
     };
   }
@@ -2081,7 +2152,7 @@ var wwt = (function () {
     });
 
     // Do I need to add a cache-busting identifier?
-    req.open('GET', 'wwtdata/wwt_status.json?' + (new Date()).getTime());
+    req.open('GET', 'wwtdata/wwt_status.json' + cacheBuster());
     req.responseType = 'json';
     req.send();
   }
@@ -2999,6 +3070,9 @@ var wwt = (function () {
     strToRA: strToRA, strToDec: strToDec,
 
     getProps: () => catalogProps,
+
+    click: addAnnotationClicked,
+    unclick: removeAnnotationClicked,
 
     switchSelectionMode: switchSelectionMode
   };

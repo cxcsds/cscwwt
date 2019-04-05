@@ -12,9 +12,7 @@ there is no ordering/labelling.
 
 Data format:
   list of hulls
-  each hull is a list of 2 elements
-    boolean (True if version>1)
-    list of coordinate pairs (ra,dec in decimal degrees)
+  each hull is a list of objects
 
 There can be multiple mhull files for a given ensemble. The highest
 version is used (this slows things down a bit).
@@ -56,6 +54,8 @@ def read_mhull(infile):
     cr = pycrates.read_file("{}[HULLLIST]".format(infile))
     assert cr.get_nrows() > 0, infile
 
+    ensemble = cr.get_key_value('ENSEMBLE')
+
     mids = cr.Master_Id.values
     nvs = cr.NVERTEX.values
     eqpos = cr.EQPOS.values
@@ -90,7 +90,13 @@ def read_mhull(infile):
         for x, y in np.vstack((ra, dec)).T:
             pos.append([x, y])
 
-        out.append(pos)
+        # we don't have the final centroid here, so for now just use
+        # the first vertex
+        #
+        center = [ra[0], dec[0]]
+
+        label = "{} {}".format(ensemble, mid)
+        out.append((pos, center, label))
 
     return out
 
@@ -115,7 +121,6 @@ def process(infiles, outfile):
         except KeyError:
             store[ensemble] = (ver, infile)
 
-
     nrun = len(store)
     if nrun < norig:
         print("# Lost {} files due to repeats".format(norig - nrun))
@@ -126,15 +131,19 @@ def process(infiles, outfile):
     coords = []
     for ver, infile in store.values():
         # original should be version=1
+        # this should be a per-hull value but currently it's per-ensemble
         changed = ver > 1
-        for hull in read_mhull(infile):
-            coords.append([changed, hull])
+        for hull, center, label in read_mhull(infile):
+            coords.append({'changed': changed,
+                           'label': label,
+                           'ra': center[0],
+                           'dec': center[1],
+                           'coords': hull})
 
     with open(outfile, 'w+') as fh:
         fh.write(json.dumps(coords))
 
     print("Created: {}".format(outfile))
-
 
 
 if __name__ == "__main__":
