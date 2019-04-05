@@ -182,6 +182,8 @@ const wwtsamp = (function () {
 
     // SAMP message to change position.
     //
+    // NOTE: this currently does *NOT* record this location as as
+    //       stored location
     function handlePointAtSky(senderId, message, isCall) {
 	const params = message["samp.params"];
 	const ra = params["ra"];

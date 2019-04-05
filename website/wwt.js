@@ -20,6 +20,16 @@ var wwt = (function () {
 
   var wwt;
 
+  // keys for local storage values
+  const keyLocation = "wwt-location";
+  const keyForeground = "wwt-foreground";
+
+  // Remove any user-stored values
+  function resetStorage() {
+    const keys = [keyLocation, keyForeground];
+    keys.forEach(window.localStorage.removeItem);
+  }
+  
   // Why not ask WWT rather than keep track of these settings?
   //
   // Also, since they are initialized with a call to toggleXXX(),
@@ -142,6 +152,16 @@ var wwt = (function () {
     wwt.settings.set_showConstellationBoundries(displaySettings.boundaries);
   }
 
+  // A simple wrapper arount wwt.gotoRaDecZoom which records the
+  // selected storage so that resetLocation can re-use it.
+  //
+  // NOTE: this does not record the FOV setting
+  function gotoRaDecZoom(ra, dec, fov) {
+    wwt.gotoRaDecZoom(ra, dec, fov, false);
+    const store = ra + "," + dec;
+    window.localStorage.setItem(keyLocation, store);
+  }
+  
   // Change the zoom level if it is not too small or large
   // The limits are based on those used at
   // https://worldwidetelescope.gitbooks.io/worldwide-telescope-web-control-script-reference/content/webcontrolobjects.html#wwtcontrol-fov-property
@@ -151,6 +171,10 @@ var wwt = (function () {
     if (fov > 60) { return; }
     let ra = 15.0 * wwt.getRA();
     let dec = wwt.getDec();
+
+    // NOTE: do not store location here, as not sure how to handle zoom
+    //       and would need to be coupled with regularly polling position
+    //       too
     wwt.gotoRaDecZoom(ra, dec, fov, false);
   }
 
@@ -169,7 +193,7 @@ var wwt = (function () {
   function zoomToStack(stackname) {
     for (var stack of input_stackdata.stacks) {
       if (stack.stackid !== stackname) { continue; }
-      wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0);
+      gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0);
       wwtsamp.moveTo(stack.pos[0], stack.pos[1]);
       return;
     }
@@ -192,7 +216,7 @@ var wwt = (function () {
 
       const ra = get_csc_row(src, 'ra');
       const dec = get_csc_row(src, 'dec');
-      wwt.gotoRaDecZoom(ra, dec, 0.06);
+      gotoRaDecZoom(ra, dec, 0.06);
       wwtsamp.moveTo(ra, dec);
       return;
     }
@@ -1623,13 +1647,50 @@ var wwt = (function () {
 
   }
 
+  // This will go to the user's last-selected position or, if not set,
+  // a default value given by ra0, dec0.
+  //
+  // The chois of last-selected position currently is based on an
+  // explicit move by the UI (that is, user has selected a stack or
+  // source and said "go there", or given a name/location). It
+  // does *not* include random scrolling (this could be done but
+  // requires regular polling of WWT to get the location).
+  //
+  // This does not restore the FOV, which it probably should.
+  //
   function resetLocation() {
     // Clear out the target name field, as can see it remain on
     // a page reload (possibly a Mozilla persistence thing).
-    //
+    // Do this even if going to a named location from a previous
+    // visit, as I think this is too much effort to track
+    // reliably.
     setTargetName('');
-    wwt.gotoRaDecZoom(ra0, dec0, startFOV, false);
-    trace('Set up zoom to starting location');
+
+    // Can we retrieve a valid location? Use a comma-sepatated
+    // string for storage.
+    //
+    const loc = window.localStorage.getItem(keyLocation);
+    let ra = null, dec = null;
+    if (loc !== null) {
+      const toks = loc.split(',');
+      if (toks.length === 2) {
+	// use parseFloat rather than the more-restrictive Number
+	ra = parseFloat(toks[0]);
+	dec = parseFloat(toks[1]);
+	if (isNaN(ra)) { ra = null; }
+	if (isNaN(dec)) { dec = null; }
+      }
+    }
+
+    // Note: in this particular case we do not use our wrapper routine
+    if ((ra === null) || (dec === null)) {
+      wwt.gotoRaDecZoom(ra0, dec0, startFOV, false);
+      trace('Set up zoom to starting location: default');
+    } else {
+      wwt.gotoRaDecZoom(ra, dec, startFOV, false);
+      trace('Set up zoom to starting location: stored');
+    }
+    
   }
 
   // This used to be sent in data, hence the function returning a function,
@@ -1654,7 +1715,7 @@ var wwt = (function () {
 
       // Try and restore the user's last settings.
       //
-      const selImg = window.localStorage.getItem('wwt-foreground');
+      const selImg = window.localStorage.getItem(keyForeground);
       if (selImg !== null) {
         setImage(selImg);
       }
@@ -2120,7 +2181,7 @@ var wwt = (function () {
     hideSources();
     clearNearestStack();
 
-    wwt.gotoRaDecZoom(ra, dec, fov, false);
+    gotoRaDecZoom(ra, dec, fov);
     wwtsamp.moveTo(ra, dec);
 
     // Can not just call showSources here since we have not
@@ -2637,11 +2698,9 @@ var wwt = (function () {
   // This also changes the window localStorage field: 'wwt-foreground'
   //
   function setImage(name) {
-    const key = 'wwt-foreground';
-
     if (name === 'dss') {
       wwt.setForegroundOpacity(0.0);
-      window.localStorage.setItem(key, name);
+      window.localStorage.setItem(keyForeground, name);
       return;
     }
     const fullName = wtml[name];
@@ -2651,7 +2710,7 @@ var wwt = (function () {
     }
     wwt.setForegroundImageByName(fullName);
     wwt.setForegroundOpacity(100.0);
-    window.localStorage.setItem(key, name);
+    window.localStorage.setItem(keyForeground, name);
   }
 
   // The CSC2 data is returned as an array of values
