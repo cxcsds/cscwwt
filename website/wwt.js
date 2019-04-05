@@ -1,3 +1,4 @@
+"use strict";
 
 /*
  * Based on code from
@@ -1410,6 +1411,7 @@ var wwt = (function () {
     lbl.set_skyRelative(true);
     lbl.set_radius(60 / 3600.0);
     lbl.set_label(chs.label);
+    lbl.set_opacity(0.5);
     lbl.set_id(chs.label);  // do we need an ID to get click to work?
     lbl.set_showHoverLabel(true);
 
@@ -1420,6 +1422,9 @@ var wwt = (function () {
   // but not clear yet what the best thing to do is.
   //
   var annotationClickedFlag = false;
+  var lastAnnotation = null;
+  var lastAnnotationFillColor = null;
+
   function addAnnotationClicked() {
     if (annotationClickedFlag) { return; }
 
@@ -1430,6 +1435,20 @@ var wwt = (function () {
       pane.innerHTML = "CHS: " + id;
       pane.style.display = 'inline-block';
 
+      if (lastAnnotation !== null) {
+	lastAnnotation.set_fillColor(lastAnnotationFillColor);
+      }
+
+      // Find the selected annotation; it would be great if it were
+      // sent to the handler...
+      for (var i = 0; i < annotationsCHS.length; i++) {
+	const ann = annotationsCHS[i][1];
+	if (ann.get_id() !== id) { continue; }
+	lastAnnotation = ann;
+	lastAnnotationFillColor = ann.get_fillColor();
+	ann.set_fillColor('red');
+	break;
+      }
     });
     annotationClickedFlag = true;
   }
