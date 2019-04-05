@@ -22,12 +22,56 @@ var wwt = (function () {
 
   // keys for local storage values
   const keyLocation = "wwt-location";
+  const keyFOV = "wwt-fov";
   const keyForeground = "wwt-foreground";
 
   // Remove any user-stored values
   function resetStorage() {
-    const keys = [keyLocation, keyForeground];
+    const keys = [keyLocation, keyFOV, keyForeground];
     keys.forEach(window.localStorage.removeItem);
+  }
+
+  // What is the minimum FOV size we want to try and "enforce"?
+  // Units are degrees.
+  //
+  // Note that unless we make storeDisplayState enforce this,
+  // we can not guarantee a user doesn't go smaller than this,
+  // but the current approach minimises the "damage" a wonky zoom
+  // can do.
+  //
+  // Based on logic in
+  // https://worldwidetelescope.gitbooks.io/worldwide-telescope-web-control-script-reference/content/webcontrolobjects.html#wwtcontrol-fov-property
+  //
+  // const minFOV = 0.00022910934437488727; / /this is about 0.8 arcsec
+  const minFOV = 5 / 3600.0;
+  const maxFOV = 60; // I think this is the WWT limit
+
+  // Save the current WWT "display", for settings that we don't
+  // explicitly track the change of elsewhere:
+  //   keyLocation
+  //   keyFOV
+  //
+  // It is expected that this is called periodically.
+  //
+  function storeDisplayState() {
+    const ra = 15.0 * wwt.getRA();
+    const dec = wwt.getDec();
+    const fov = wwt.get_fov();
+
+    window.localStorage.setItem(keyLocation, ra + "," + dec);
+    if ((fov > minFOV) && (fov < maxFOV)) {
+      window.localStorage.setItem(keyFOV, fov);
+    }
+  }
+
+  // Poll the WWT every two seconds for the location and FOV.
+  // If the timer has already been started then the routine
+  // does nothing.
+  //
+  var stateTimerID = null;
+  function setWWTStatePoll() {
+    if (stateTimerID !== null) { return; }
+    stateTimerID = window.setInterval(storeDisplayState, 2000)
   }
 
   // Why not ask WWT rather than keep track of these settings?
@@ -159,29 +203,13 @@ var wwt = (function () {
     wwt.settings.set_showConstellationBoundries(displaySettings.boundaries);
   }
 
-  // A simple wrapper arount wwt.gotoRaDecZoom which records the
-  // selected storage so that resetLocation can re-use it.
-  //
-  // NOTE: this does not record the FOV setting
-  function gotoRaDecZoom(ra, dec, fov) {
-    wwt.gotoRaDecZoom(ra, dec, fov, false);
-    const store = ra + "," + dec;
-    window.localStorage.setItem(keyLocation, store);
-  }
-  
   // Change the zoom level if it is not too small or large
-  // The limits are based on those used at
-  // https://worldwidetelescope.gitbooks.io/worldwide-telescope-web-control-script-reference/content/webcontrolobjects.html#wwtcontrol-fov-property
   //
   function zoom(fov) {
-    if (fov < 0.00022910934437488727) { return; }
-    if (fov > 60) { return; }
+    if (fov <= minFOV) { return; }
+    if (fov >= maxFOV) { return; }
     let ra = 15.0 * wwt.getRA();
     let dec = wwt.getDec();
-
-    // NOTE: do not store location here, as not sure how to handle zoom
-    //       and would need to be coupled with regularly polling position
-    //       too
     wwt.gotoRaDecZoom(ra, dec, fov, false);
   }
 
@@ -200,7 +228,7 @@ var wwt = (function () {
   function zoomToStack(stackname) {
     for (var stack of input_stackdata.stacks) {
       if (stack.stackid !== stackname) { continue; }
-      gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0);
+      wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, false);
       wwtsamp.moveTo(stack.pos[0], stack.pos[1]);
       return;
     }
@@ -223,7 +251,7 @@ var wwt = (function () {
 
       const ra = get_csc_row(src, 'ra');
       const dec = get_csc_row(src, 'dec');
-      gotoRaDecZoom(ra, dec, 0.06);
+      wwt.gotoRaDecZoom(ra, dec, 0.06, false);
       wwtsamp.moveTo(ra, dec);
       return;
     }
@@ -1703,6 +1731,16 @@ var wwt = (function () {
 
   }
 
+  // Convert a value to a floating-point number, returning null
+  // if there was a problem. It is not guaranteed to catch all
+  // problems (since it uses parseFloat tather than Number).
+  //
+  function toNumber(inval) {
+    const outval = parseFloat(inval);
+    if (isNaN(outval)) { return null; }
+    return outval;
+  }
+
   // This will go to the user's last-selected position or, if not set,
   // a default value given by ra0, dec0.
   //
@@ -1722,28 +1760,35 @@ var wwt = (function () {
     // reliably.
     setTargetName('');
 
-    // Can we retrieve a valid location? Use a comma-sepatated
-    // string for storage.
+    // Try to guard against accidentally-stupid values
     //
     const loc = window.localStorage.getItem(keyLocation);
     let ra = null, dec = null;
     if (loc !== null) {
       const toks = loc.split(',');
       if (toks.length === 2) {
-	// use parseFloat rather than the more-restrictive Number
-	ra = parseFloat(toks[0]);
-	dec = parseFloat(toks[1]);
-	if (isNaN(ra)) { ra = null; }
-	if (isNaN(dec)) { dec = null; }
+	ra = toNumber(toks[0]);
+	dec = toNumber(toks[1]);
+	if ((ra < 0) || (ra >= 360)) { ra = null; }
+	if ((dec < -90) || (dec > 90)) { dec = null; }
       }
     }
 
-    // Note: in this particular case we do not use our wrapper routine
+    let zoom = window.localStorage.getItem(keyFOV);
+    if (zoom !== null) { zoom = toNumber(zoom); }
+    if (zoom === null) {
+      zoom = startFOV;
+    } else {
+      if (zoom < minFOV) { zoom = minFOV; }
+      else if (zoom > maxFOV) { zoom = maxFOV; }
+      trace('Setting zoom to: ' + zoom);
+    }
+
     if ((ra === null) || (dec === null)) {
-      wwt.gotoRaDecZoom(ra0, dec0, startFOV, false);
+      wwt.gotoRaDecZoom(ra0, dec0, zoom, false);
       trace('Set up zoom to starting location: default');
     } else {
-      wwt.gotoRaDecZoom(ra, dec, startFOV, false);
+      wwt.gotoRaDecZoom(ra, dec, zoom, false);
       trace('Set up zoom to starting location: stored');
     }
     
@@ -1773,6 +1818,7 @@ var wwt = (function () {
       //
       const selImg = window.localStorage.getItem(keyForeground);
       if (selImg !== null) {
+	// TODO: update the option list
         setImage(selImg);
       }
 
@@ -1789,6 +1835,10 @@ var wwt = (function () {
       } else {
         panel.style.display = 'block';
       }
+
+      // Poll for the WWT display
+      //
+      setWWTStatePoll();
 
       // So, can find out when zoom events finished, but do not need
       // this at the moment (did this not used to work, or did I
@@ -2252,7 +2302,7 @@ var wwt = (function () {
     hideSources();
     clearNearestStack();
 
-    gotoRaDecZoom(ra, dec, fov);
+    wwt.gotoRaDecZoom(ra, dec, fov, false);
     wwtsamp.moveTo(ra, dec);
 
     // Can not just call showSources here since we have not
