@@ -766,7 +766,7 @@ var wwt = (function () {
   //
   var shownCHS = false;
   function toggleCHS() {
-    if (!haveCHSData) {
+    if (chsData === null) {
       const el = document.querySelector('#togglechs');
       el.innerHTML = 'Loading CHS Sources';
       el.disabled = true;
@@ -1234,13 +1234,22 @@ var wwt = (function () {
     trace('Created source_annotations');
   }
 
-  function makeCHS(coords) {
+  // Tweaking the "definition" of the CHS format as we work out
+  // what we want
+  function makeCHS(chs) {
+
     const ann = wwt.createPolygon(false);
-    ann.set_lineColor('pink');
+
+    // Change the color based on whether it is an "original" hull
+    // (pink) or a changed one (cyan)
+    //
+    const color = chs[0] ? 'cyan' : 'pink';
     ann.set_lineWidth(2);
-    ann.set_fillColor('pink');
+    ann.set_lineColor(color);
+    ann.set_fillColor(color);
     ann.set_opacity(0.6);
 
+    const coords = chs[1];
     coords.forEach(p => { ann.addPoint(p[0], p[1]); });
 
     return ann;
@@ -1250,8 +1259,8 @@ var wwt = (function () {
   function createCHSAnnotations() {
 
     annotationsCHS = [];
-    chsData.forEach(coords => {
-      const ann = makeCHS(coords);
+    chsData.forEach(chs => {
+      const ann = makeCHS(chs);
       if (ann !== null) {
         annotationsCHS.push(ann);
       }
@@ -2692,8 +2701,7 @@ var wwt = (function () {
 
   }
 
-  var chsData = [];
-  var haveCHSData = false;
+  var chsData = null;
   function processCHSData(json) {
     if (json === null) {
       console.log('ERROR: unable to download CHS data');
@@ -2704,7 +2712,6 @@ var wwt = (function () {
       return;
     }
 
-    haveCHSData = true;
     chsData = json;
     createCHSAnnotations();
 

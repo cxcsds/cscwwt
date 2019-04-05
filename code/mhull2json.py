@@ -10,6 +10,12 @@ Aim:
 Create a simple JSON representation of the master hulls. At present
 there is no ordering/labelling.
 
+Data format:
+  list of hulls
+  each hull is a list of 2 elements
+    boolean (True if version>1)
+    list of coordinate pairs (ra,dec in decimal degrees)
+
 There can be multiple mhull files for a given ensemble. The highest
 version is used (this slows things down a bit).
 
@@ -34,6 +40,12 @@ def get_ensemble(infile):
         raise IOError("Missing ENSEMBLE in {}".format(infile))
     if chsver is None:
         raise IOError("Missing CHSVER in {}".format(infile))
+
+    # it should be an int, but just in case
+    try:
+        chsver = int(chsver)
+    except ValueError:
+        raise IOError("CHSVER is not an in in {}".format(infile))
 
     return (ensemble, chsver)
 
@@ -89,6 +101,7 @@ def process(infiles, outfile):
     print("# Input is {} files".format(norig))
 
     # check on duplicates
+    #
     store = {}
     for infile in infiles:
         ensemble, ver = get_ensemble(infile)
@@ -111,7 +124,9 @@ def process(infiles, outfile):
 
     print("# Starting")
     coords = []
-    for _, infile in store.values():
+    for ver, infile in store.values():
+        # original should be version=1
+        changed = ver > 1
         for hull in read_mhull(infile):
             coords.append(hull)
 
