@@ -280,8 +280,8 @@ const wwtsamp = (function () {
     else                     { verstr = stackver.toString(); }
 
     const url = 'http://cda.harvard.edu/csccli/retrieveFile?' +
-          'version=cur&filetype=stkevt3&filename=' + stack + 'N' +
-          verstr + '_evt3.fits';
+      'version=cur&filetype=stkevt3&filename=' + stack + 'N' +
+      verstr + '_evt3.fits';
 
     console.log('--> sending image.load.fits for ' + url);
     sendURL('image.load.fits', url,
