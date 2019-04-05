@@ -128,7 +128,7 @@ def process(infiles, outfile):
         # original should be version=1
         changed = ver > 1
         for hull in read_mhull(infile):
-            coords.append(hull)
+            coords.append([changed, hull])
 
     with open(outfile, 'w+') as fh:
         fh.write(json.dumps(coords))
