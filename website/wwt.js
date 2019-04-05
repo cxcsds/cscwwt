@@ -640,6 +640,85 @@ var wwt = (function () {
     }
   }
 
+  // Download some JSON, process it, and handle the spinner and
+  // toggling of items. On error the spinner is stopped but not
+  // much else is done.
+  //
+  // url is the URL to GET (no attempt to add a cache-busting
+  // identifier is made in this routine)
+  // toggleSel is the id of the element to toggle (if not null)
+  // dataLabel is the label for the element (e.g. 'XMM catalog')
+  // and is only usd if toggleSel is not null
+  // processData is sent the downloaded JSON
+  //
+  // QUS: should the spinner be optional?
+  //
+  function makeDownloadData(url, toggleSel, dataLabel, processData) {
+
+    return () => {
+      const req = new XMLHttpRequest();
+      if (!req) {
+	console.log('ERROR: unable to create a request object!');
+
+	if (toggleSel !== null) {
+	  document.querySelector(toggleSel)
+            .innerHTML = 'Unable to load ' + dataLabel;
+	}
+	return;
+      }
+
+      startSpinner();
+      req.addEventListener('load', () => {
+	trace('-- downloaded: ' + url);
+	processData(req.response);
+	stopSpinner();
+      });
+      req.addEventListener('error', () => {
+	trace('-- error downloading:' + url);
+	stopSpinner();
+      });
+
+      req.open('GET', url);
+      req.responseType = 'json';
+      req.send();
+    };
+  }
+
+  function downloadCatalog20Data() {
+      for (var ctr = 1; ctr <= NCHUNK; ctr++) {
+	// Try without any cache-busting identifier
+	const url = 'wwtdata/wwt_srcprop.' + ctr.toString() + '.json.gz';
+	const func = makeDownloadData(url, '#togglesources',
+				      'CSC2.0 catalog',
+				      (d) => { processCatalogData(d, ctr); });
+	func();
+      }
+  }
+
+  // VERY experimental
+  const downloadCHSData = makeDownloadData('wwtdata/chs.json',
+					   '#togglechs',
+					   'CHS data',
+					   processCHSData);
+
+  const downloadCatalog11Data = makeDownloadData('wwtdata/csc1.json.gz',
+						 '#togglesources11',
+						 'CSC1.1 catalog',
+						 processCatalog11Data);
+
+  const downloadXMMData = makeDownloadData('wwtdata/xmm.json.gz',
+					   '#toggleXMMsources',
+					   'XMM catalog',
+					   processXMMData);
+
+  // Load in (asynchronously) the mapping between stack name and the
+  // version number of the stack event file available in the archive.
+  //
+  var stackEventVersions = null;
+  const loadStackEventVersions = makeDownloadData('wwtdata/version.stkevt3.json',
+						  null, null,
+						  (d) => { stackEventVersions = d; });
+
   // Create the function to show the catalog.
   //   properties is the catalogProps.catalog field
   //
@@ -756,7 +835,6 @@ var wwt = (function () {
                                           hideSources);
   const toggleSources11 = makeToggleCatalog(catalogProps.csc11,
                                             downloadCatalog11Data);
-;
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
                                              downloadXMMData);
 
@@ -2785,85 +2863,6 @@ var wwt = (function () {
     trace('Created xmm_annotations');
 
   }
-
-  // Download some JSON, process it, and handle the spinner and
-  // toggling of items. On error the spinner is stopped but not
-  // much else is done.
-  //
-  // url is the URL to GET (no attempt to add a cache-busting
-  // identifier is made in this routine)
-  // toggleSel is the id of the element to toggle (if not null)
-  // dataLabel is the label for the element (e.g. 'XMM catalog')
-  // and is only usd if toggleSel is not null
-  // processData is sent the downloaded JSON
-  //
-  // QUS: should the spinner be optional?
-  //
-  function makeDownloadData(url, toggleSel, dataLabel, processData) {
-
-    return () => {
-      const req = new XMLHttpRequest();
-      if (!req) {
-	console.log('ERROR: unable to create a request object!');
-
-	if (toggleSel !== null) {
-	  document.querySelector(toggleSel)
-            .innerHTML = 'Unable to load ' + dataLabel;
-	}
-	return;
-      }
-
-      startSpinner();
-      req.addEventListener('load', () => {
-	trace('-- downloaded: ' + url);
-	processData(req.response);
-	stopSpinner();
-      });
-      req.addEventListener('error', () => {
-	trace('-- error downloading:' + url);
-	stopSpinner();
-      });
-
-      req.open('GET', url);
-      req.responseType = 'json';
-      req.send();
-    };
-  }
-
-  function downloadCatalog20Data() {
-      for (var ctr = 1; ctr <= NCHUNK; ctr++) {
-	// Try without any cache-busting identifier
-	const url = 'wwtdata/wwt_srcprop.' + ctr.toString() + '.json.gz';
-	const func = makeDownloadData(url, '#togglesources',
-				      'CSC2.0 catalog',
-				      (d) => { processCatalogData(d, ctr); });
-	func();
-      }
-  }
-
-  // VERY experimental
-  const downloadCHSData = makeDownloadData('wwtdata/chs.json',
-					   '#togglechs',
-					   'CHS data',
-					   processCHSData);
-
-  const downloadCatalog11Data = makeDownloadData('wwtdata/csc1.json.gz',
-						 '#togglesources11',
-						 'CSC1.1 catalog',
-						 processCatalog11Data);
-
-  const downloadXMMData = makeDownloadData('wwtdata/xmm.json.gz',
-					   '#toggleXMMsources',
-					   'XMM catalog',
-					   processXMMData);
-
-  // Load in (asynchronously) the mapping between stack name and the
-  // version number of the stack event file available in the archive.
-  //
-  var stackEventVersions = null;
-  const loadStackEventVersions = makeDownloadData('wwtdata/version.stkevt3.json',
-						  null, null,
-						  (d) => { stackEventVersions = d; });
 
   // Most of these are likely to be removed or replaced
   // as they are here for debugging, or historical "accident"
