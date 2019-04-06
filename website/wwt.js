@@ -995,6 +995,37 @@ var wwt = (function () {
     el.style.display = style;
   }
 
+  // Show the settings pane.
+  //
+  var showSettings = false;
+  function toggleSettings(event) {
+    if (showSettings) { hideSettings(); }
+    else { showSettings(); }
+    showSettings = !showSettings;
+  }
+
+  function hideSettings() {
+    hideElement('settings');
+    document.querySelector('#togglesettings').innerHTML =
+      'Show Settings';
+  }
+
+  function showSettings() {
+
+    var pane = document.querySelector('#settings');
+
+    // Trying to work out a good place to start the pane
+    //
+    // these are platform/font dependent...
+    pane.style.left = '16em';
+    pane.style.top = '4em';
+
+    pane.style.display = 'block';
+
+    document.querySelector('#togglesettings').innerHTML =
+      'Hide Settings';
+  }
+  
   // Show the pane with the buttons that move to a location.
   //
   // I want this to appear near where the user clicked - hence sending
@@ -3115,6 +3146,10 @@ var wwt = (function () {
     showPreSelected: showPreSelected,
     hidePreSelected: hidePreSelected,
     togglePreSelected: togglePreSelected,
+
+    showSettings: showSettings,
+    hideSettings: hideSettings,
+    toggleSettings: toggleSettings,
 
     findNearestStack: findNearestStack,
 

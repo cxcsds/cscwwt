@@ -243,12 +243,22 @@ main#content div.wrap {
           <option value="halpha">Optical (Hα)</option>
           <option value="rass">X-ray (RASS)</option>
           <option value="fermi3">Gamma (Fermi)</option>
-        </select><br/>
+        </select>
+	<br/>
+	
         <button class="button"
                 type="button" id="togglepreselected"
                 onclick="wwt.togglePreSelected(event);">
           Show Popular Places
-        </button><br/>
+        </button>
+	<br/> <!-- QUS: do we need this br? -->
+
+        <button class="button"
+                type="button" id="togglesettings"
+                onclick="wwt.toggleSettings(event);">
+          Show Settings
+        </button>
+	
         <button class="button"
                 type="button" id="togglestacks"
                 onclick="wwt.toggleStacks()">
@@ -754,6 +764,33 @@ main#content div.wrap {
 	</p>
       </div>
 
+      <div id="settings">
+        <div class="name">Settings:</div>
+
+	<img class="close" onclick="wwt.hideSettings();"
+	     src="wwtimg/glyphicons-208-remove.png" width="18" height="18"
+	     alt="Close"/>
+
+	<div class="main">
+	  <p>
+	    Control the display. Or at least that's the plan.
+	    This is intended for rarely-changed settings.
+	  </p>
+
+	  <ul>
+	    <li>full screen</li>
+	    <li>banners</li>
+	    <li>Milky Way outline</li>
+	    <li>coordinate grid</li>
+	    <li>constellation boundaries</li>
+	    <li>constellations</li>
+	    <li>show marker at center of field</li>
+	    <li>Remember current location and zoom level?</li>
+	    <li>Reset to defaults</li>
+	  </ul>
+	</div>
+      </div>
+      
       <div id="preselected">
         <div class="name">Move to:</div>
 
