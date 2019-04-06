@@ -17,14 +17,12 @@
 
 var wwt = (function () {
 
-  const NCHUNK = 8;  // number of chunks for the source properties
-
   var wwt;
 
   // keys for local storage values
-  const keyLocation = "wwt-location";
-  const keyFOV = "wwt-fov";
-  const keyForeground = "wwt-foreground";
+  const keyLocation = 'wwt-location';
+  const keyFOV = 'wwt-fov';
+  const keyForeground = 'wwt-foreground';
 
   // Remove any user-stored values
   function resetStorage() {
@@ -59,7 +57,7 @@ var wwt = (function () {
     const dec = wwt.getDec();
     const fov = wwt.get_fov();
 
-    window.localStorage.setItem(keyLocation, ra + "," + dec);
+    window.localStorage.setItem(keyLocation, ra + ',' + dec);
     if ((fov > minFOV) && (fov < maxFOV)) {
       window.localStorage.setItem(keyFOV, fov);
     }
@@ -744,15 +742,23 @@ var wwt = (function () {
     };
   }
 
+  const NCHUNK = 8;  // number of chunks for the source properties
+
   function downloadCatalog20Data() {
-      for (var ctr = 1; ctr <= NCHUNK; ctr++) {
-	// Try without any cache-busting identifier
-	const url = 'wwtdata/wwt_srcprop.' + ctr.toString() + '.json.gz';
-	const func = makeDownloadData(url, '#togglesources',
-				      'CSC2.0 catalog',
-				      (d) => { processCatalogData(d, ctr); });
-	func();
-      }
+
+    // Have to be careful about scoping rules, so make a function
+    // that returns a function to process the chunk
+    //
+    const processChunk = (x) => (d) => { processCatalogData(d, x); };
+
+    for (var ctr = 1; ctr <= NCHUNK; ctr++) {
+      // Try without any cache-busting identifier
+      const url = 'wwtdata/wwt_srcprop.' + ctr.toString() + '.json.gz';
+      const func = makeDownloadData(url, '#togglesources',
+				    'CSC2.0 catalog',
+				    processChunk(ctr));
+      func();
+    }
   }
 
   // VERY experimental
@@ -1432,7 +1438,7 @@ var wwt = (function () {
       const id = eventArgs.get_id();
 
       const pane = document.querySelector('#chspane');
-      pane.innerHTML = "CHS: " + id;
+      pane.innerHTML = 'CHS: ' + id;
       pane.style.display = 'inline-block';
 
       if (lastAnnotation !== null) {
