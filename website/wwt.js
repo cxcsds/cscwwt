@@ -1874,8 +1874,24 @@ var wwt = (function () {
       //
       const selImg = window.localStorage.getItem(keyForeground);
       if (selImg !== null) {
-	// TODO: update the option list
-        setImage(selImg);
+	const sel = document.querySelector('#imagechoice');
+
+	// Is there a neater way to do this? It is also not ideal
+	// for the case when selImg is not valid: what happens to
+	// the display?
+	//
+	sel.options.forEach(opt => { opt.selected = opt.value === selImg });
+
+	// Assume this is supported in recent browsers; see
+	// https://stackoverflow.com/questions/19329978/change-selects-option-and-trigger-events-with-javascript/28296580
+	//
+	try {
+	  sel.dispatchEvent(new CustomEvent('change'));
+	}
+	catch (e) {
+	  // Try this
+          setImage(selImg);
+	}
       }
 
       resetLocation();
