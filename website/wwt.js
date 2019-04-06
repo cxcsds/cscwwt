@@ -997,11 +997,11 @@ var wwt = (function () {
 
   // Show the settings pane.
   //
-  var showSettings = false;
+  var showSettingsFlag = false;
   function toggleSettings(event) {
-    if (showSettings) { hideSettings(); }
+    if (showSettingsFlag) { hideSettings(); }
     else { showSettings(); }
-    showSettings = !showSettings;
+    showSettingsFlag = !showSettingsFlag;
   }
 
   function hideSettings() {
