@@ -265,7 +265,8 @@ img.close {
 }
 
 #preselected > img.close , #stackinfo > img.close ,
-#sourceinfo > img.close , #plot > img.close {
+#settings > img.close , #sourceinfo > img.close ,
+#plot > img.close {
   margin-right: 0.4em;
   margin-top: 0.4em;
 }
@@ -634,7 +635,7 @@ img#csclogo {
 #togglemw {
 }
 
-div#preselected {
+div#preselected , div#settings {
   background-color: rgba(255, 255, 255, 0.6);
   border: 2px solid #D9D9D9;
   cursor: move;
