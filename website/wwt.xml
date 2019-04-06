@@ -777,7 +777,7 @@ main#content div.wrap {
 	    This is intended for rarely-changed settings.
 	  </p>
 
-	  <ul>
+	  <list>
 	    <li>full screen</li>
 	    <li>banners</li>
 	    <li>Milky Way outline</li>
@@ -787,7 +787,7 @@ main#content div.wrap {
 	    <li>show marker at center of field</li>
 	    <li>Remember current location and zoom level?</li>
 	    <li>Reset to defaults</li>
-	  </ul>
+	  </list>
 	</div>
       </div>
       
