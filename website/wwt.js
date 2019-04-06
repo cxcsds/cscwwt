@@ -1880,7 +1880,10 @@ var wwt = (function () {
 	// for the case when selImg is not valid: what happens to
 	// the display?
 	//
-	sel.options.forEach(opt => { opt.selected = opt.value === selImg });
+	for (var idx = 0; idx < sel.options.length; idx++) {
+	  const opt = sel.options[idx];
+	  if (opt.value === selImg) { opt.selected = true; break; }
+	}
 
 	// Assume this is supported in recent browsers; see
 	// https://stackoverflow.com/questions/19329978/change-selects-option-and-trigger-events-with-javascript/28296580
