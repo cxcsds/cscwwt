@@ -205,8 +205,8 @@ var wwt = (function () {
   // Change the zoom level if it is not too small or large
   //
   function zoom(fov) {
-    if (fov <= minFOV) { return; }
-    if (fov >= maxFOV) { return; }
+    if (fov < minFOV) { return; }
+    if (fov > maxFOV) { return; }
     let ra = 15.0 * wwt.getRA();
     let dec = wwt.getDec();
     wwt.gotoRaDecZoom(ra, dec, fov, false);
