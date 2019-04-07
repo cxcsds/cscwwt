@@ -19,15 +19,67 @@ var wwt = (function () {
 
   var wwt;
 
-  // keys for local storage values
+  // keys for local storage values; not guaranteed all in use yet.
+  //
+  const keySave = 'wwt-save';
   const keyLocation = 'wwt-location';
   const keyFOV = 'wwt-fov';
   const keyForeground = 'wwt-foreground';
+  const keyCoordinateGrid = 'wwt-grid';
+  const keyCrosshairs = 'wwt-crosshairs';
+  const keyConstellations = 'wwt-constellations';
+  const keyBoundaries = 'wwt-boundaries';
+  const keyMilkyWay = 'wwt-milkyway';
 
-  // Remove any user-stored values
-  function resetStorage() {
-    const keys = [keyLocation, keyFOV, keyForeground];
-    keys.forEach(window.localStorage.removeItem);
+  // Remove any user-stored values.
+  //
+  function clearState() {
+    const keys = [keySave, keyLocation, keyFOV, keyForeground,
+		  keyCoordinateGrid,
+		  keyCrosshairs, keyConstellations, keyBoundaries,
+		  keyMilkyWay];
+
+    keys.forEach(key => {
+      console.log("-- clearing state for key=" + key);
+      window.localStorage.removeItem(key);
+    });
+  }
+
+  // Save the current setting (if allowed to).
+  //
+  // Note that we *always* record the keySave setting (even if false),
+  // since otherwise it is a completely pointless setting. If keySave
+  // is set to false then we remove all other saved values.
+  //
+  // Should the act of changing keySave / saveStateFlag be included here
+  // (as it currently is) or moved out to a separate routine? The
+  // saveStateFlag variable isn't really needed.
+  // TODO: When changing saveState to True, need to save the settings for
+  // a number of fields (e.g. all but position/FOV). This is better done
+  // outside of this routine I think.
+  //
+  var saveStateFlag = true;
+  function saveState(key, value) {
+    const sval = value.toString();
+    if (key === keySave) {
+      saveStateFlag = sval === "true";
+      if (!saveStateFlag) { clearState(); }
+      window.localStorage.setItem(key, sval);
+      return;
+    }
+    if (!saveStateFlag) { return; }
+    window.localStorage.setItem(key, sval);
+  }
+
+  // Return the stored value, or null if not set. There is no
+  // validation that the key is valid.
+  //
+  function getState(key) {
+    return window.localStorage.getItem(key);
+  }
+
+  function setSaveState(flag) {
+    saveState(keySave, flag);
   }
 
   // What is the minimum FOV size we want to try and "enforce"?
@@ -57,9 +109,9 @@ var wwt = (function () {
     const dec = wwt.getDec();
     const fov = wwt.get_fov();
 
-    window.localStorage.setItem(keyLocation, ra + ',' + dec);
+    saveState(keyLocation, ra + ',' + dec);
     if ((fov > minFOV) && (fov < maxFOV)) {
-      window.localStorage.setItem(keyFOV, fov);
+      saveState(keyFOV, fov);
     }
   }
 
@@ -72,18 +124,6 @@ var wwt = (function () {
     if (stateTimerID !== null) { return; }
     stateTimerID = window.setInterval(storeDisplayState, 2000)
   }
-
-  // Why not ask WWT rather than keep track of these settings?
-  //
-  // Also, since they are initialized with a call to toggleXXX(),
-  // the actual starting value is the inverse of this (so false
-  // here means they are shown).
-  //
-  const displaySettings =
-        { coordinateGrid: false,
-          crosshairs: false,
-          constellations: false,
-          boundaries: true };
 
   /***
    // starting location: Sgr A*
@@ -180,26 +220,81 @@ var wwt = (function () {
     });
   }
 
-
-  function toggleCoordinateGrid() {
-    displaySettings.coordinateGrid = !displaySettings.coordinateGrid;
-    wwt.settings.set_showGrid(displaySettings.coordinateGrid);
-    wwt.settings.set_showEquatorialGridText(displaySettings.coordinateGrid);
+  function setCoordinateGrid(flag) {
+    wwt.settings.set_showGrid(flag);
+    wwt.settings.set_showEquatorialGridText(flag);
+    saveState(keyCoordinateGrid, flag);
   }
 
-  function toggleCrosshairs() {
-    displaySettings.crosshairs = !displaySettings.crosshairs;
-    wwt.settings.set_showCrosshairs(displaySettings.crosshairs);
+  function setCrosshairs(flag) {
+    wwt.settings.set_showCrosshairs(flag);
+    saveState(keyCrosshairs, flag);
   }
 
-  function toggleConstellations() {
-    displaySettings.constellations = !displaySettings.constellations;
-    wwt.settings.set_showConstellationFigures(displaySettings.constellations);
+  function setConstellations(flag) {
+    wwt.settings.set_showConstellationFigures(flag);
+    saveState(keyConstellations, flag);
   }
 
-  function toggleBoundaries() {
-    displaySettings.boundaries = !displaySettings.boundaries;
-    wwt.settings.set_showConstellationBoundries(displaySettings.boundaries);
+  function setBoundaries(flag) {
+    wwt.settings.set_showConstellationBoundries(flag);
+    saveState(keyBoundaries, flag);
+  }
+
+  // How are the toggle items handled?
+  //
+  // Need to look into when the Milky Way is read in, since if it
+  // is asynchronous this complicates the "save settings" logic.
+  //
+  // Note: togglesavestate must be first (we rely on this being
+  // processed first when resetting the state).
+  //
+  const toggleInfo = [
+    {key: keySave, sel: '#togglesavestate',
+     change: setSaveState, defval: true},
+    {key: keyCoordinateGrid, sel: '#togglegrid',
+     change: setCoordinateGrid, defval: true},
+    {key: keyCrosshairs, sel: '#togglecrosshair',
+     change: setCrosshairs, defval: true},
+    {key: keyConstellations, sel: '#toggleconstellations',
+     change: setConstellations, defval: true},
+    {key: keyBoundaries, sel: '#toggleboundaries',
+     change: setBoundaries, defval: false},
+    {key: null, sel: '#togglebanners',
+     change: showBanners, defval: true},
+    {key: null, sel: '#togglemw',
+     change: showMW, defval: false}];
+
+  // Change all the settings to the defval of toggleInfo
+  //
+  // Should this change "other" settings, such as location, fov,
+  // and the chosen background? I think this would be confusing,
+  // and we can at least define this as only changing the values
+  // in the settings window.
+  //
+  function resetSettings() {
+
+    toggleInfo.forEach(o => {
+      const el = document.querySelector(o.sel);
+      if (el === null) {
+	console.log("ERROR: unable to find toggle element " + o.sel);
+	return;
+      }
+
+      if (el.checked !== o.defval) {
+	el.checked = !el.checked;
+      }
+
+      // Fire the event whether it was changed or not, to ensure the
+      // value is saved.
+      //
+      try {
+	el.dispatchEvent(new CustomEvent('click'));
+      }
+      catch (e) {
+	console.log('Unable to send click event to ' + o.sel);
+      }
+    });
   }
 
   // Change the zoom level if it is not too small or large
@@ -629,53 +724,25 @@ var wwt = (function () {
     trace('Added MW');
   }
 
-  var mw_shown = false;
-  function toggleMW() {
-    var label;
-    if (mw_shown) {
-      for (var i = 0; i < mw_outlines.length; i++) {
-        wwt.removeAnnotation(mw_outlines[i]);
-      }
-      mw_shown = false;
-      label = 'Show';
-    } else {
-      for (var i = 0; i < mw_outlines.length; i++) {
-        wwt.addAnnotation(mw_outlines[i]);
-      }
-      mw_shown = true;
-      label = 'Hide';
-    }
-
-    document.querySelector('#togglemw').innerHTML =
-      label + ' Milky Way outline';
-
+  // This does not check that the annotations are in the correct state.
+  //
+  function showMW(flag) {
+    let func = flag ? wwt.addAnnotation : wwt.removeAnnotation;
+    mw_outlines.forEach(func);
   }
 
-  // Should perhaps determine the current state from the DOM,
-  // but if anyone is messing around to affect this then they
-  // can worry themselves.
+  // Display the header/footer banners.
   //
-  var banners_shown = true;
-  function toggleBanners() {
-    var label, style;
-    if (banners_shown) {
-      label = 'Show';
-      style = 'none';
-      hideElement('cxcheaderright');
-    } else {
-      label = 'Hide';
-      style = 'block';
-      showBlockElement('cxcheaderright');
-    }
+  // At present always show on load (as probably a SI requirement).
+  //
+  function showBanners(flag) {
+    const func = flag ? showBlockElement : hideElement;
+    func('cxcheaderright');
 
     // Just find the first p within the footer
-    document.querySelector('#cxcfooterright p')
-      .style.display = style;
-
-    document.querySelector('#togglebanners').innerHTML =
-      label + ' banners';
-
-    banners_shown = !banners_shown;
+    const el = document.querySelector('#cxcfooterright p');
+    if (el === null) { return; }
+    el.style.display = flag ? 'block' : 'none';
   }
 
   // NOTE: do not include the leading '#' in the element name.
@@ -1541,11 +1608,28 @@ var wwt = (function () {
   }
 
 
+  // This should only be called after the event handlers for the
+  // toggle options have been set up. As I extend this to include
+  // items that require external data, that may be loaded asynchrounously,
+  // it gets messier.
+  //
   function createSettings() {
-    toggleCoordinateGrid();
-    toggleCrosshairs();
-    toggleConstellations();
-    toggleBoundaries();
+
+    toggleInfo.forEach(o => {
+      const keyval = o.key === null ? null : getState(o.key);
+      let val = o.defval;
+      if (keyval !== null) {
+	val = keyval === 'true';
+	const el = document.querySelector(o.sel);
+	if (el !== null) {
+	  el.checked = val;
+	} else {
+	  console.log("ERROR: unable to find toggle element " + o.sel);
+	}
+      }
+      o.change(val);
+    });
+
     wwt.hideUI(true);
     trace('Set settings');
   }
@@ -1768,15 +1852,15 @@ var wwt = (function () {
     //
     host.addEventListener('dragover',
                           event => event.preventDefault());
-    host.addEventListener('drop',
-                          event => draggable.stopDrag(event));
+    host.addEventListener('drop', draggable.stopDrag);
 
-    ['#stackinfo', '#sourceinfo', '#preselected', '#plot'].forEach((n) => {
+    const panes = ['#stackinfo', '#sourceinfo', '#preselected',
+		   '#settings', '#plot'];
+    panes.forEach((n) => {
       const pane = host.querySelector(n);
       if (pane !== null) {
         pane.draggable = true;
-        pane.addEventListener('dragstart',
-                              event => draggable.startDrag(event));
+        pane.addEventListener('dragstart', draggable.startDrag);
       } else {
         console.log('INTERNAL error: unable to find "' + n + '"');
       }
@@ -1818,7 +1902,7 @@ var wwt = (function () {
 
     // Try to guard against accidentally-stupid values
     //
-    const loc = window.localStorage.getItem(keyLocation);
+    const loc = getState(keyLocation);
     let ra = null, dec = null;
     if (loc !== null) {
       const toks = loc.split(',');
@@ -1830,7 +1914,7 @@ var wwt = (function () {
       }
     }
 
-    let zoom = window.localStorage.getItem(keyFOV);
+    let zoom = getState(keyFOV);
     if (zoom !== null) { zoom = toNumber(zoom); }
     if (zoom === null) {
       zoom = startFOV;
@@ -1872,7 +1956,7 @@ var wwt = (function () {
 
       // Try and restore the user's last settings.
       //
-      const selImg = window.localStorage.getItem(keyForeground);
+      const selImg = getState(keyForeground);
       if (selImg !== null) {
 	const sel = document.querySelector('#imagechoice');
 
@@ -2233,22 +2317,35 @@ var wwt = (function () {
 
     // Do we show the 'show fullscreen' button?
     //
-    // TODO: perhaps should just hard-code widths to 48%
-    //
     if (wwtscreen.hasFullScreen()) {
       trace('found full screen support');
-
-      host.querySelector('#togglebanners').style.width = '48%';
-
       const el = host.querySelector('#togglefullscreen');
-      el.style.width = '48%';
       el.style.display = 'inline-block';
-
       el.addEventListener('click', () => wwtscreen.toggleFullScreen());
 
     } else {
       trace('no full screen support :-(');
     }
+
+    // Event handler for the reset button.
+    //
+    const reset = document.querySelector('#resetdefaults');
+    if (reset === null) {
+      console.log('ERROR: unable to find #resetdefaults');
+    } else {
+      reset.addEventListener('click', () => { resetSettings(); });
+    }
+
+    // Settings support (experimental)
+    //
+    toggleInfo.forEach(o => {
+      const el = document.querySelector(o.sel);
+      if (el === null) {
+	console.log("ERROR: unable to find toggle element " + o.sel);
+	return;
+      }
+      el.addEventListener('click', ev => { o.change(ev.target.checked); });
+    });
 
     // Start up the WWT initialization and then load in
     // the current status.
@@ -2896,7 +2993,7 @@ var wwt = (function () {
   function setImage(name) {
     if (name === 'dss') {
       wwt.setForegroundOpacity(0.0);
-      window.localStorage.setItem(keyForeground, name);
+      saveState(keyForeground, name);
       return;
     }
     const fullName = wtml[name];
@@ -2906,7 +3003,7 @@ var wwt = (function () {
     }
     wwt.setForegroundImageByName(fullName);
     wwt.setForegroundOpacity(100.0);
-    window.localStorage.setItem(keyForeground, name);
+    saveState(keyForeground, name);
   }
 
   // The CSC2 data is returned as an array of values
@@ -3144,11 +3241,6 @@ var wwt = (function () {
     //
     getWWTControl: function () { return wwt; },
 
-    toggleCoordinateGrid: toggleCoordinateGrid,
-    toggleCrosshairs: toggleCrosshairs,
-    toggleConstellations: toggleConstellations,
-    toggleBoundaries: toggleBoundaries,
-
     setPosition: setPosition,
 
     hideSources: hideSources,
@@ -3171,9 +3263,6 @@ var wwt = (function () {
     toggleSettings: toggleSettings,
 
     findNearestStack: findNearestStack,
-
-    toggleMW: toggleMW,
-    toggleBanners: toggleBanners,
 
     showBlockElement: showBlockElement,
     hideElement: hideElement,

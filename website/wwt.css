@@ -360,6 +360,77 @@ div.basicinfo + br {
   cursor: pointer;
 }
 
+#settings .button {
+  margin-bottom: 1em;
+  margin-top: 0;
+  width: auto;
+}
+
+/* Try https://medium.com/claritydesignsystem/pure-css-accessible-checkboxes-and-radios-buttons-54063e759bb3 */
+.checkbox input[type='checkbox'] {
+  opacity: 0;
+}
+
+.checkbox label::before {
+  border: 1px solid;
+  content: " ";
+  display: inline-block;
+  height: 1em;
+	margin-right: 0.5em;
+  width: 1em;
+}
+
+.checkbox label::after {
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+  content: "";
+  display: inline-block;
+  height: 0.38em;
+  transform: rotate(-55deg);
+  width: 0.56em;
+}
+
+.checkbox label {
+  position: relative;
+}
+
+/***
+.checkbox label::before {
+  position: absolute;
+}
+***/
+
+.checkbox label::after {
+  position: absolute;
+}
+
+/*Outer-box*/
+.checkbox label::before {
+  top: 0.19em;
+}
+
+/*Checkmark*/
+.checkbox label::after {
+  left: 0.25em;
+  top: 0.1em;
+}
+
+/*Hide the checkmark by default*/
+.checkbox input[type="checkbox"] + label::after {
+  content: none;
+}
+
+/*Unhide the checkmark on the checked state*/
+.checkbox input[type="checkbox"]:checked + label::after {
+  content: "";
+}
+
+/*Adding focus styles on the outer-box of the fake checkbox*/
+.checkbox input[type="checkbox"]:focus + label::before {
+  outline: rgb(59, 153, 252) auto 5px;
+}
+
+
 #sourcebar , #source11bar , #xmmsourcebar {
   display: flex;
   flex-direction: row;
@@ -646,6 +717,20 @@ div#preselected , div#settings {
   top: 2em;
 }
 
+div#settings {
+	max-width: 28em;
+}
+
+div#settings .main + p {
+  border-top: 0;
+}
+
+.checkboxes {
+	background-color: white;
+	padding-bottom: 1em;
+	padding-top: 1em;
+}
+
 /* Use a grid to align the "zoom to location" buttons; should allow
  * for fallback for those browsers which do not support grid CSS.
  */
@@ -659,10 +744,6 @@ div.gridable {
 
 #togglefullscreen {
   display: none;
-}
-
-#togglebanners {
-  float: right;
 }
 
 /*

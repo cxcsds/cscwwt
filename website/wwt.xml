@@ -354,24 +354,11 @@ main#content div.wrap {
 		 />
 	</div>
 
-        <button class="button"
-                type="button" id="togglemw"
-                onclick="wwt.toggleMW()">
-          Show Milky Way outline
-        </button>
-	<br/>
-
-	<!-- click handler added in wwt.js -->
+	<!-- only visible if the browser supports the option -->
         <button class="button"
                 type="button" id="togglefullscreen">
           Full screen
         </button>
-        <button class="button"
-                type="button" id="togglebanners"
-                onclick="wwt.toggleBanners()">
-          Hide banners
-        </button>
-	<br/>
 
         <button class="button"
                 type="button" id="showabout"
@@ -766,31 +753,70 @@ main#content div.wrap {
 
       <div id="settings">
         <div class="name">Settings:</div>
-
 	<img class="close" onclick="wwt.hideSettings();"
 	     src="wwtimg/glyphicons-208-remove.png" width="18" height="18"
 	     alt="Close"/>
 
 	<div class="main">
 	  <p>
-	    Control the display. Or at least that's the plan.
-	    This is intended for rarely-changed settings.
+	    These settings control the appearance and
+	    behavior of the World Wide Telescope interface to the
+	    Chandra Source Catalog.
 	  </p>
 
-	  <list>
-	    <li>full screen</li>
-	    <li>banners</li>
-	    <li>Milky Way outline</li>
-	    <li>coordinate grid</li>
-	    <li>constellation boundaries</li>
-	    <li>constellations</li>
-	    <li>show marker at center of field</li>
-	    <li>Remember current location and zoom level?</li>
-	    <li>Reset to defaults</li>
-	  </list>
-	</div>
-      </div>
-      
+          <button class="button"
+                  type="button" id="resetdefaults">
+            Restore default settings
+          </button>
+
+	  <div class="checkboxes">
+	    <div class="checkbox">
+	      <input id="togglesavestate" name="togglesavestate"
+		     type="checkbox" checked="true"/>
+	      <label for="togglesavestate">Remember position and settings?</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglemw" name="togglemw"
+		     type="checkbox"/>
+	      <label for="togglemw">Show Milky Way outline</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglecrosshair" name="togglecrosshair"
+		     type="checkbox" checked="true"/>
+	      <label for="togglecrosshair">Show crosshair</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglegrid" name="togglegrid"
+		     type="checkbox" checked="true"/>
+	      <label for="togglegrid">Show coordinate grid</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="toggleconstellations" name="toggleconstellations"
+		     type="checkbox" checked="true"/>
+	      <label for="toggleconstellations">Show constellations</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="toggleboundaries" name="toggleboundaries"
+		     type="checkbox"/>
+	      <label for="toggleboundaries">Show the boundary of the current constellation</label>
+	    </div>
+
+	    <!-- the banners behave differently (do not save this setting)
+		 so ideally want to style them differently -->
+	    <div class="checkbox">
+	      <input id="togglebanners" name="togglebanners"
+		     type="checkbox" checked="true"/>
+	      <label for="togglebanners">Show banners</label>
+	    </div>
+	  </div> <!-- .checkboxes -->
+	</div> <!-- .main -->
+      </div> <!-- #settings -->
+
       <div id="preselected">
         <div class="name">Move to:</div>
 
