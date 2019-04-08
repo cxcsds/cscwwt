@@ -130,8 +130,8 @@ var wwt = (function () {
     coord.setAttribute('data-ra', ra);
     coord.setAttribute('data-dec', dec);
 
-    const hms = raToTokens(ra);
-    const dms = decToTokens(dec);
+    const hms = wwtprops.raToTokens(ra);
+    const dms = wwtprops.decToTokens(dec);
     coord.querySelector('#ra_h').innerText = i2(hms.hours);
     coord.querySelector('#ra_m').innerText = i2(hms.minutes);
     coord.querySelector('#ra_s').innerText = f2(hms.seconds, 2);
@@ -139,36 +139,6 @@ var wwt = (function () {
     coord.querySelector('#dec_d').innerText = dms.sign + i2(dms.degrees);
     coord.querySelector('#dec_m').innerText = i2(dms.minutes);
     coord.querySelector('#dec_s').innerText = f2(dms.seconds, 1);
-  }
-
-  // Convert RA (in degrees) into hour, minutes, seconds. The
-  // return value is an object.
-  //
-  function raToTokens(ra) {
-    const hours = ra /= 15.0;
-
-    const rah = Math.floor(hours);
-    const delta = 60.0 * (hours - rah);
-    const ram = Math.floor(delta);
-    var ras = 60.0 * (delta - ram);
-    ras = Math.floor(ras * 100.0 + 0.5) / 100.0;
-
-    return {hours: rah, minutes: ram, seconds: ras};
-  }
-
-  // Convert Dec (in degrees) into sign, degree, minutes, seconds. The
-  // return value is an object.
-  //
-  function decToTokens(dec) {
-    const sign = dec < 0.0 ? "-" : "+";
-    const adec = Math.abs(dec);
-    const decd = Math.floor(adec);
-    const delta = 60.0 * (adec - decd);
-    const decm = Math.floor(delta);
-    var decs = 60.0 * (delta - decm);
-    decs = Math.floor(decs * 10.0 + 0.5) / 10.0;
-
-    return {sign: sign, degrees: decd, minutes: decm, seconds: decs};
   }
 
   // integer to "xx" format string, 0-padded to the left.
@@ -180,6 +150,25 @@ var wwt = (function () {
   // float to "xx.y" format, where the number of decimal places is ndp
   function f2(x, ndp) {
     return x.toFixed(ndp).padStart(3 + ndp, '0')
+  }
+
+  // Add RA and Dec from #coordinates (not from WWT, as I think it may
+  // be lightly confusing in case things are moving, and to be honest it
+  // shouldn't make much difference as it is hard to get to the clip
+  // functionality and still be moving and not expect confusion).
+  //
+  function clipCoordinates() {
+    const el = document.querySelector('#coordinate');
+    if (el === null) {
+      return;
+    }
+    const ra = el.getAttribute('data-ra');
+    const dec = el.getAttribute('data-dec');
+    if ((ra === null) || (dec === null)) {
+      return;
+    }
+
+    copyToClipboard(ra + " " + dec);
   }
 
   // Poll the WWT every two seconds for the location and FOV.
@@ -2354,6 +2343,11 @@ var wwt = (function () {
     host.querySelector('#zoomout')
       .addEventListener('click', () => { zoomOut(); });
 
+    // Copy to clipboard button(s)
+    //
+    host.querySelector('#coordinate-clip')
+      .addEventListener('click', () => { clipCoordinates(); });
+
     // SAMP button
     //
     host.querySelector('#export-samp')
@@ -2372,6 +2366,8 @@ var wwt = (function () {
 
     addToolTipHandler('smallify');
     addToolTipHandler('bigify');
+
+    addToolTipHandler('coordinate-clip');
 
     addToolTipHandler('register-samp');
 

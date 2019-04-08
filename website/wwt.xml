@@ -181,6 +181,12 @@ main#content div.wrap {
             id="dec_d">&nbsp;</output>°<output class="pos"
             id="dec_m">&nbsp;</output>'<output class="pos"
             id="dec_s">&nbsp;</output>"</span>
+	  <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
+	       alt="Scissors (cut to clipboard)"
+	       class="clipboard"/>
+	  <p class="tooltip" id="coordinate-clip-tooltip">
+	    Copy RA and Dec to the clipboard, as decimal degrees.
+	  </p>
         </span>
         <br/>
 	<span id="selectionmode">
@@ -905,9 +911,12 @@ main#content div.wrap {
 	  icons are from the
 	  free version of the
           <extlink href="http://glyphicons.com/">GLYPHICONS.com</extlink>
-          library, made available under the
+          library, made available (at the time they were downloaded) under the
           <extlink href="http://creativecommons.org/licenses/by/3.0/">Creative
-            Commons Attribution 3.0 Unported (CC BY 3.0)</extlink> license.
+          Commons Attribution 3.0 Unported (CC BY 3.0)</extlink> license.
+	  The "scissors" icon is from the
+	  <extlink href="https://fontawesome.com/support#fa-opensource">free
+	  version of Font Awesome</extlink>.
 	  The animated "spinner" - seen when loading the source catalogs or
           looking up a name - is taken from the 
 	  <extlink href="http://tobiasahlin.com/spinkit/">SpinKit package</extlink>

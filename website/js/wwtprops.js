@@ -208,6 +208,34 @@ const wwtprops = (function () {
 
   }
 
+  // Add the location to the parent.
+  //
+  function addLocation(ra, dec) {
+    const div = mkDiv('coords');
+    const raToks = raToTokens(ra);
+    addText(div, 'α: ' + raToks.hours);
+    div.appendChild(mkSup('h'));
+    addText(div, ' ' + raToks.minutes);
+    div.appendChild(mkSup('m'));
+    addText(div, ' ' + raToks.seconds);
+    div.appendChild(mkSup('s'));
+    addText(div, ' δ: '  + decToHTML(dec) + ' (ICRS)');
+
+    // clipboard
+    const img = document.createElement('img');
+    img.setAttribute('alt', 'Scissors (cut to clipboard)');
+    img.setAttribute('class', 'clipboard');
+    img.setAttribute('src', 'wwtimg/fa/cut.svg');
+    const pos = ra + ' ' + dec;
+    img.addEventListener('click', () => wwt.copyToClipboard(pos));
+    div.appendChild(img);
+
+    // TODO: add tooltip handler, although complicated since
+    //       this has a limited lifespan (as can be deleted)
+
+    return div;
+  }
+
   // Create a "pop-up" window with details on the given stack.
   //
   // TODO: can I give the number of sources IN THIS STACK?
@@ -271,17 +299,7 @@ const wwtprops = (function () {
 
     // Location of stack
     //
-    const raToks = raToTokens(stack.pos[0]);
-
-    const locDiv = mkDiv('coords');
-    addText(locDiv, 'α: ' + raToks.hours);
-    locDiv.appendChild(mkSup('h'));
-    addText(locDiv, ' ' + raToks.minutes);
-    locDiv.appendChild(mkSup('m'));
-    addText(locDiv, ' ' + raToks.seconds);
-    locDiv.appendChild(mkSup('s'));
-    addText(locDiv, ' δ: '  + decToHTML(stack.pos[1]) + ' (ICRS)');
-    nDiv.appendChild(locDiv);
+    nDiv.appendChild(addLocation(stack.pos[0], stack.pos[1]));
 
     // TEST SAMP: send stack event file
     //
@@ -704,19 +722,9 @@ const wwtprops = (function () {
     const nDiv = mkDiv('not-semantic-name');
     mainDiv.appendChild(nDiv);
 
-    // Location of stack
+    // Location of source
     //
-    const raToks = raToTokens(src.ra);
-
-    const locDiv = mkDiv('coords');
-    addText(locDiv, 'α: ' + raToks.hours);
-    locDiv.appendChild(mkSup('h'));
-    addText(locDiv, ' ' + raToks.minutes);
-    locDiv.appendChild(mkSup('m'));
-    addText(locDiv, ' ' + raToks.seconds);
-    locDiv.appendChild(mkSup('s'));
-    addText(locDiv, ' δ: '  + decToHTML(src.dec) + ' (ICRS)');
-    nDiv.appendChild(locDiv);
+    nDiv.appendChild(addLocation(src.ra, src.dec));
 
     // TODO: this should only be done for sources we have
     //       processed (e.g. have a nH), shouldn't it?

@@ -133,6 +133,21 @@ div#WorldWideTelescopeControlHost {
 span#coordinate {
 }
 
+/* the images I've used are 18px so could use that, but leave as 1em for now*/
+img.clipboard {
+	cursor: pointer;
+	height: 1em;
+	width: 1em;
+}
+
+/* need to override image for sourcinfo block; do not need for stackinfo
+ * but lets us add the padding rule to both
+ */
+div#sourceinfo div.main img.clipboard , div#stackinfo div.main img.clipboard {
+  display: inline;
+  padding-left: 0.5em;
+}
+
 output.pos {
   display: inline-block;
   padding-bottom: 0.5em;
