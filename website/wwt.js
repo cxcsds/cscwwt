@@ -884,6 +884,12 @@ var wwt = (function () {
     }
   }
 
+  // VERY experimental: load in the ensemble data for CXC testing
+  //
+  const downloadEnsData = makeDownloadData('wwtdata/ens.json.gz',
+					   null, null,
+					   processEnsData);
+
   // VERY experimental
   // stick in a cache-busting identifier to help
   const downloadCHSData = makeDownloadData('wwtdata/chs.json'
@@ -2005,6 +2011,7 @@ var wwt = (function () {
       // sent via Web-SAMP, but leave in for now.
       //
       loadStackEventVersions();
+      downloadEnsData();
 
       // Try and restore the user's last settings.
       //
@@ -2877,8 +2884,76 @@ var wwt = (function () {
     trace(' <- removed spinner');
   }
 
+  function find2CXO(target) {
+    if (haveCatalogData) {
+      const nameIdx = get_csc_colidx('name');
+      const matches = catalogData.filter(d => d[nameIdx] === target);
+
+      // Take the first match if any (shouldn't be multiple matches)
+      //
+      if (matches.length > 0) {
+        const ra = get_csc_row(matches[0], 'ra');
+        const dec = get_csc_row(matches[0], 'dec');
+        setPosition(ra, dec, target);
+        reportLookupSuccess('Moving to ' + target);
+        return;
+      }
+    } else {
+      reportLookupFailure('<p>The CSC 2.0 sources must be loaded ' +
+                          'before they can be used in a search.</p>');
+      return;
+    }
+  }
+
+  // Supported formats:
+  //     ens <n>
+  //     ensemble <n>
+  //     ens0xxxx00_001
+  //
+  // where n = 1 to 4404. A lot easier than trying to support multiple
+  // formats and this is for testing purposes only. The target name
+  // is expected to be in lower case.
+  //
+  // Returns true if the target was found.
+  //
+  function findEnsemble(target) {
+    if (ensData === null) { return false; }
+
+    let ens = null;
+    let label = null;
+    if (target.startsWith('ens0') && target.endsWith('00_001') &&
+	target.length == 14) {
+      label = target.slice(4, -6);
+    } else if (target.startsWith('ensemble')) {
+      label = target.slice(8);
+    } else if (target.startsWith('ens')) {
+      label = target.slice(3);
+    } else {
+      console.log('findEnsemble: did not recognize ' + target);
+      return false;
+    }
+
+    ens = parseInt(label);
+    if (isNaN(ens)) {
+      console.log('findEnsemble: Unable to parse ' + target);
+      return false;
+    }
+
+    const coords = ensData[ens];
+    if (typeof coords === 'undefined') {
+      console.log('findEnsemble: no match for ' + target);
+      return false;
+    }
+
+    setPosition(coords.ra, coords.dec, 'Ensemble ' + ens);
+    reportLookupSuccess('Moving to ensemble ' + ens);
+    return true;
+  }
+
   // click handler for targetFind.
   // - get user-selected name
+  // - is it a stack name (CSC2, only if loaded)
+  // - is it an ensemble name (CXC testing)
   // - is it a position; if so jump to it
   // - otherwise send it to the lookUP service
   //
@@ -2888,6 +2963,27 @@ var wwt = (function () {
       // this should not happen, but just in case
       console.log('Unexpected targetName=[' + target + ']');
       return;
+    }
+
+    // Maybe it's a 2CXO name?
+    // We can only do this if the catalog data has been downloaded.
+    // For now we know the 2CXO names have not made it through to
+    // Simbad or NED, so no point in continuing to them if we
+    // have no match/
+    //
+    if (target.startsWith('2CXO J')) {
+      find2CXO(target);
+    }
+
+    // Maybe it's an ensemble name: here we do fall through to other
+    // checks (unlike 2CXO check).
+    //
+    const ltarget = target.toLowerCase();
+    if (ltarget.startsWith('ens') ||
+	ltarget.startsWith('ensemble ')) {
+      if (findEnsemble(ltarget)) {
+	return;
+      }
     }
 
     // For now use a single comma as a simple indicator that we have
@@ -2911,30 +3007,6 @@ var wwt = (function () {
                               decVal);
           return;
         }
-      }
-    }
-
-    // Maybe it's a 2CXO name?
-    // We can only do this if the catalog data has been downloaded.
-    //
-    if (target.startsWith('2CXO J')) {
-      if (haveCatalogData) {
-        const nameIdx = get_csc_colidx('name');
-        const matches = catalogData.filter(d => d[nameIdx] === target);
-
-        // Take the first match if any (shouldn't be multiple matches)
-        //
-        if (matches.length > 0) {
-          const ra = get_csc_row(matches[0], 'ra');
-          const dec = get_csc_row(matches[0], 'dec');
-          setPosition(ra, dec, target);
-          reportLookupSuccess('Moving to ' + target);
-          return;
-        }
-      } else {
-        reportLookupFailure('<p>The CSC 2.0 sources must be loaded ' +
-                            'before they can be used in a search.</p>');
-        return;
       }
     }
 
@@ -3188,6 +3260,15 @@ var wwt = (function () {
     document.querySelector('#togglesourceprops')
       .style.display = 'inline-block';
 
+  }
+
+  var ensData = null;
+  function processEnsData(json) {
+    if (json === null) {
+      console.log('ERROR: unable to download ensemble data');
+      return;
+    }
+    ensData = json;
   }
 
   var chsData = null;
