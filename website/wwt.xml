@@ -173,22 +173,6 @@ main#content div.wrap {
 	<img src="imgs/csc_logo_navbar.gif" width="120" height="55"
 	     id="csclogo" alt="The CSC logo"/>
 
-	<!--
-        <span id="numbers">
-          Stacks done: <span id="nstack_proc"></span>
-          (<span id="nstack_proc_pcen"></span>%)
-        </span>
-	-->
-        <span id="numbers">
-          Sources: <span id="nsrc_proc"></span>
-          (<span id="nsrc_proc_pcen"></span>%)
-        </span>
-        <br/>
-	<span id="selectionmode">
-	  Select nearest stack
-	</span>
-	<br/>
-	<!--
         <span id="location">
           <span id="coordinate"><output class="pos"
             id="ra_h">&nbsp;</output><sup>h</sup><output class="pos"
@@ -196,11 +180,14 @@ main#content div.wrap {
             id="ra_s">&nbsp;</output><sup>s</sup><output class="pos"
             id="dec_d">&nbsp;</output>°<output class="pos"
             id="dec_m">&nbsp;</output>'<output class="pos"
-            id="dec_s">&nbsp;</output>"</span><span id="explanation">Click
-            near a stack</span>
+            id="dec_s">&nbsp;</output>"</span>
         </span>
         <br/>
-	-->
+	<span id="selectionmode">
+	  Select nearest stack
+	</span>
+	<br/>
+
         <div id="userSelection" class="with-tooltip-static">
           <label for="targetName">
 	    <input type="text" id="targetName"

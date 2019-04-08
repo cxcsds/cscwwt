@@ -104,6 +104,8 @@ var wwt = (function () {
   //
   // It is expected that this is called periodically.
   //
+  // This also updates the #coordinate display.
+  //
   function storeDisplayState() {
     const ra = 15.0 * wwt.getRA();
     const dec = wwt.getDec();
@@ -113,6 +115,71 @@ var wwt = (function () {
     if ((fov > minFOV) && (fov < maxFOV)) {
       saveState(keyFOV, fov);
     }
+
+    const coord = document.querySelector('#coordinate');
+    if (coord === null) {
+      // Should really only log this once but it's not worth the effort,
+      // as this should not happen.
+      //
+      console.log("ERROR: unable to find #coordinate!");
+      return;
+    }
+
+    // In case it's useful (e.g. for a clipboard action)
+    //
+    coord.setAttribute('data-ra', ra);
+    coord.setAttribute('data-dec', dec);
+
+    const hms = raToTokens(ra);
+    const dms = decToTokens(dec);
+    coord.querySelector('#ra_h').innerText = i2(hms.hours);
+    coord.querySelector('#ra_m').innerText = i2(hms.minutes);
+    coord.querySelector('#ra_s').innerText = f2(hms.seconds, 2);
+
+    coord.querySelector('#dec_d').innerText = dms.sign + i2(dms.degrees);
+    coord.querySelector('#dec_m').innerText = i2(dms.minutes);
+    coord.querySelector('#dec_s').innerText = f2(dms.seconds, 1);
+  }
+
+  // Convert RA (in degrees) into hour, minutes, seconds. The
+  // return value is an object.
+  //
+  function raToTokens(ra) {
+    const hours = ra /= 15.0;
+
+    const rah = Math.floor(hours);
+    const delta = 60.0 * (hours - rah);
+    const ram = Math.floor(delta);
+    var ras = 60.0 * (delta - ram);
+    ras = Math.floor(ras * 100.0 + 0.5) / 100.0;
+
+    return {hours: rah, minutes: ram, seconds: ras};
+  }
+
+  // Convert Dec (in degrees) into sign, degree, minutes, seconds. The
+  // return value is an object.
+  //
+  function decToTokens(dec) {
+    const sign = dec < 0.0 ? "-" : "+";
+    const adec = Math.abs(dec);
+    const decd = Math.floor(adec);
+    const delta = 60.0 * (adec - decd);
+    const decm = Math.floor(delta);
+    var decs = 60.0 * (delta - decm);
+    decs = Math.floor(decs * 10.0 + 0.5) / 10.0;
+
+    return {sign: sign, degrees: decd, minutes: decm, seconds: decs};
+  }
+
+  // integer to "xx" format string, 0-padded to the left.
+  //
+  function i2(x) {
+    return x.toString().padStart(2, '0');
+  }
+
+  // float to "xx.y" format, where the number of decimal places is ndp
+  function f2(x, ndp) {
+    return x.toFixed(ndp).padStart(3 + ndp, '0')
   }
 
   // Poll the WWT every two seconds for the location and FOV.
@@ -1435,13 +1502,9 @@ var wwt = (function () {
     stackdata.completed_start = lmod_start;
     stackdata.completed_end = lmod_end;
 
-    document.querySelector('#nsrc_proc').innerHTML = '' +
-      status.srcs_proc;
-    document.querySelector('#nsrc_proc_pcen').innerHTML = '' +
-      status.srcs_pcen;
-
-    document.querySelector('#lastmod').innerHTML = status.lastupdate_db;
-
+    // Update the "Help" page.
+    const el = document.querySelector('#lastmod');
+    if (el !== null) { el.innerHTML = status.lastupdate_db; }
   }
 
   function setTargetName(name) {

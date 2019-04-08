@@ -131,14 +131,6 @@ div#WorldWideTelescopeControlHost {
 }
 
 span#coordinate {
-  display: none;
-}
-span#explanation {
-  display: inline-block;
-  text-align: center;
-  padding-bottom: 0.5em;
-  padding-top: 0.5em;
-  width: 15.8em; /* this seems to make it the same width as explanation */
 }
 
 output.pos {
