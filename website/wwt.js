@@ -17,6 +17,13 @@
 
 var wwt = (function () {
 
+  // TWEAK WWT display for testing/development
+  //
+  // const displayCHS = false;
+  // const displayCSC11 = false;
+  const displayCHS = true;
+  const displayCSC11 = true;
+
   var wwt;
 
   // keys for local storage values; not guaranteed all in use yet.
@@ -2374,6 +2381,16 @@ var wwt = (function () {
 
     addToolTipHandler('targetName', 20);
     addToolTipHandler('targetFind');
+
+    // Tweak settings based on development mode.
+    //
+    if (displayCHS) {
+      setDisplay('chsbar', 'inline');
+    }
+
+    if (displayCSC11) {
+      setDisplay('source11bar', 'flex');
+    }
 
     // Do we show the 'show fullscreen' button?
     //
