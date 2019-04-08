@@ -47,7 +47,7 @@ var wwt = (function () {
 		  keyMilkyWay];
 
     keys.forEach(key => {
-      console.log('-- clearing state for key=' + key);
+      trace('-- clearing state for key=' + key);
       window.localStorage.removeItem(key);
     });
   }
@@ -354,7 +354,7 @@ var wwt = (function () {
 	el.dispatchEvent(new CustomEvent('click'));
       }
       catch (e) {
-	console.log('Unable to send click event to ' + o.sel);
+	console.log('ERROR: Unable to send click event to ' + o.sel);
       }
     });
   }
@@ -462,7 +462,7 @@ var wwt = (function () {
   function makeSizeUpdate(props) {
     return (newSize) => {
       if (newSize <= 0) {
-        console.log('Invalid source size: [' + newSize + ']');
+        console.log('ERROR: Invalid source size: [' + newSize + ']');
         return;
       }
 
@@ -3227,7 +3227,7 @@ var wwt = (function () {
       return;
     }
 
-    console.log('Finalizing chunk ' + ctr);
+    trace('Finalizing chunk ' + ctr);
 
     // Validate the "schema"
     //
@@ -3255,7 +3255,7 @@ var wwt = (function () {
 
     if (!haveCatalogData) { return; }
 
-    console.log('== unchunkifying');
+    trace('== unchunkifying');
 
     // We know the total size and chunk sizes, so could
     // use slices here
@@ -3332,15 +3332,15 @@ var wwt = (function () {
       return;
     }
 
-    console.log('Processing XMM data');
+    trace('Processing XMM data');
 
     xmmCatalog = json.catalog;
 
     const props = catalogProps.xmm;
 
-    console.log(' from [' + props.label + ']');
+    trace(' from [' + props.label + ']');
     props.label = xmmCatalog;
-    console.log('   to [' + props.label + ']');
+    trace('   to [' + props.label + ']');
 
     props.annotations = [];
     for (let source of json.sources) {
@@ -3361,7 +3361,7 @@ var wwt = (function () {
     document.querySelector('#togglexmmsourceprops')
       .style.display = 'inline-block';
 
-    trace('Created xmm_annotations');
+    trace('Created XMM annotations');
 
   }
 
