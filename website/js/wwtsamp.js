@@ -1,3 +1,5 @@
+"use strict";
+
 //
 // Support SAMP use by the CSC2/WWT interface. This is a wrapper around
 // routines from samp.js and is tightly integrates with wwt.js.
@@ -7,8 +9,8 @@ const wwtsamp = (function () {
 
   // Only try to register with a SAMP hub when we are called.
   //
-  var sampName = 'CSC 2.0 + WWT';
-  var sampMeta = {
+  const sampName = 'CSC 2.0 + WWT';
+  const sampMeta = {
     'samp.name': sampName,
     'samp.description': 'Explore CSC 2.0 with WWT',
     'author.affiliation': 'Chandra X-ray Center',

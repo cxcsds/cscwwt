@@ -1,3 +1,5 @@
+"use strict";
+
 //
 // Create plots for the WWT interface. At present this uses the Plotly
 // service.

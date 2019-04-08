@@ -1,3 +1,5 @@
+"use strict";
+
 //
 // Display properties about a stack or a source.
 //
