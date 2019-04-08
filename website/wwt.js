@@ -40,7 +40,7 @@ var wwt = (function () {
 		  keyMilkyWay];
 
     keys.forEach(key => {
-      console.log("-- clearing state for key=" + key);
+      console.log('-- clearing state for key=' + key);
       window.localStorage.removeItem(key);
     });
   }
@@ -62,7 +62,7 @@ var wwt = (function () {
   function saveState(key, value) {
     const sval = value.toString();
     if (key === keySave) {
-      saveStateFlag = sval === "true";
+      saveStateFlag = sval === 'true';
       if (!saveStateFlag) { clearState(); }
       window.localStorage.setItem(key, sval);
       return;
@@ -121,7 +121,7 @@ var wwt = (function () {
       // Should really only log this once but it's not worth the effort,
       // as this should not happen.
       //
-      console.log("ERROR: unable to find #coordinate!");
+      console.log('ERROR: unable to find #coordinate!');
       return;
     }
 
@@ -168,7 +168,7 @@ var wwt = (function () {
       return;
     }
 
-    copyToClipboard(ra + " " + dec);
+    copyToClipboard(ra + ' ' + dec);
   }
 
   // Poll the WWT every two seconds for the location and FOV.
@@ -230,25 +230,25 @@ var wwt = (function () {
   // but for CSC 2.0 we store a lot more than we do for any other
   // catalog, so it isn't completely possible.
   //
-  var shown_srcs_ids = [];
+  var shownSrcsIds = [];
 
-  var nearest_source = [];
+  var nearestSource = [];
 
-  var xmm_catalog = null;
-  var xmm_sources = [];
+  var xmmCatalog = null;
+  var xmmSources = [];
 
   // Was originally passing around the stack data to the functions
   // that needed it, but now store it.
   //
-  var input_stackdata = undefined;
+  var inputStackData = undefined;
 
   // store the stack annotations (there can be multiple polygons per
   // stack)
   //
-  var stack_annotations = {};
-  var nearest_fovs = [];
+  var stackAnnotations = {};
+  var nearestFovs = [];
 
-  var stacks_shown = false;
+  var stacksShown = false;
 
   // add this to a URL and, hey presto, as long as you don't call it
   // too often, we stop the cache.
@@ -271,8 +271,8 @@ var wwt = (function () {
   // Taken from https://stackoverflow.com/a/10284006
   //
   function zip(arrays) {
-    return arrays[0].map(function(_,i){
-      return arrays.map(function(array){return array[i]})
+    return arrays[0].map(function(_, i){
+      return arrays.map(function(array) { return array[i]; })
     });
   }
 
@@ -333,7 +333,7 @@ var wwt = (function () {
     toggleInfo.forEach(o => {
       const el = document.querySelector(o.sel);
       if (el === null) {
-	console.log("ERROR: unable to find toggle element " + o.sel);
+	console.log('ERROR: unable to find toggle element ' + o.sel);
 	return;
       }
 
@@ -376,7 +376,7 @@ var wwt = (function () {
 
   // zoom factor to use has been guessed at
   function zoomToStack(stackname) {
-    for (var stack of input_stackdata.stacks) {
+    for (var stack of inputStackData.stacks) {
       if (stack.stackid !== stackname) { continue; }
       wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, false);
       wwtsamp.moveTo(stack.pos[0], stack.pos[1]);
@@ -390,7 +390,7 @@ var wwt = (function () {
     // many times. Do not bother with ra/dec as only
     // called once.
     //
-    const nameIdx = get_csc_colidx('name');
+    const nameIdx = getCSCColIdx('name');
     if (nameIdx === null) {
       return;
     }
@@ -399,8 +399,8 @@ var wwt = (function () {
       const sname = src[nameIdx];
       if (sname !== sourcename) { continue; }
 
-      const ra = get_csc_row(src, 'ra');
-      const dec = get_csc_row(src, 'dec');
+      const ra = getCSCRow(src, 'ra');
+      const dec = getCSCRow(src, 'dec');
       wwt.gotoRaDecZoom(ra, dec, 0.06, false);
       wwtsamp.moveTo(ra, dec);
       return;
@@ -470,7 +470,6 @@ var wwt = (function () {
   const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
 
-
   // From
   // https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
   // Also comments from
@@ -502,34 +501,25 @@ var wwt = (function () {
     }
   };
 
-
-  // This updates the stack_annotations dict
+  // This updates the stackAnnotations dict
   //
   function addStackFOV(stack) {
 
-    var edge_color;
-    var fill_color = 'white';
-    var line_width;
-    var opacity = 0.1;
-    var fill_flag = stack;
+    let edgeColor;
+    let fillColor = 'white';
+    let lineWidth;
+    const opacity = 0.1;
+    const fillFlag = false;
 
     if (stack.status) {
-      edge_color = 'gold';
-      line_width = 2;
-      /* not sure having a filled region helps, so trying without it
-         (the problem is the white fill can make the area look like
-         it has a different signal to the surroundings, particularly
-         when changing backgrounds).
-         fill_flag = true;
-      */
-      fill_flag = false;
+      edgeColor = 'gold';
+      lineWidth = 2;
     } else {
-      edge_color = 'grey';
-      line_width = 1;
-      fill_flag = false;
+      edgeColor = 'grey';
+      lineWidth = 1;
     };
 
-    var annotations = [];
+    const annotations = [];
     // var ctr = 1;
     for (var i = 0; i < stack.polygons.length; i++) {
 
@@ -537,7 +527,7 @@ var wwt = (function () {
       const shapes = stack.polygons[i];
 
       for (var j = 0; j < shapes.length; j++) {
-        const fov = wwt.createPolygon(fill_flag);
+        const fov = wwt.createPolygon(fillFlag);
 
         /*
          * Belinda sees odd behavior when zooming in; it
@@ -552,14 +542,14 @@ var wwt = (function () {
          fov.set_showHoverLabel(true);
         */
 
-        fov.set_lineColor(edge_color);
-        fov.set_lineWidth(line_width);
+        fov.set_lineColor(edgeColor);
+        fov.set_lineWidth(lineWidth);
 
-        fov.set_fillColor(fill_color);
+        fov.set_fillColor(fillColor);
         fov.set_opacity(opacity);
 
         const polygon = shapes[j];
-        for(var p in polygon) {
+        for (var p in polygon) {
           fov.addPoint(polygon[p][0], polygon[p][1]);
         }
 
@@ -570,7 +560,7 @@ var wwt = (function () {
       }
     }
 
-    stack_annotations[stack.stackid] = annotations;
+    stackAnnotations[stack.stackid] = annotations;
   }
 
   // timeout is in seconds; a value <= 0 means no timeout
@@ -614,7 +604,7 @@ var wwt = (function () {
   //
   function makeSource(srcrow) {
 
-    const src = get_csc_object(srcrow);
+    const src = getCSCObject(srcrow);
     if ((src.ra === null) || (src.dec === null)) {
       console.log('Err, no location for source:');
       console.log(src);
@@ -670,7 +660,7 @@ var wwt = (function () {
     for (let stack of stackdata.stacks) {
       addStackFOV(stack);
     }
-    stacks_shown = true;
+    stacksShown = true;
 
     trace('Added FOV');
   }
@@ -691,10 +681,10 @@ var wwt = (function () {
 
   // This requires that mw be set up already.
   //
-  var mw_outlines = [];
+  var mwOutlines = [];
   function addMW() {
 
-    if (mw_outlines.length !== 0) {
+    if (mwOutlines.length !== 0) {
       console.log('MW already added in!');
       return;
     }
@@ -707,9 +697,9 @@ var wwt = (function () {
       return;
     }
 
-    var edge_color = 'white';
-    var line_width = 1;
-    var fill_flag = false;
+    var edgeColor = 'white';
+    var lineWidth = 1;
+    var fillFlag = false;
 
     // Create annotations and then, once all processed,
     // add them to WWT.
@@ -719,6 +709,9 @@ var wwt = (function () {
     // is too large).
     //
     // var ctr = 1;
+    //
+    // mw is a global variable
+    //
     for (var f = 0; f < mw.features.length; f++) {
 
       var features = mw.features[f];
@@ -746,8 +739,8 @@ var wwt = (function () {
       coords = coords[0];
       for (var j = 0; j < coords.length; j++) {
 
-        // var outline = wwt.createPolygon(fill_flag);
-        var outline = wwt.createPolyLine(fill_flag);
+        // var outline = wwt.createPolygon(fillFlag);
+        var outline = wwt.createPolyLine(fillFlag);
 
         /*
          * For now don't add an id/label based on issues
@@ -759,19 +752,19 @@ var wwt = (function () {
          outline.set_showHoverLabel(true);
         */
 
-        outline.set_lineColor(edge_color);
-        outline.set_lineWidth(line_width);
+        outline.set_lineColor(edgeColor);
+        outline.set_lineWidth(lineWidth);
 
-        // outline.set_fillColor(fill_color);
+        // outline.set_fillColor(fillColor);
         // outline.set_opacity(opacity);
 
         var polygon = coords[j];
-        for(var p in polygon) {
+        for (var p in polygon) {
           var cs = lonlat2radec(polygon[p]);
           outline.addPoint(cs[0], cs[1]);
         }
 
-        mw_outlines.push(outline);
+        mwOutlines.push(outline);
 
         // ctr += 1;
       }
@@ -784,7 +777,7 @@ var wwt = (function () {
   //
   function showMW(flag) {
     let func = flag ? wwt.addAnnotation : wwt.removeAnnotation;
-    mw_outlines.forEach(func);
+    mwOutlines.forEach(func);
   }
 
   // Display the header/footer banners.
@@ -892,8 +885,8 @@ var wwt = (function () {
 
   // VERY experimental
   // stick in a cache-busting identifier to help
-  const downloadCHSData = makeDownloadData('wwtdata/chs.json'
-					   + cacheBuster(),
+  const downloadCHSData = makeDownloadData('wwtdata/chs.json' +
+					   cacheBuster(),
 					   '#togglechs',
 					   'CHS data',
 					   processCHSData);
@@ -1199,18 +1192,18 @@ var wwt = (function () {
 
   function toggleStacks() {
     var func, label;
-    if (stacks_shown) {
+    if (stacksShown) {
       func = wwt.removeAnnotation;
       label = 'Show Stack Outlines';
-      stacks_shown = false;
+      stacksShown = false;
     } else {
       func = wwt.addAnnotation;
       label = 'Hide Stack Outlines';
-      stacks_shown = true;
+      stacksShown = true;
     }
 
-    for (var stack in stack_annotations) {
-      var fovs = stack_annotations[stack];
+    for (var stack in stackAnnotations) {
+      var fovs = stackAnnotations[stack];
       for (var i = 0; i < fovs.length; i++) {
         func(fovs[i]);
       }
@@ -1333,10 +1326,10 @@ var wwt = (function () {
     // still shown. It also helps at the corners.
     //
     //
-    shown_srcs_ids = [];
+    shownSrcsIds = [];
 
-    const raIdx = get_csc_colidx('ra');
-    const decIdx = get_csc_colidx('dec');
+    const raIdx = getCSCColIdx('ra');
+    const decIdx = getCSCColIdx('dec');
 
     const props = catalogProps.csc20;
     props.shown = [];
@@ -1348,12 +1341,12 @@ var wwt = (function () {
       if (sep < fov) {
         // could access the elements without creating an object
         // but I don't want to change existing code too much
-        const src = get_csc_object(srcrow);
+        const src = getCSCObject(srcrow);
 
         const circle = props.annotations[i][2];
         wwt.addAnnotation(circle);
         props.shown.push(circle);
-        shown_srcs_ids.push(i);
+        shownSrcsIds.push(i);
 
         // plot data
         if (src.err_ellipse_r0 !== null &&
@@ -1682,7 +1675,7 @@ var wwt = (function () {
 	if (el !== null) {
 	  el.checked = val;
 	} else {
-	  console.log("ERROR: unable to find toggle element " + o.sel);
+	  console.log('ERROR: unable to find toggle element ' + o.sel);
 	}
       }
       o.change(val);
@@ -1746,8 +1739,8 @@ var wwt = (function () {
     const maxSep = wwt.get_fov();
 
     const seps = [];
-    for (var i = 0; i < input_stackdata.stacks.length; i++) {
-      const stack = input_stackdata.stacks[i];
+    for (var i = 0; i < inputStackData.stacks.length; i++) {
+      const stack = inputStackData.stacks[i];
       const pos = stack.pos;
       const sep = separation(sra0, sdec0, pos[0], pos[1]);
       if (sep <= maxSep) {
@@ -1766,17 +1759,17 @@ var wwt = (function () {
 
     // Only interested in the closest stack
     //
-    const stack = input_stackdata.stacks[seps[0][1]];
-    const fovs = stack_annotations[seps[0][2]];
-    for (var j = 0; j < fovs.length; j++) {
-      const old_fov = [fovs[j],
-                       fovs[j].get_lineColor(),
-                       fovs[j].get_lineWidth()];
+    const stack = inputStackData.stacks[seps[0][1]];
+    const fovs = stackAnnotations[seps[0][2]];
+    fovs.forEach(fov => {
+      const oldFov = [fov,
+                      fov.get_lineColor(),
+                      fov.get_lineWidth()];
 
-      fovs[j].set_lineColor('cyan');
-      fovs[j].set_lineWidth(4);
-      nearest_fovs.push(old_fov);
-    }
+      fov.set_lineColor('cyan');
+      fov.set_lineWidth(4);
+      nearestFovs.push(oldFov);
+    });
 
     wwtprops.addStackInfo(stack, stackEventVersions);
 
@@ -1792,19 +1785,19 @@ var wwt = (function () {
   //   - store the coordinates of the points
   //   - add a marker at each vertex (help to see where the edges are)?
   //
-  var region_polygon = undefined;
+  var regionPolygon = undefined;
   function processRegionSelection(ra0, dec0) {
-    if (typeof region_polygon === 'undefined') {
-      region_polygon = wwt.createPolygon(true);
-      region_polygon.set_lineColor('white');
-      region_polygon.set_opacity(0.2);
+    if (typeof regionPolygon === 'undefined') {
+      regionPolygon = wwt.createPolygon(true);
+      regionPolygon.set_lineColor('white');
+      regionPolygon.set_opacity(0.2);
 
       // This seems to work, even with no points
-      wwt.addAnnotation(region_polygon);
+      wwt.addAnnotation(regionPolygon);
     }
-    // wwt.removeAnnotation(region_polygon);
-    region_polygon.addPoint(ra0, dec0);
-    // wwt.addAnnotation(region_polygon);
+    // wwt.removeAnnotation(regionPolygon);
+    regionPolygon.addPoint(ra0, dec0);
+    // wwt.addAnnotation(regionPolygon);
   }
 
   // Find the nearest source; we only have to loop through
@@ -1825,11 +1818,11 @@ var wwt = (function () {
     //
     var maxSep = 1.0e9;
     const seps = [];
-    for (var i = 0; i < shown_srcs_ids.length; i++) {
-      const srcid = shown_srcs_ids[i];
+    for (var i = 0; i < shownSrcsIds.length; i++) {
+      const srcid = shownSrcsIds[i];
       const src = catalogData[srcid];
-      const ra = get_csc_row(src, 'ra');
-      const dec = get_csc_row(src, 'dec');
+      const ra = getCSCRow(src, 'ra');
+      const dec = getCSCRow(src, 'dec');
       const sep = separation(ra0, dec0, ra, dec);
       if (sep <= maxSep) {
         seps.push([sep, srcid]);
@@ -1851,16 +1844,16 @@ var wwt = (function () {
     const selid = seps[0][1];
     const src = catalogProps.csc20.annotations[selid][2];
 
-    nearest_source = [src,
-                      src.get_lineColor(),
-                      src.get_fillColor(),
-                      src.get_opacity()];
+    nearestSource = [src,
+                     src.get_lineColor(),
+                     src.get_fillColor(),
+                     src.get_opacity()];
 
     src.set_lineColor(selectedSourceColor);
     src.set_fillColor(selectedSourceColor);
     src.set_opacity(selectedSourceOpacity);
 
-    wwtprops.addSourceInfo(get_csc_object(catalogData[selid]));
+    wwtprops.addSourceInfo(getCSCObject(catalogData[selid]));
   }
 
   // It is not clear if the handlers stack, or overwrite, when
@@ -1961,7 +1954,8 @@ var wwt = (function () {
     // Try to guard against accidentally-stupid values
     //
     const loc = getState(keyLocation);
-    let ra = null, dec = null;
+    let ra = null;
+    let dec = null;
     if (loc !== null) {
       const toks = loc.split(',');
       if (toks.length === 2) {
@@ -2002,7 +1996,7 @@ var wwt = (function () {
       createImageCollections();
       createSettings();
       addMW();
-      addFOV(input_stackdata);
+      addFOV(inputStackData);
 
       setupUserSelection();
       stopExcessScrolling();
@@ -2114,23 +2108,23 @@ var wwt = (function () {
 
   function clearNearestStack() {
 
-    nearest_fovs.forEach((fov) => {
+    nearestFovs.forEach((fov) => {
       fov[0].set_lineColor(fov[1]);
       fov[0].set_lineWidth(fov[2]);
     });
-    nearest_fovs = [];
+    nearestFovs = [];
     wwtprops.clearStackInfo();
   }
 
   function clearNearestSource() {
 
-    if (nearest_source.length < 1) { return; }
+    if (nearestSource.length < 1) { return; }
 
-    const src = nearest_source[0];
-    src.set_lineColor(nearest_source[1]);
-    src.set_fillColor(nearest_source[2]);
-    src.set_opacity(nearest_source[3]);
-    nearest_source = [];
+    const src = nearestSource[0];
+    src.set_lineColor(nearestSource[1]);
+    src.set_fillColor(nearestSource[2]);
+    src.set_opacity(nearestSource[3]);
+    nearestSource = [];
     wwtprops.clearSourceInfo();
   }
 
@@ -2143,10 +2137,10 @@ var wwt = (function () {
     processStackSelection(ra0, dec0);
   }
 
-  var _trace_ctr = 1;
+  var traceCounter = 1;
   function trace(msg) {
-    console.log('TRACE[' + _trace_ctr.toString() + '] ' + msg.toString());
-    _trace_ctr += 1;
+    console.log('TRACE[' + traceCounter.toString() + '] ' + msg.toString());
+    traceCounter += 1;
   }
 
   // Let users know WWT/data is being set up.
@@ -2262,7 +2256,7 @@ var wwt = (function () {
 
   // Call on page load, when WWT is to be initialized.
   //
-  var resize_state = true;
+  var resizeState = true;
 
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
@@ -2288,7 +2282,7 @@ var wwt = (function () {
 
     trace('recoded positions');
 
-    input_stackdata = obsdata;
+    inputStackData = obsdata;
 
     // TODO: should this check that the name is not blank/empty?
     const tfind = host.querySelector('#targetFind');
@@ -2325,7 +2319,7 @@ var wwt = (function () {
                           // or removing it from the img as needed.
                           //
                           var state;
-                          if (resize_state) {
+                          if (resizeState) {
                             smallify.style.display = 'none';
                             bigify.style.display = 'block';
                             state = 'none';
@@ -2338,7 +2332,7 @@ var wwt = (function () {
                           }
 
                           host.querySelector('#wwtuserbuttons').style.display = state;
-                          resize_state = !resize_state;
+                          resizeState = !resizeState;
                         });
 
     // Zoom buttons
@@ -2407,7 +2401,7 @@ var wwt = (function () {
     toggleInfo.forEach(o => {
       const el = document.querySelector(o.sel);
       if (el === null) {
-	console.log("ERROR: unable to find toggle element " + o.sel);
+	console.log('ERROR: unable to find toggle element ' + o.sel);
 	return;
       }
       el.addEventListener('click', ev => { o.change(ev.target.checked); });
@@ -2485,7 +2479,7 @@ var wwt = (function () {
     // if (width > 160) { width -= 60; }
 
     var wstr = width.toString() + 'px';
-    if (div.style.width !== wstr ) {
+    if (div.style.width !== wstr) {
       div.style.width = wstr;
       host.style.width = wstr;
     }
@@ -2886,23 +2880,24 @@ var wwt = (function () {
 
   function find2CXO(target) {
     if (haveCatalogData) {
-      const nameIdx = get_csc_colidx('name');
+      const nameIdx = getCSCColIdx('name');
       const matches = catalogData.filter(d => d[nameIdx] === target);
 
       // Take the first match if any (shouldn't be multiple matches)
       //
       if (matches.length > 0) {
-        const ra = get_csc_row(matches[0], 'ra');
-        const dec = get_csc_row(matches[0], 'dec');
+        const ra = getCSCRow(matches[0], 'ra');
+        const dec = getCSCRow(matches[0], 'dec');
         setPosition(ra, dec, target);
         reportLookupSuccess('Moving to ' + target);
-        return;
+        return true;
       }
     } else {
       reportLookupFailure('<p>The CSC 2.0 sources must be loaded ' +
                           'before they can be used in a search.</p>');
-      return;
+      return true;
     }
+    return false;
   }
 
   // Supported formats:
@@ -2922,7 +2917,7 @@ var wwt = (function () {
     let ens = null;
     let label = null;
     if (target.startsWith('ens0') && target.endsWith('00_001') &&
-	target.length == 14) {
+	target.length === 14) {
       label = target.slice(4, -6);
     } else if (target.startsWith('ensemble')) {
       label = target.slice(8);
@@ -2969,10 +2964,11 @@ var wwt = (function () {
     // We can only do this if the catalog data has been downloaded.
     // For now we know the 2CXO names have not made it through to
     // Simbad or NED, so no point in continuing to them if we
-    // have no match/
+    // have no match.
     //
     if (target.startsWith('2CXO J')) {
       find2CXO(target);
+      return;
     }
 
     // Maybe it's an ensemble name: here we do fall through to other
@@ -3012,7 +3008,7 @@ var wwt = (function () {
 
     // Maybe it's a stack name?
     //
-    const smatches = input_stackdata.stacks.filter(d => d.stackid === target);
+    const smatches = inputStackData.stacks.filter(d => d.stackid === target);
     if (smatches.length > 0) {
       setPosition(smatches[0].pos[0], smatches[0].pos[1], target);
       reportLookupSuccess('Moving to stack ' + target);
@@ -3141,7 +3137,7 @@ var wwt = (function () {
   // which we used to convert to a Javascript object (ie
   // one per row) since it makes it easier to handle.
   // However, it bloats memory usage, so we now retain
-  // the array data and use the get_csc_row or get_csc_object
+  // the array data and use the getCSCRow or getCSCObject
   // accessor functions.
   //
   // I hard code the expected row order for documentation
@@ -3180,7 +3176,7 @@ var wwt = (function () {
   // row should catalogData[i] not i (does array access take much
   // time in JS?)
   //
-  function get_csc_colidx(column) {
+  function getCSCColIdx(column) {
     const colidx = catalogDataCols.indexOf(column);
     if (colidx < 0) {
       console.log('ERROR: unknown CSC column "' + column + '"');
@@ -3189,13 +3185,13 @@ var wwt = (function () {
     return colidx;
   }
 
-  function get_csc_row(row, column) {
-    return row[get_csc_colidx(column)];
+  function getCSCRow(row, column) {
+    return row[getCSCColIdx(column)];
   }
 
   // Convert a row to an object, to make data access easier.
   //
-  function get_csc_object(row) {
+  function getCSCObject(row) {
     const out = Object.create({});
     zip([catalogDataCols, row]).forEach(el => { out[el[0]] = el[1] });
     return out
@@ -3292,7 +3288,6 @@ var wwt = (function () {
 
 
   var catalog11Data = [];
-  var haveCatalog11Data = false;
   function processCatalog11Data(json) {
     if (json === null) {
       console.log('ERROR: unable to download catalog 1.1 data');
@@ -3303,7 +3298,6 @@ var wwt = (function () {
       return;
     }
 
-    haveCatalog11Data = true;
     catalog11Data = json;
     createSource11Annotations();
 
@@ -3324,17 +3318,17 @@ var wwt = (function () {
 
     console.log('Processing XMM data');
 
-    xmm_catalog = json.catalog;
-    xmm_sources = json.sources;
+    xmmCatalog = json.catalog;
+    xmmSources = json.sources;
 
     const props = catalogProps.xmm;
 
     console.log(' from [' + props.label + ']');
-    props.label = xmm_catalog;
+    props.label = xmmCatalog;
     console.log('   to [' + props.label + ']');
 
     props.annotations = [];
-    for (let source of xmm_sources) {
+    for (let source of xmmSources) {
       const ann = makeXMMSource(source);
       if (ann !== null) {
         props.annotations.push(ann);
@@ -3344,7 +3338,7 @@ var wwt = (function () {
     // Let the user know they can "show XMM sources"
     //
     const el = document.querySelector('#toggleXMMsources');
-    el.innerHTML = 'Show ' + xmm_catalog + ' Sources';
+    el.innerHTML = 'Show ' + xmmCatalog + ' Sources';
     el.disabled = false;
 
     showBlockElement('xmmsourcecolor');
