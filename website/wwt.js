@@ -242,7 +242,6 @@ var wwt = (function () {
   var nearestSource = [];
 
   var xmmCatalog = null;
-  var xmmSources = [];
 
   // Was originally passing around the stack data to the functions
   // that needed it, but now store it.
@@ -3336,7 +3335,6 @@ var wwt = (function () {
     console.log('Processing XMM data');
 
     xmmCatalog = json.catalog;
-    xmmSources = json.sources;
 
     const props = catalogProps.xmm;
 
@@ -3345,7 +3343,7 @@ var wwt = (function () {
     console.log('   to [' + props.label + ']');
 
     props.annotations = [];
-    for (let source of xmmSources) {
+    for (let source of json.sources) {
       const ann = makeXMMSource(source);
       if (ann !== null) {
         props.annotations.push(ann);
