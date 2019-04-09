@@ -1781,20 +1781,18 @@ var wwt = (function () {
   // rather than a "nearby" one.
   //
   function changeFov(fov, selected, lineColor, lineWidth) {
+    const oldColor = fov.get_lineColor();
+    const oldWidth = fov.get_lineWidth();
+
     const old = {fov: fov, selected: selected,
-		 lineColor: fov.get_lineColor(),
-		 lineWidth: fov.get_lineWidth()};
+		 reset: () => {
+		   fov.set_lineColor(oldColor);
+		   fov.set_lineWidth(oldWidth);
+		 }};
+
     fov.set_lineColor(lineColor);
     fov.set_lineWidth(lineWidth);
     return old;
-  }
-
-  // Use the output of changeFov to restore the annotation.
-  //
-  function resetFov(old) {
-    const fov = old.fov;
-    fov.set_lineColor(old.lineColor);
-    fov.set_lineWidth(old.lineWidth);
   }
 
   // Show this stack using the "nearest stack" logic. The assumption is
@@ -1805,7 +1803,7 @@ var wwt = (function () {
   function processStackSelectionByName(stackid) {
     const smatches = inputStackData.stacks.filter(d => d.stackid === stackid);
     if (smatches.length === 0) {
-      console.log("INTERNAL ERROR: unknown stackid=" + stackid);
+      console.log('INTERNAL ERROR: unknown stackid=' + stackid);
       return;
     }
 
@@ -1867,146 +1865,8 @@ var wwt = (function () {
       });
     });
 
-    displayNearestStackTable(stack0, nearest);
-  }
-
-  function hideNearestStackTable() {
-    const host = getHost();
-    if (host === null) { return; }
-
-    const pane = host.querySelector('#nearestinfo');
-    if (pane === null) {
-      console.log('INTERNAL ERROR: no #nearestinfo');
-      return;
-    }
-
-    pane.style.display = 'none';
-    removeChildren(pane);
-  }
-
-  // copied from wwtprops for now
-  function mkImg(alt, src, width, height, className) {
-    const img = document.createElement('img');
-    img.setAttribute('alt', alt);
-    img.setAttribute('width', width);
-    img.setAttribute('height', height);
-    img.setAttribute('src', src);
-    img.setAttribute('class', className);
-    return img;
-  }
-
-  // This is an experiment to see if we can make it easy to select
-  // stacks in crowded areas.
-  //
-  // Display a simple table with the stacks.
-  //
-  function displayNearestStackTable(stack0, neighbors) {
-    const n = neighbors.length;
-    if (n === 0) { return; }
-
-    const host = getHost();
-    if (host === null) { return; }
-
-    const pane = host.querySelector('#nearestinfo');
-    if (pane === null) {
-      console.log('INTERNAL ERROR: no #nearestinfo');
-      return;
-    }
-
-    const name = document.createElement('div');
-    name.setAttribute('class', 'name');
-    name.innerHTML = 'Nearest stack' + (n > 1 ? 's' : '');
-    pane.appendChild(name);
-
-    const imgClose = mkImg('Close', 'wwtimg/glyphicons-208-remove.png',
-			   18, 18, 'close');
-    imgClose.addEventListener('click', () => {
-      hideNearestStackTable()
-
-      // clear out the "nearest" stack outline; the easiest way is
-      // to just change them but do not change the nearestFovs array,
-      // since this will get done in a later call
-      nearestFovs.forEach(fov => {
-	if (fov.selected) { return; }
-	resetFov(fov);
-      });
-
-    });
-    pane.appendChild(imgClose);
-
-    const main = document.createElement('div');
-    main.setAttribute('class', 'main');
-    pane.appendChild(main);
-
-    const tbl = document.createElement('table');
-    main.appendChild(tbl);
-
-    const mkElem = (name, value) => {
-      const el = document.createElement(name);
-      el.innerHTML = value;
-      return el;
-    };
-
-    const thead = document.createElement('thead');
-    tbl.appendChild(thead);
-
-    let trow = document.createElement('tr');
-    thead.appendChild(trow);
-    trow.appendChild(mkElem('th', 'Stack'));
-    trow.appendChild(mkElem('th', 'Separation'));
-
-    const tbody = document.createElement('tbody');
-    tbl.appendChild(tbody);
-
-    const mkStack = (stkid) => {
-      const fovs = stackAnnotations[stkid];
-
-      const lnk = document.createElement('a');
-      lnk.setAttribute('href', '#');
-      lnk.appendChild(document.createTextNode(stkid));
-
-      // The mouseleave event will not fire if a user clicks on a link,
-      // so ensure we clean up.
-      //
-      lnk.addEventListener('click', () => {
-	fovs.forEach(fov => fov.set_fill(false));
-	processStackSelectionByName(stkid);
-      });
-
-      lnk.addEventListener('mouseenter', () => {
-	fovs.forEach(fov => fov.set_fill(true));
-      });
-
-      lnk.addEventListener('mouseleave', () => {
-	fovs.forEach(fov => fov.set_fill(false));
-      });
-
-      const td = document.createElement('td');
-      td.appendChild(lnk);
-      return td;
-    }
-
-    /*
-     * It's not obvious that showing the selected source is helpful
-    let trow = document.createElement('tr');
-    tbody.appendChild(trow);
-    trow.appendChild(mkStack(stack0.stackid));
-    trow.appendChild(mkElem('td', '0.0'));
-    */
-
-    neighbors.forEach(d => {
-      const sep = d[0];
-      const stack = d[1];
-      const trow = document.createElement('tr');
-      tbody.appendChild(trow);
-
-      const stackSep = (sep * 60.0).toFixed(1);
-      trow.appendChild(mkStack(stack.stackid));
-      trow.appendChild(mkElem('td', stackSep));
-    });
-
-    pane.style.display = 'block';
-
+    wwtprops.addNearestStackTable(stackAnnotations, stack0, nearest,
+				  nearestFovs);
   }
 
   // Can we lasso a region?
@@ -2341,10 +2201,10 @@ var wwt = (function () {
   }
 
   function clearNearestStack() {
-    nearestFovs.forEach(fov => resetFov(fov));
+    nearestFovs.forEach(fov => fov.reset());
     nearestFovs = [];
     wwtprops.clearStackInfo();
-    hideNearestStackTable();
+    wwtprops.clearNearestStackTable();
   }
 
   function clearNearestSource() {
@@ -3605,6 +3465,8 @@ var wwt = (function () {
 
     addToolTipHandler: addToolTipHandler,
     removeToolTipHandler: removeToolTipHandler,
+
+    processStackSelectionByName: processStackSelectionByName,
 
     // debug/testing access below
     //
