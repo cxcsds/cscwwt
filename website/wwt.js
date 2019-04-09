@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /*
  * Based on code from
@@ -273,7 +273,6 @@ var wwt = (function () {
     return host;
   }
 
-
   // Taken from https://stackoverflow.com/a/10284006
   //
   function zip(arrays) {
@@ -350,6 +349,7 @@ var wwt = (function () {
       // Fire the event whether it was changed or not, to ensure the
       // value is saved.
       //
+      // Can I not just use el.click()?
       try {
 	el.dispatchEvent(new CustomEvent('click'));
       }
@@ -864,7 +864,8 @@ var wwt = (function () {
     };
   }
 
-  const NCHUNK = 8;  // number of chunks for the source properties
+  // number of chunks for the source properties
+  const NCHUNK = 8;
 
   function downloadCatalog20Data() {
 
@@ -939,15 +940,20 @@ var wwt = (function () {
 
       // The following forEach loop can alter props.shown
       //
-      props.shown = [];
-      props.annotations.forEach((d) => {
-        const sep = separation(ra0, dec0, d[0], d[1]);
-        if (sep < fov) {
-          const ann = d[2];
-          wwt.addAnnotation(ann);
-          props.shown.push(ann);
-        }
-      });
+      const getPos = d => { return {ra: d[0], dec: d[1]}; };
+      const toStore = (d, p) => {
+	const ann = d[2];
+	wwt.addAnnotation(ann);
+	return ann;
+      };
+
+      // This sorts the shown list, which is unnescessary here.
+      //
+      const shown = findNearestTo(ra0, dec0, fov, props.annotations,
+				  getPos, toStore);
+
+      // remove the separation value
+      props.shown = shown.map(d => d[1]);
 
       if (props.shown.length === 0) {
         reportUpdateMessage('No ' + props.label +
@@ -1024,7 +1030,6 @@ var wwt = (function () {
     };
   }
 
-
   const toggleSources = makeToggleCatalog(catalogProps.csc20,
                                           downloadCatalog20Data,
                                           showSources,
@@ -1033,8 +1038,6 @@ var wwt = (function () {
                                             downloadCatalog11Data);
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
                                              downloadXMMData);
-
-
 
   // manual version of CHS toggle code
   //
@@ -1081,7 +1084,6 @@ var wwt = (function () {
     shownCHS = true;
   }
 
-
   function hideCHS() {
     if (annotationsCHS == null) {
       console.log('Internal error: hideCHS ' +
@@ -1100,7 +1102,6 @@ var wwt = (function () {
       'Show CHS';
     shownCHS = false;
   }
-
 
   function toggleFlexById(elname) {
     const sel = '#' + elname;
@@ -1153,16 +1154,16 @@ var wwt = (function () {
     document.querySelector('#togglesettings').innerHTML =
       'Hide Settings';
   }
-  
+
   // Show the pane with the buttons that move to a location.
   //
   // I want this to appear near where the user clicked - hence sending
   // in the event - but it requires some cross-platform work so punting
   // for now.
   //
-  var show_pre = false;
+  var showPre = false;
   function togglePreSelected(event) {
-    if (show_pre) {
+    if (showPre) {
       hidePreSelected();
     } else {
       showPreSelected(event);
@@ -1171,7 +1172,7 @@ var wwt = (function () {
 
   function hidePreSelected() {
     hideElement('preselected');
-    show_pre = false;
+    showPre = false;
     document.querySelector('#togglepreselected').innerHTML =
       'Show Popular Places';
   }
@@ -1191,7 +1192,7 @@ var wwt = (function () {
 
     pane.style.display = 'block';
 
-    show_pre = true;
+    showPre = true;
     document.querySelector('#togglepreselected').innerHTML =
       'Hide Popular Places';
   }
@@ -1266,11 +1267,11 @@ var wwt = (function () {
       sourceCircle = undefined;
     }
 
-    source_ra = undefined;
-    source_dec = undefined;
-    source_fov = undefined;
+    sourceRA = undefined;
+    sourceDec = undefined;
+    sourceFOV = undefined;
 
-    source_plotData = null;
+    sourcePlotData = null;
   }
 
   function showSources() {
@@ -1287,8 +1288,8 @@ var wwt = (function () {
       'Select nearest source';
 
     // Let the "is SAMP enabled" check sort out the display of this
-    document.querySelector('#export-samp').
-      classList.add('requires-samp');
+    document.querySelector('#export-samp')
+      .classList.add('requires-samp');
 
     showBlockElement('plot-properties');
 
@@ -1296,11 +1297,11 @@ var wwt = (function () {
   }
 
   var sourceCircle = undefined;
-  var source_ra = undefined;
-  var source_dec = undefined;
-  var source_fov = undefined;
+  var sourceRA = undefined;
+  var sourceDec = undefined;
+  var sourceFOV = undefined;
 
-  var source_plotData = null;
+  var sourcePlotData = null;
 
   // Display the sources and create the data needed for the plots
   //
@@ -1312,16 +1313,16 @@ var wwt = (function () {
     _hideSources();
 
     // Plot data
-    const sig_b = [];
-    const sig_w = [];
-    const flux_b = [];
-    const flux_w = [];
+    const sigB = [];
+    const sigW = [];
+    const fluxB = [];
+    const fluxW = [];
 
-    const hr_hm = [];
-    const hr_ms = [];
+    const hrHM = [];
+    const hrMS = [];
 
-    const acis_num = [];
-    const hrc_num = [];
+    const acisNum = [];
+    const hrcNum = [];
 
     const r0 = [];
     const r1 = [];
@@ -1340,77 +1341,88 @@ var wwt = (function () {
     const props = catalogProps.csc20;
     props.shown = [];
 
-    for (var i = 0; i < catalogData.length; i++) {
-      const srcrow = catalogData[i];
-      const sep = separation(ra0, dec0,
-                             srcrow[raIdx], srcrow[decIdx]);
-      if (sep < fov) {
-        // could access the elements without creating an object
-        // but I don't want to change existing code too much
-        const src = getCSCObject(srcrow);
+    // Can we rework this so we don't need to pass through the
+    // counter?
+    let ctr = 0;
+    const getPos = d => {
+      const p = {ra: d[raIdx], dec: d[decIdx], ctr: ctr};
+      ctr += 1;
+      return p;
+    };
 
-        const circle = props.annotations[i][2];
-        wwt.addAnnotation(circle);
-        props.shown.push(circle);
-        shownSrcsIds.push(i);
+    // Storage routine also has to fill in the plot data
+    //
+    const toStore = (d, p) => {
+      // could access the elements without creating an object
+      // but I don't want to change existing code too much
+      const src = getCSCObject(d);
 
-        // plot data
-        if (src.err_ellipse_r0 !== null &&
-            src.err_ellipse_r1 !== null) {
-          r0.push(src.err_ellipse_r0);
-          r1.push(src.err_ellipse_r1);
-        }
+      const circle = props.annotations[p.ctr][2];
+      wwt.addAnnotation(circle);
+      shownSrcsIds.push(p.ctr);
 
-        // For hardness ratio, we want to remove undefined values
-        // AND those that are pegged at +1 or -1, since the latter
-        // dominate the data and makes the plot hard to see
-        //
-        if ((src.hard_hm !== null) &&
-            (src.hard_ms !== null) &&
-            (src.hard_hm > -0.999) && (src.hard_hm < 0.999) &&
-            (src.hard_ms > -0.999) && (src.hard_ms < 0.999)) {
-          hr_hm.push(src.hard_hm);
-          hr_ms.push(src.hard_ms);
-        }
-
-        if ((src.acis_num !== null) && (src.acis_num > 0)) {
-          acis_num.push(src.acis_num);
-        }
-        if ((src.hrc_num !== null) && (src.hrc_num > 0)) {
-          hrc_num.push(src.hrc_num);
-        }
-
-        if (src.significance !== null) {
-          if (src.fluxband === 'broad') {
-            flux_b.push(src.flux);
-            sig_b.push(src.significance);
-          } else if (src.fluxband === 'wide') {
-            flux_w.push(src.flux);
-            sig_w.push(src.significance);
-          }
-        }
-
+      // plot data
+      if (src.err_ellipse_r0 !== null &&
+          src.err_ellipse_r1 !== null) {
+        r0.push(src.err_ellipse_r0);
+        r1.push(src.err_ellipse_r1);
       }
-    }
+
+      // For hardness ratio, we want to remove undefined values
+      // AND those that are pegged at +1 or -1, since the latter
+      // dominate the data and makes the plot hard to see
+      //
+      if ((src.hard_hm !== null) &&
+          (src.hard_ms !== null) &&
+          (src.hard_hm > -0.999) && (src.hard_hm < 0.999) &&
+          (src.hard_ms > -0.999) && (src.hard_ms < 0.999)) {
+        hrHM.push(src.hard_hm);
+        hrMS.push(src.hard_ms);
+      }
+
+      if ((src.acis_num !== null) && (src.acis_num > 0)) {
+        acisNum.push(src.acis_num);
+      }
+      if ((src.hrc_num !== null) && (src.hrc_num > 0)) {
+        hrcNum.push(src.hrc_num);
+      }
+
+      if (src.significance !== null) {
+        if (src.fluxband === 'broad') {
+          fluxB.push(src.flux);
+          sigB.push(src.significance);
+        } else if (src.fluxband === 'wide') {
+          fluxW.push(src.flux);
+          sigW.push(src.significance);
+        }
+      }
+      return circle;
+    };
+
+    const shown = findNearestTo(ra0, dec0, fov, catalogData,
+				getPos, toStore);
+
+    // remove separation
+    props.shown = shown.map(d => d[1]);
 
     // can bail out now if there are no sources
     if (props.shown.length === 0) { return false; }
 
     // Combine the plot data
     //
-    const out = {flux_b: null, flux_w: null, hr: null, poserr: null,
+    const out = {flux_b: null, fluxW: null, hr: null, poserr: null,
                  obscount: null};
 
-    if (flux_b.length > 0) {
-      out.flux_b = {sig: sig_b, flux: flux_b};
+    if (fluxB.length > 0) {
+      out.flux_b = {sig: sigB, flux: fluxB};
     }
 
-    if (flux_w.length > 0) {
-      out.flux_w = {sig: sig_w, flux: flux_w};
+    if (fluxW.length > 0) {
+      out.flux_w = {sig: sigW, flux: fluxW};
     }
 
-    if (hr_hm.length > 0) {
-      out.hr = {hm: hr_hm, ms: hr_ms};
+    if (hrHM.length > 0) {
+      out.hr = {hm: hrHM, ms: hrMS};
     }
 
     if (r0.length > 0) {
@@ -1422,11 +1434,11 @@ var wwt = (function () {
       out.poserr = {r0: r0, r1: r1, eccentricity: eccen};
     }
 
-    if ((acis_num.length > 0) || (hrc_num.length > 0)) {
-      out.obscount = {acis: acis_num, hrc: hrc_num};
+    if ((acisNum.length > 0) || (hrcNum.length > 0)) {
+      out.obscount = {acis: acisNum, hrc: hrcNum};
     }
 
-    source_plotData = out;
+    sourcePlotData = out;
 
     // Only draw on the circle if there are any sources
     //
@@ -1440,29 +1452,11 @@ var wwt = (function () {
 
     wwt.addAnnotation(sourceCircle);
 
-    source_ra = ra0;
-    source_dec = dec0;
-    source_fov = fov;
+    sourceRA = ra0;
+    sourceDec = dec0;
+    sourceFOV = fov;
 
     return true;
-  }
-
-
-  // Return the angular sepration between the two points
-  // Based on https://en.wikipedia.org/wiki/Great-circle_distance
-  // and not worrying about rounding errors
-  //
-  // Input arguments are in degrees, as is the
-  // return value.
-  //
-  function separation(ra1, dec1, ra2, dec2) {
-    const lat1 = dec1 * Math.PI / 180.0;
-    const lat2 = dec2 * Math.PI / 180.0;
-    const dlon = Math.abs(ra1 - ra2) * Math.PI / 180.0;
-
-    const term = Math.sin(lat1) * Math.sin(lat2) +
-          Math.cos(lat1) * Math.cos(lat2) * Math.cos(dlon);
-    return Math.acos(term) * 180.0 / Math.PI;
   }
 
   // Note: this is used to set up the original data as well
@@ -1471,30 +1465,28 @@ var wwt = (function () {
   //
   function updateCompletionInfo(status, stackdata) {
 
-    const nstack_total = stackdata.stacks.length;
-
-    var lmod_start, lmod_end;
-    for (var i = 0; i < nstack_total; i++) {
-      const stack = stackdata.stacks[i];
+    let lmodStart = null;
+    let lmodEnd = null;
+    stackdata.stacks.forEach(stack => {
       stack.status = status.stacks[stack.stackid];
       /* if not completed then no element in the completed array */
-      var completed = status.completed[stack.stackid]
+      const completed = status.completed[stack.stackid]
       if (typeof completed !== 'undefined') {
         stack.lastmod = completed;
-        if (typeof lmod_start === 'undefined') {
-          lmod_start = completed;
-          lmod_end = completed;
-        } else if (completed < lmod_start) {
-          lmod_start = completed;
-        } else if (completed > lmod_end) {
-          lmod_end = completed;
+        if (lmodStart === null) {
+          lmodStart = completed;
+          lmodEnd = completed;
+        } else if (completed < lmodStart) {
+          lmodStart = completed;
+        } else if (completed > lmodEnd) {
+          lmodEnd = completed;
         }
       }
-    }
+    });
 
     // The assumption is that these are both set
-    stackdata.completed_start = lmod_start;
-    stackdata.completed_end = lmod_end;
+    stackdata.completed_start = lmodStart;
+    stackdata.completed_end = lmodEnd;
 
     // Update the "Help" page.
     const el = document.querySelector('#lastmod');
@@ -1573,7 +1565,7 @@ var wwt = (function () {
     lbl.set_radius(60 / 3600.0);
     lbl.set_label(chs.label);
     lbl.set_opacity(0.5);
-    lbl.set_id(chs.label);  // do we need an ID to get click to work?
+    lbl.set_id(chs.label); // do we need an ID to get click to work?
     lbl.set_showHoverLabel(true);
 
     return [ann, lbl];
@@ -1643,7 +1635,6 @@ var wwt = (function () {
     trace('Created CHS annotations');
   }
 
-
   function createSource11Annotations() {
 
     const props = catalogProps.csc11;
@@ -1661,9 +1652,8 @@ var wwt = (function () {
 
     showBlockElement('source11color');
 
-    trace('Created source11_annotations');
+    trace('Created CSC1.1 annotations');
   }
-
 
   // This should only be called after the event handlers for the
   // toggle options have been set up. As I extend this to include
@@ -1736,6 +1726,54 @@ var wwt = (function () {
     }
   }
 
+  // Return the angular separation between the two points
+  // Based on https://en.wikipedia.org/wiki/Great-circle_distance
+  // and not worrying about rounding errors
+  //
+  // Input arguments are in degrees, as is the
+  // return value.
+  //
+  function separation(ra1, dec1, ra2, dec2) {
+    const lat1 = dec1 * Math.PI / 180.0;
+    const lat2 = dec2 * Math.PI / 180.0;
+    const dlon = Math.abs(ra1 - ra2) * Math.PI / 180.0;
+
+    const term = Math.sin(lat1) * Math.sin(lat2) +
+          Math.cos(lat1) * Math.cos(lat2) * Math.cos(dlon);
+    return Math.acos(term) * 180.0 / Math.PI;
+  }
+
+  // Return a sorted list of objects within maxRadius (degrees)
+  // of ra0, dec0 (decimal degrees), where xs is the list of
+  // objects to sort, getPos is a function that, given an object,
+  // returns the ra, dec to use, and toStore is a function that
+  // converts the object to the stored value. So we have
+  //
+  //  RA -> Dec -> Radius ->
+  //  [a] -> (a -> c) -> ((a, c) -> b) -> [[Radius, b]]
+  //
+  // where c is an object with ra and dec fields, and any other
+  // fields that toStore needs (getPos is called once per item,
+  // so can be used to increase a counter if required).
+  //
+  function findNearestTo(ra0, dec0, maxSep, xs, getPos, toStore) {
+    const store = [];
+    xs.forEach(a => {
+      const pos = getPos(a);
+      const sep = separation(ra0, dec0, pos.ra, pos.dec);
+      if (sep <= maxSep) {
+	store.push([sep, toStore(a, pos)]);
+      }
+    });
+
+    // Sort the list by the separation
+    store.sort(function (a, b) { if (a[0] < b[0]) { return -1; }
+                                 else if (a[0] > b[0]) { return 1; }
+                                 else { return 0; } });
+
+    return store;
+  }
+
   // Show the nearest stack: ra and dec are in degrees
   function processStackSelection(sra0, sdec0) {
 
@@ -1744,29 +1782,18 @@ var wwt = (function () {
     // maximum separation to consider, in degrees.
     const maxSep = wwt.get_fov();
 
-    const seps = [];
-    for (var i = 0; i < inputStackData.stacks.length; i++) {
-      const stack = inputStackData.stacks[i];
-      const pos = stack.pos;
-      const sep = separation(sra0, sdec0, pos[0], pos[1]);
-      if (sep <= maxSep) {
-        seps.push([sep, i, stack.stackid]);
-      }
-    }
-
+    const getPos = stack => { return {ra: stack.pos[0], dec: stack.pos[1]}; };
+    const toStore = (stack, p) => stack;
+    const seps = findNearestTo(sra0, sdec0, maxSep, inputStackData.stacks,
+			       getPos, toStore);
     if (seps.length === 0) {
       return;
     }
 
-    // Sort the list by the separation
-    seps.sort(function (a, b) { if (a[0] < b[0]) { return -1; }
-                                else if (a[0] > b[0]) { return 1; }
-                                else { return 0; } });
-
     // Only interested in the closest stack
     //
-    const stack = inputStackData.stacks[seps[0][1]];
-    const fovs = stackAnnotations[seps[0][2]];
+    const stack = seps[0][1];
+    const fovs = stackAnnotations[stack.stackid];
     fovs.forEach(fov => {
       const oldFov = [fov,
                       fov.get_lineColor(),
@@ -1819,31 +1846,28 @@ var wwt = (function () {
     //
     clearNearestSource();
 
-    // Unlike stacks, do not use the FOV to restrict the selection;
-    // instead build it up as we go along (probably not worth it).
-    //
-    var maxSep = 1.0e9;
-    const seps = [];
-    for (var i = 0; i < shownSrcsIds.length; i++) {
-      const srcid = shownSrcsIds[i];
+    const raIdx = getCSCColIdx('ra');
+    const decIdx = getCSCColIdx('dec');
+
+    const getPos = srcid => {
       const src = catalogData[srcid];
-      const ra = getCSCRow(src, 'ra');
-      const dec = getCSCRow(src, 'dec');
-      const sep = separation(ra0, dec0, ra, dec);
-      if (sep <= maxSep) {
-        seps.push([sep, srcid]);
-        maxSep = sep;
-      }
-    }
+      return {ra: src[raIdx], dec: src[decIdx]};
+    };
+
+    const toStore = (srcid, p) => srcid;
+
+    // This used to use an adaptive scheme, where the maximum radius
+    // was reduced each time it moved nearer the position. With the
+    // rewrite to findNearestTo, I have switched back to using the
+    // current fov.
+    //
+    const maxSep = wwt.get_fov();
+    const seps = findNearestTo(ra0, dec0, maxSep, shownSrcsIds,
+			       getPos, toStore);
 
     if (seps.length === 0) {
       return;
     }
-
-    // Sort the list by the separation
-    seps.sort(function (a, b) { if (a[0] < b[0]) { return -1; }
-                                else if (a[0] > b[0]) { return 1; }
-                                else { return 0; } });
 
     // Only interested in the closest item
     //
@@ -1989,7 +2013,7 @@ var wwt = (function () {
       wwt.gotoRaDecZoom(ra, dec, zoom, false);
       trace('Set up zoom to starting location: stored');
     }
-    
+
   }
 
   // This used to be sent in data, hence the function returning a function,
@@ -2172,7 +2196,7 @@ var wwt = (function () {
       pane.innerHTML = 'There was a problem initializing the WWT.' +
         '<br>Trying to restart.';
       pane.style.color = 'darkblue';
-      wwtReadyFunc()();  // NOTE: the use of '()()' is intentional.
+      wwtReadyFunc()(); // NOTE: the use of '()()' is intentional.
     }, 10 * 1000);
 
   }
@@ -2236,7 +2260,7 @@ var wwt = (function () {
         tt.style.display = 'inline';
         const timer2 = setTimeout(() => {
           tt.style.display = 'none';
-        }, timeout * 1000 );
+        }, timeout * 1000);
         tooltipTimers[name] = timer2;
       }, 500);
       tooltipTimers[name] = timer;
@@ -2258,7 +2282,6 @@ var wwt = (function () {
 
     delete tooltipTimers[name];
   }
-
 
   // Call on page load, when WWT is to be initialized.
   //
@@ -2359,11 +2382,11 @@ var wwt = (function () {
     //
     host.querySelector('#export-samp')
       .addEventListener('click', () => {
-        wwtsamp.sendSourcePropertiesNear(source_ra, source_dec, source_fov);
+        wwtsamp.sendSourcePropertiesNear(sourceRA, sourceDec, sourceFOV);
       });
 
     host.querySelector('#plot-properties')
-      .addEventListener('click', () => { wwtplots.plotSources(source_plotData); });
+      .addEventListener('click', () => { wwtplots.plotSources(sourcePlotData); });
 
     addToolTipHandler('zoom0');
     addToolTipHandler('zoomin');
@@ -2805,7 +2828,7 @@ var wwt = (function () {
 
     if (close) {
       const cb = () => { pane.style.display = 'none' };
-      setTimeout(cb, 4000);  // 4 seconds
+      setTimeout(cb, 4000);
     }
 
     // TODO: show / hide the close-pane button depending on close
@@ -3093,7 +3116,6 @@ var wwt = (function () {
 
   }
 
-
   // Based on
   // https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
   //
@@ -3102,7 +3124,6 @@ var wwt = (function () {
       node.removeChild(node.firstChild);
     }
   }
-
 
   // Mapping from short to long names, based on an analysis of a WTML
   // file created by WWT on Windows.
@@ -3301,7 +3322,6 @@ var wwt = (function () {
       .style.display = 'inline-block';
 
   }
-
 
   var catalog11Data = [];
   function processCatalog11Data(json) {
