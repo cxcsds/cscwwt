@@ -187,7 +187,23 @@ div#sourceinfo {
   max-width: 700px;
 }
 
-div#stackinfo div.main , div#sourceinfo div.main {
+/* based on #stackinfo/#sourceinfo */
+/* Would like this centered, but bottom-left is okay to start with */
+div#nearestinfo {
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid white;
+  bottom: 0.5em;
+  cursor: move;
+  display: none;
+  left: 0.5em;
+  overflow: auto;  /* scroll bar looks ugly when shown */
+  padding: 0;
+  position: absolute;
+  z-index: 200;
+}
+
+div#stackinfo div.main , div#sourceinfo div.main ,
+div#nearestinfo div.main {
   background: rgba(255, 255, 255, 1);
 }
 
@@ -273,7 +289,7 @@ img.close {
 
 #preselected > img.close , #stackinfo > img.close ,
 #settings > img.close , #sourceinfo > img.close ,
-#plot > img.close {
+#nearestinfo > img.close , #plot > img.close {
   margin-right: 0.4em;
   margin-top: 0.4em;
 }

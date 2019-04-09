@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //
 // Display properties about a stack or a source.
@@ -221,7 +221,7 @@ const wwtprops = (function () {
     div.appendChild(mkSup('m'));
     addText(div, ' ' + raToks.seconds);
     div.appendChild(mkSup('s'));
-    addText(div, ' δ: '  + decToHTML(dec) + ' (ICRS)');
+    addText(div, ' δ: ' + decToHTML(dec) + ' (ICRS)');
 
     // clipboard
     const img = document.createElement('img');
@@ -351,7 +351,8 @@ const wwtprops = (function () {
 	addSIMBADNameLink(tgtDiv, names[0]);
       } else {
 	addText(tgtDiv, 'Target names: ');
-	for (var i = 0; i < names.length; i++) {
+	let i;
+	for (i = 0; i < names.length; i++) {
           if (i > 0) {
 	    addText(tgtDiv, ', ');
 	  }
@@ -414,7 +415,7 @@ const wwtprops = (function () {
     // stacks (ie how much of this is actually needed)?
     //
     const seen = Object.create(null);
-    var i;
+    let i;
     for (i = 0; i < nobis; i++) {
       const obsidstr = obis[i].substring(0, 5);
       seen[obsidstr] = 1;
@@ -604,7 +605,7 @@ const wwtprops = (function () {
     addRow(tbody,
 	   'Galactic n<sub>H</sub> column density',
 	   src.nh_gal + ' × 10²⁰ cm⁻²');
-		
+
     if (src.fluxband !== '') {
       addErrorRows(tbody,
 		   'columns/fluxes.html#apphotflux',
@@ -762,11 +763,125 @@ const wwtprops = (function () {
   }
 
   function clearSourceInfo() {
-    const host = document.querySelector('#sourceinfo');
-    host.style.display = 'none';
-    host.innerHTML = '';
-
+    const pane = document.querySelector('#sourceinfo');
+    pane.style.display = 'none';
+    removeChildren(pane);
     wwt.removeToolTipHandler('export-samp-source');
+  }
+
+  function addNearestStackTable(stackAnnotations, stack0, neighbors,
+			       nearestFovs) {
+    const n = neighbors.length;
+    if (n === 0) { return; }
+
+    const pane = document.querySelector('#nearestinfo');
+    if (pane === null) {
+      console.log('INTERNAL ERROR: no #nearestinfo');
+      return;
+    }
+
+    const name = mkDiv('name');
+    name.innerHTML = 'Nearest stack' + (n > 1 ? 's' : '');
+    pane.appendChild(name);
+
+    const imgClose = mkImg('Close', 'wwtimg/glyphicons-208-remove.png',
+			   18, 18, 'close');
+    imgClose.addEventListener('click', () => {
+      clearNearestStackTable()
+
+      // clear out the "nearest" stack outline; the easiest way is
+      // to just change them but do not change the nearestFovs array,
+      // since this will get done in a later call
+      nearestFovs.forEach(fov => {
+	if (fov.selected) { return; }
+	fov.reset();
+      });
+
+    });
+    pane.appendChild(imgClose);
+
+    const main = mkDiv('main');
+    pane.appendChild(main);
+
+    const tbl = document.createElement('table');
+    main.appendChild(tbl);
+
+    const mkElem = (name, value) => {
+      const el = document.createElement(name);
+      el.innerHTML = value;
+      return el;
+    };
+
+    const thead = document.createElement('thead');
+    tbl.appendChild(thead);
+
+    let trow = document.createElement('tr');
+    thead.appendChild(trow);
+    trow.appendChild(mkElem('th', 'Stack'));
+    trow.appendChild(mkElem('th', 'Separation'));
+
+    const tbody = document.createElement('tbody');
+    tbl.appendChild(tbody);
+
+    const mkStack = (stkid) => {
+      const fovs = stackAnnotations[stkid];
+
+      const lnk = document.createElement('a');
+      lnk.setAttribute('href', '#');
+      addText(lnk, stkid);
+
+      // The mouseleave event will not fire if a user clicks on a link,
+      // so ensure we clean up.
+      //
+      lnk.addEventListener('click', () => {
+	fovs.forEach(fov => fov.set_fill(false));
+	wwt.processStackSelectionByName(stkid);
+      });
+
+      lnk.addEventListener('mouseenter', () => {
+	fovs.forEach(fov => fov.set_fill(true));
+      });
+
+      lnk.addEventListener('mouseleave', () => {
+	fovs.forEach(fov => fov.set_fill(false));
+      });
+
+      const td = document.createElement('td');
+      td.appendChild(lnk);
+      return td;
+    }
+
+    /*
+     * It's not obvious that showing the selected source is helpful
+    let trow = document.createElement('tr');
+    tbody.appendChild(trow);
+    trow.appendChild(mkStack(stack0.stackid));
+    trow.appendChild(mkElem('td', '0.0'));
+    */
+
+    neighbors.forEach(d => {
+      const sep = d[0];
+      const stack = d[1];
+      const trow = document.createElement('tr');
+      tbody.appendChild(trow);
+
+      const stackSep = (sep * 60.0).toFixed(1);
+      trow.appendChild(mkStack(stack.stackid));
+      trow.appendChild(mkElem('td', stackSep));
+    });
+
+    pane.style.display = 'block';
+  }
+
+  function clearNearestStackTable() {
+    const pane = document.querySelector('#nearestinfo');
+    if (pane === null) {
+      console.log('INTERNAL ERROR: no #nearestinfo');
+      return;
+    }
+
+    pane.style.display = 'none';
+    removeChildren(pane);
   }
 
   return { addStackInfo: addStackInfo,
@@ -774,6 +889,9 @@ const wwtprops = (function () {
 
 	   addSourceInfo: addSourceInfo,
 	   clearSourceInfo: clearSourceInfo,
+
+	   addNearestStackTable: addNearestStackTable,
+	   clearNearestStackTable: clearNearestStackTable,
 
 	   raToTokens: raToTokens,
 	   decToTokens: decToTokens,
