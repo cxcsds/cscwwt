@@ -3346,10 +3346,13 @@ var wwt = (function () {
 
   }
 
-  // Could try to merge the data sets as it is read in,
-  // but for now keep it chunked until it is all read in.
+  // I would rather not pay the price for storing a huge array
+  // (catalogData) until it is needed, but is there a large cost
+  // in execution time in how I extend the array during the read phase
+  // (that is the data comes in in chunks, with no guarantee of the
+  // order of the chunks but each chunk is contiguous)?
   //
-  var chunkedCatalogData = new Array(NCHUNK);
+  var chunkedCatalogData = new Array(NCHUNK).fill(false);
   var catalogData = [];
   var haveCatalogData = false;
   function processCatalogData(json, ctr) {
@@ -3379,23 +3382,27 @@ var wwt = (function () {
       return;
     }
 
-    chunkedCatalogData[ctr - 1] = json.rows;
-    haveCatalogData = true;
-    for (var cd of chunkedCatalogData) {
-      haveCatalogData &= (typeof cd !== 'undefined');
+    // What is the best way to fill in a slice of values of an array?
+    //
+    let i;
+    for (i = 0; i < json.rows.length; i++) {
+      catalogData[json.start + i] = json.rows[i];
     }
 
+    chunkedCatalogData[ctr - 1] = true;
+    haveCatalogData = chunkedCatalogData.reduce((a, v) => a && v, true);
     if (!haveCatalogData) { return; }
 
-    trace('== unchunkifying');
+    const nsrcs = catalogData.length;
+    trace('== CSC 2.0 contains ' + nsrcs + ' sources');
 
-    // We know the total size and chunk sizes, so could
-    // use slices here
+    // Report any missing sources
     //
-    for (var chunk of chunkedCatalogData) {
-      for (var src of chunk) {
-        catalogData.push(src);
-      }
+    let nmiss = catalogData.reduce((a, v) => {
+      return a + typeof v === 'undefined' ? 1 : 0;
+    }, 0);
+    if (nmiss !== 0) {
+      console.log(`WARNING: there are ${nmiss} missing sources in CSC 2.0!`);
     }
 
     chunkedCatalogData = null;
