@@ -370,7 +370,9 @@ main#content div.wrap {
       </div>
 
       <!-- used to identify "nearby" objects; an experiment -->
-      <div id="nearestinfo">
+      <div id="neareststackinfo">
+      </div>
+      <div id="nearestsourceinfo">
       </div>
       
       <!-- Inform the user when the stack status has been updated -->

@@ -1894,6 +1894,30 @@ var wwt = (function () {
     // wwt.addAnnotation(regionPolygon);
   }
 
+  // Show this source using the "nearest source" logic.
+  // There is excessive looping here, since have to loop to
+  // find the source and then loop through the same data in
+  // processSourceSelection.
+  //
+  function processSourceSelectionByName(srcname) {
+
+    // Assume we can limit to shownSrcsIds
+    const nameIdx = getCSCColIdx('name');
+    const smatches = shownSrcsIds.filter(idx => {
+      return catalogData[idx][nameIdx] === srcname;
+    });
+    if (smatches.length === 0) {
+      console.log('INTERNAL ERROR: unknown srcname=' + srcname);
+      return;
+    }
+
+    // Assume only one match
+    const src = catalogData[smatches[0]];
+    const raIdx = getCSCColIdx('ra');
+    const decIdx = getCSCColIdx('dec');
+    processSourceSelection(src[raIdx], src[decIdx]);
+  }
+
   // Find the nearest source; we only have to loop through
   // the currently-drawn set.
   //
@@ -1915,7 +1939,7 @@ var wwt = (function () {
       return {ra: src[raIdx], dec: src[decIdx]};
     };
 
-    const toStore = (srcid, p) => srcid;
+    const toStore = (srcid, p) => { return {id: srcid, pos: p}; };
 
     // This used to use an adaptive scheme, where the maximum radius
     // was reduced each time it moved nearer the position. With the
@@ -1932,7 +1956,9 @@ var wwt = (function () {
 
     // Only interested in the closest item
     //
-    const selid = seps[0][1];
+    const el0 = seps.shift();
+    const selid = el0[1].id;
+    const selpos = el0[1].pos;
     const src = catalogProps.csc20.annotations[selid][2];
 
     nearestSource = [src,
@@ -1945,6 +1971,29 @@ var wwt = (function () {
     src.set_opacity(selectedSourceOpacity);
 
     wwtprops.addSourceInfo(getCSCObject(catalogData[selid]));
+
+    if (seps.length === 0) { return; }
+
+    // Create a table of the sources near to selid
+    //
+    const neighborsAll = findNearestTo(selpos.ra, selpos.dec, maxSep,
+				       seps.map(d => d[1]),
+				       d => d.pos, d => d);
+
+    // Arbitrarily limit to the nearest n
+    const neighbors = neighborsAll.slice(0, 10);
+
+    const indexes = {
+      name: getCSCColIdx('name'),
+      significance: getCSCColIdx('significance'),
+      variability: getCSCColIdx('var_flag'),
+      fluxband: getCSCColIdx('fluxband'),
+      flux: getCSCColIdx('flux')
+    };
+
+    wwtprops.addNearestSourceTable(catalogData, indexes,
+				   catalogProps.csc20.annotations,
+				   neighbors);
   }
 
   // It is not clear if the handlers stack, or overwrite, when
@@ -1998,7 +2047,8 @@ var wwt = (function () {
 
     const panes = ['#stackinfo', '#sourceinfo', '#preselected',
 		   '#settings', '#plot'
-		   // , '#nearestinfo'  for now not draggable
+		   // , '#neareststackinfo', '#nearestsourceinfo'
+		   // for now not draggable
 		   // as need to sort out window size properly
 		  ];
     panes.forEach((n) => {
@@ -2216,6 +2266,7 @@ var wwt = (function () {
     src.set_opacity(nearestSource[3]);
     nearestSource = [];
     wwtprops.clearSourceInfo();
+    wwtprops.clearNearestSourceTable();
   }
 
   function findNearestStack() {
@@ -3467,6 +3518,7 @@ var wwt = (function () {
     removeToolTipHandler: removeToolTipHandler,
 
     processStackSelectionByName: processStackSelectionByName,
+    processSourceSelectionByName: processSourceSelectionByName,
 
     // debug/testing access below
     //
