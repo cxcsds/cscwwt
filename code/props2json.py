@@ -39,7 +39,7 @@ so actually don't do it.
 
 
 import json
-import math
+# import math
 
 from collections import OrderedDict
 
@@ -118,6 +118,9 @@ def get_colinfo(l):
     return out
 
 
+_nmiss = 1
+
+
 def update_store(store, converters, ncols, l, pre):
     """Add the column data to the store.
 
@@ -133,6 +136,8 @@ def update_store(store, converters, ncols, l, pre):
     variants.
     """
 
+    global _nmiss
+
     toks = l.split('\t')
     assert len(toks) == ncols, (len(toks), ncols, l)
 
@@ -140,8 +145,9 @@ def update_store(store, converters, ncols, l, pre):
     name = rowdata['name'].strip()
 
     if name not in pre:
-        print("Source {} not in ".format(name) +
+        print("[{}] Source {} not in ".format(_nmiss, name) +
               "prerelease list")
+        _nmiss += 1
 
     # row = {}
     row = []
@@ -220,6 +226,23 @@ def add_unprocessed_sources(store, pre):
     already_seen = set([row[nameidx] for row in store['rows']])
     pre_names = set(pre.keys())
 
+    # Check there's no repeats
+    assert len(already_seen) == len(store['rows'])
+    assert len(pre_names) == len(pre)
+
+    # The names were not meant to change, but they did for one
+    # source, so exclude that one from the error reporting.
+    #
+    # The key is the new name and the value the pre-release name
+    renames = {'2CXO J200718.6-482145': '2CXO J200718.6-482146'}
+
+    for (newname, oldname) in renames.items():
+        assert newname not in pre_names, newname
+        assert oldname not in already_seen, oldname
+
+        pre_names.remove(oldname)
+        pre_names.add(newname)
+
     print("already_seen = {}".format(len(already_seen)))
     print("pre names    = {}".format(len(pre_names)))
 
@@ -227,8 +250,12 @@ def add_unprocessed_sources(store, pre):
     todo = sorted(list(pre_names.difference(already_seen)))
     print("todo         = {}".format(len(todo)))
 
+    newnames = sorted(list(already_seen.difference(pre_names)))
+    print(" <new sources> = {}".format(len(newnames)))
+
     nmiss = 0
     for name in todo:
+        print(" - missing {}".format(name))
         srcdata = pre[name]
 
         nmiss += 1
@@ -260,8 +287,7 @@ def add_unprocessed_sources(store, pre):
 
         store['rows'].append(row)
 
-    print("There are {} ".format(nmiss) +
-          "unprocessed sources");
+    print("There are {} unprocessed sources".format(nmiss))
 
 
 def convert_to_int(v):
@@ -381,6 +407,7 @@ def read_srclist_crates(infile):
 
     return out
 
+
 def read_srclist_astropy(infile):
     """Read in the pre-release list
 
@@ -411,7 +438,6 @@ def read_srclist_astropy(infile):
 def convert(srcfile, infile, outhead, chunksize):
 
     pre = read_srclist(srcfile)
-
     cts = read_tsv(infile, pre)
 
     # ASSUME there is a name field
