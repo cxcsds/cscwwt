@@ -1894,24 +1894,6 @@ var wwt = (function () {
     // wwt.addAnnotation(regionPolygon);
   }
 
-  // TESTING: these are taken from wwtprops
-  //          (the idea being the source-properties window will move there)
-  function mkDiv(className) {
-    const div = document.createElement('div');
-    div.setAttribute('class', className);
-    return div;
-  }
-
-  function mkImg(alt, src, width, height, className) {
-    const img = document.createElement('img');
-    img.setAttribute('alt', alt);
-    img.setAttribute('width', width);
-    img.setAttribute('height', height);
-    img.setAttribute('src', src);
-    img.setAttribute('class', className);
-    return img;
-  }
-
   // Show this source using the "nearest source" logic.
   // There is excessive looping here, since have to loop to
   // find the source and then loop through the same data in
@@ -1992,10 +1974,6 @@ var wwt = (function () {
 
     if (seps.length === 0) { return; }
 
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
     // Create a table of the sources near to selid
     //
     const neighborsAll = findNearestTo(selpos.ra, selpos.dec, maxSep,
@@ -2004,129 +1982,18 @@ var wwt = (function () {
 
     // Arbitrarily limit to the nearest n
     const neighbors = neighborsAll.slice(0, 10);
-    const n = neighbors.length;
 
-    wwtprops.clearNearestStackTable();
-
-    const pane = document.querySelector('#nearestinfo');
-    if (pane === null) {
-      console.log('INTERNAL ERROR: no #nearestinfo');
-      return;
-    }
-
-    const name = mkDiv('name');
-    name.innerHTML = 'Nearest source' + (n > 1 ? 's' : '');
-    pane.appendChild(name);
-
-    const imgClose = mkImg('Close', 'wwtimg/glyphicons-208-remove.png',
-			   18, 18, 'close');
-    imgClose.addEventListener('click', () => {
-      wwtprops.clearNearestStackTable()
-
-      // clear out the "nearest" stack outline; the easiest way is
-      // to just change them but do not change the nearestFovs array,
-      // since this will get done in a later call
-      /***
-      nearestFovs.forEach(fov => {
-	if (fov.selected) { return; }
-	fov.reset();
-      });
-      ***/
-    });
-    pane.appendChild(imgClose);
-
-    const main = mkDiv('main');
-    pane.appendChild(main);
-
-    const tbl = document.createElement('table');
-    main.appendChild(tbl);
-
-    const mkElem = (name, value) => {
-      const el = document.createElement(name);
-      el.innerHTML = value;
-      return el;
+    const indexes = {
+      name: getCSCColIdx('name'),
+      significance: getCSCColIdx('significance'),
+      variability: getCSCColIdx('var_flag'),
+      fluxband: getCSCColIdx('fluxband'),
+      flux: getCSCColIdx('flux')
     };
 
-    const thead = document.createElement('thead');
-    tbl.appendChild(thead);
-
-    // TESTING OUT:
-    //
-    let trow = document.createElement('tr');
-    thead.appendChild(trow);
-    trow.appendChild(mkElem('th', 'Source'));
-    trow.appendChild(mkElem('th', 'Separation'));
-    trow.appendChild(mkElem('th', 'Significance'));
-    trow.appendChild(mkElem('th', 'Variable'));
-    trow.appendChild(mkElem('th', 'flux band'));
-    trow.appendChild(mkElem('th', 'flux'));
-
-    const tbody = document.createElement('tbody');
-    tbl.appendChild(tbody);
-
-    const nameIdx = getCSCColIdx('name');
-    const sigIdx = getCSCColIdx('significance');
-    const varIdx = getCSCColIdx('var_flag');
-    const bandIdx = getCSCColIdx('fluxband');
-    const fluxIdx = getCSCColIdx('flux');
-
-    const addText = (parent, text) => {
-      parent.appendChild(document.createTextNode(text));
-    };
-
-    const mkStack = (src) => {
-      const name = src[nameIdx];
-      const lnk = document.createElement('a');
-      lnk.setAttribute('href', '#');
-      addText(lnk, name);
-
-      // The mouseleave event will not fire if a user clicks on a link,
-      // so ensure we clean up.
-      //
-      lnk.addEventListener('click', () => {
-	// fovs.forEach(fov => fov.set_fill(false));
-	processSourceSelectionByName(name);
-      });
-
-      lnk.addEventListener('mouseenter', () => {
-	// fovs.forEach(fov => fov.set_fill(true));
-      });
-
-      lnk.addEventListener('mouseleave', () => {
-	// fovs.forEach(fov => fov.set_fill(false));
-      });
-
-      const td = document.createElement('td');
-      td.appendChild(lnk);
-      return td;
-    }
-
-    /*
-     * TODO: include the central source
-    let trow = document.createElement('tr');
-    tbody.appendChild(trow);
-    trow.appendChild(mkStack(stack0.stackid));
-    trow.appendChild(mkElem('td', '0.0'));
-    */
-
-    neighbors.forEach(d => {
-      const sep = d[0];
-      const src = catalogData[d[1].id];
-
-      const trow = document.createElement('tr');
-      tbody.appendChild(trow);
-
-      const srcSep = (sep * 60.0).toFixed(1);
-      trow.appendChild(mkStack(src));
-      trow.appendChild(mkElem('td', srcSep));
-      trow.appendChild(mkElem('td', src[sigIdx]));
-      trow.appendChild(mkElem('td', src[varIdx]));
-      trow.appendChild(mkElem('td', src[bandIdx]));
-      trow.appendChild(mkElem('td', src[fluxIdx]));
-    });
-
-    pane.style.display = 'block';
-
+    wwtprops.addNearestSourceTable(catalogData, indexes,
+				   catalogProps.csc20.annotations,
+				   neighbors);
   }
 
   // It is not clear if the handlers stack, or overwrite, when
@@ -2180,7 +2047,8 @@ var wwt = (function () {
 
     const panes = ['#stackinfo', '#sourceinfo', '#preselected',
 		   '#settings', '#plot'
-		   // , '#nearestinfo'  for now not draggable
+		   // , '#neareststackinfo', '#nearestsourceinfo'
+		   // for now not draggable
 		   // as need to sort out window size properly
 		  ];
     panes.forEach((n) => {
@@ -2398,7 +2266,7 @@ var wwt = (function () {
     src.set_opacity(nearestSource[3]);
     nearestSource = [];
     wwtprops.clearSourceInfo();
-    wwtprops.clearNearestStackTable();
+    wwtprops.clearNearestSourceTable();
   }
 
   function findNearestStack() {

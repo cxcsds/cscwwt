@@ -189,7 +189,7 @@ div#sourceinfo {
 
 /* based on #stackinfo/#sourceinfo */
 /* Would like this centered, but bottom-left is okay to start with */
-div#nearestinfo {
+div#neareststackinfo , div#nearestsourceinfo {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid white;
   bottom: 0.5em;
@@ -203,7 +203,7 @@ div#nearestinfo {
 }
 
 div#stackinfo div.main , div#sourceinfo div.main ,
-div#nearestinfo div.main {
+div#neareststackinfo div.main , div#nearestsourceinfo div.main {
   background: rgba(255, 255, 255, 1);
 }
 
@@ -289,7 +289,8 @@ img.close {
 
 #preselected > img.close , #stackinfo > img.close ,
 #settings > img.close , #sourceinfo > img.close ,
-#nearestinfo > img.close , #plot > img.close {
+#neareststackinfo > img.close , #nearestsourceinfo > img.close ,
+#plot > img.close {
   margin-right: 0.4em;
   margin-top: 0.4em;
 }

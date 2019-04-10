@@ -464,15 +464,23 @@ const wwtprops = (function () {
     parent.style.display = 'block';
   }
 
-  function clearStackInfo() {
-    const parent = document.querySelector('#stackinfo');
-    if (parent === null) {
-      console.log('Internal error: no #stackinfo');
-      return;
+  // Hide the element, remove its children, and return it.
+  // The selector is assumed to be valid, but if not null is returned
+  // and a message is logged.
+  //
+  function clearElement(selector) {
+    const el = document.querySelector(selector);
+    if (el === null) {
+      console.log('INTERNAL ERROR: unable to find ' + selector);
+      return null;
     }
-    parent.style.display = 'none';
-    removeChildren(parent);
+    el.style.display = 'none';
+    removeChildren(el);
+    return el;
+  }
 
+  function clearStackInfo() {
+    clearElement('#stackinfo');
     // ignore the console warning from removing an unused handler
     //
     // FOR NOW remove this
@@ -763,20 +771,18 @@ const wwtprops = (function () {
   }
 
   function clearSourceInfo() {
-    const pane = document.querySelector('#sourceinfo');
-    pane.style.display = 'none';
-    removeChildren(pane);
+    clearElement('#sourceinfo');
     wwt.removeToolTipHandler('export-samp-source');
   }
 
   function addNearestStackTable(stackAnnotations, stack0, neighbors,
-			       nearestFovs) {
+				nearestFovs) {
     const n = neighbors.length;
     if (n === 0) { return; }
 
-    const pane = document.querySelector('#nearestinfo');
+    const pane = document.querySelector('#neareststackinfo');
     if (pane === null) {
-      console.log('INTERNAL ERROR: no #nearestinfo');
+      console.log('INTERNAL ERROR: no #neareststackinfo');
       return;
     }
 
@@ -873,15 +879,152 @@ const wwtprops = (function () {
     pane.style.display = 'block';
   }
 
-  function clearNearestStackTable() {
-    const pane = document.querySelector('#nearestinfo');
+  function addNearestSourceTable(catalogData, indexes, annotations,
+				 neighbors) {
+    const n = neighbors.length;
+    if (n === 0) { return; }
+
+    const pane = document.querySelector('#nearestsourceinfo');
     if (pane === null) {
-      console.log('INTERNAL ERROR: no #nearestinfo');
+      console.log('INTERNAL ERROR: no #nearestsourceinfo');
       return;
     }
 
-    pane.style.display = 'none';
-    removeChildren(pane);
+    const name = mkDiv('name');
+    name.innerHTML = 'Nearest source' + (n > 1 ? 's' : '');
+    pane.appendChild(name);
+
+    const imgClose = mkImg('Close', 'wwtimg/glyphicons-208-remove.png',
+			   18, 18, 'close');
+    imgClose.addEventListener('click', () => {
+      clearNearestSourceTable()
+
+      // Are we going to be highlighting the nearby sources in any way?
+      //
+      /***
+      nearestFovs.forEach(fov => {
+	if (fov.selected) { return; }
+	fov.reset();
+      });
+      ***/
+    });
+    pane.appendChild(imgClose);
+
+    const main = mkDiv('main');
+    pane.appendChild(main);
+
+    const tbl = document.createElement('table');
+    main.appendChild(tbl);
+
+    const mkElem = (name, value) => {
+      const el = document.createElement(name);
+      el.innerHTML = value;
+      return el;
+    };
+
+    const thead = document.createElement('thead');
+    tbl.appendChild(thead);
+
+    // TESTING OUT: let's see what works
+    //
+    let trow = document.createElement('tr');
+    thead.appendChild(trow);
+    trow.appendChild(mkElem('th', 'Source'));
+    trow.appendChild(mkElem('th', 'Separation'));
+    trow.appendChild(mkElem('th', 'Significance'));
+    trow.appendChild(mkElem('th', 'Variable'));
+    trow.appendChild(mkElem('th', 'flux band'));
+    trow.appendChild(mkElem('th', 'flux'));
+
+    const tbody = document.createElement('tbody');
+    tbl.appendChild(tbody);
+
+    const nameIdx = indexes.name;
+    const sigIdx = indexes.significance;
+    const varIdx = indexes.variability;
+    const bandIdx = indexes.fluxband;
+    const fluxIdx = indexes.flux;
+
+    const addText = (parent, text) => {
+      parent.appendChild(document.createTextNode(text));
+    };
+
+    const mkStack = (src, ann) => {
+      const name = src[nameIdx];
+      const lnk = document.createElement('a');
+      lnk.setAttribute('href', '#');
+      addText(lnk, name);
+
+      const origColor = ann.get_lineColor();
+
+      // The mouseleave event will not fire if a user clicks on a link,
+      // so ensure we clean up.
+      //
+      lnk.addEventListener('click', () => {
+	ann.set_lineColor(origColor);
+	wwt.processSourceSelectionByName(name);
+      });
+
+      lnk.addEventListener('mouseenter', () => {
+	ann.set_lineColor('orange');
+      });
+
+      lnk.addEventListener('mouseleave', () => {
+	ann.set_lineColor(origColor);
+      });
+
+      const td = document.createElement('td');
+      td.appendChild(lnk);
+      return td;
+    }
+
+    const mkButton = (flag) => {
+      const btn = document.createElement('input');
+      btn.setAttribute('type', 'checkbox');
+      btn.checked = flag === 'TRUE';
+      btn.disabled = true;
+
+      const td = document.createElement('td');
+      td.appendChild(btn);
+      return td;
+    }
+
+    /*
+     * TODO: include the central source
+    let trow = document.createElement('tr');
+    tbody.appendChild(trow);
+    trow.appendChild(mkStack(stack0.stackid));
+    trow.appendChild(mkElem('td', '0.0'));
+    */
+
+    neighbors.forEach(d => {
+      const sep = d[0];
+      const src = catalogData[d[1].id];
+
+      const trow = document.createElement('tr');
+      tbody.appendChild(trow);
+
+      const srcSep = (sep * 60.0).toFixed(1);
+      trow.appendChild(mkStack(src, annotations[d[1].id][2]));
+      trow.appendChild(mkElem('td', srcSep));
+      trow.appendChild(mkElem('td', src[sigIdx]));
+
+      trow.appendChild(mkButton(src[varIdx]));
+
+      trow.appendChild(mkElem('td', src[bandIdx]));
+      trow.appendChild(mkElem('td', src[fluxIdx]));
+    });
+
+    pane.style.display = 'block';
+
+  }
+
+  function clearNearestStackTable() {
+    clearElement('#neareststackinfo');
+  }
+
+  function clearNearestSourceTable() {
+    clearElement('#nearestsourceinfo');
   }
 
   return { addStackInfo: addStackInfo,
@@ -891,7 +1034,9 @@ const wwtprops = (function () {
 	   clearSourceInfo: clearSourceInfo,
 
 	   addNearestStackTable: addNearestStackTable,
+	   addNearestSourceTable: addNearestSourceTable,
 	   clearNearestStackTable: clearNearestStackTable,
+	   clearNearestSourceTable: clearNearestSourceTable,
 
 	   raToTokens: raToTokens,
 	   decToTokens: decToTokens,
