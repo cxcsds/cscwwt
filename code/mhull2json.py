@@ -49,10 +49,12 @@ def get_ensemble(infile):
 
 
 def read_mhull(infile):
-    """Can have multiple hulls in a file."""
+    """Can have 0, 1, or multiple hulls in a file."""
 
     cr = pycrates.read_file("{}[HULLLIST]".format(infile))
-    assert cr.get_nrows() > 0, infile
+    if cr.get_nrows() == 0:
+        print(" - skipping {}".format(infile))
+        return []
 
     ensemble = cr.get_key_value('ENSEMBLE')
 
