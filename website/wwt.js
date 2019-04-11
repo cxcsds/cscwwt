@@ -1343,19 +1343,18 @@ var wwt = (function () {
 
     // Can we rework this so we don't need to pass through the
     // counter?
-    let ctr = 0;
-    const getPos = d => {
-      const p = {ra: d[raIdx], dec: d[decIdx], ctr: ctr};
+    let ctr = -1;
+    const getPos = row => {
       ctr += 1;
-      return p;
+      return {ra: row[raIdx], dec: row[decIdx], ctr: ctr};
     };
 
     // Storage routine also has to fill in the plot data
     //
-    const toStore = (d, p) => {
+    const toStore = (row, p) => {
       // could access the elements without creating an object
       // but I don't want to change existing code too much
-      const src = getCSCObject(d);
+      const src = getCSCObject(row);
 
       const circle = props.annotations[p.ctr][2];
       wwt.addAnnotation(circle);
@@ -1518,7 +1517,6 @@ var wwt = (function () {
   }
 
   function createSourceAnnotations() {
-
     const props = catalogProps.csc20;
     props.annotations = [];
     catalogData.forEach(src => {
@@ -1535,8 +1533,7 @@ var wwt = (function () {
     el.disabled = false;
 
     showBlockElement('sourcecolor');
-
-    trace('Created source_annotations');
+    trace('Created CSC 2.0 annotations');
   }
 
   // Tweaking the "definition" of the CHS format as we work out
@@ -1728,7 +1725,8 @@ var wwt = (function () {
 
   // Return the angular separation between the two points
   // Based on https://en.wikipedia.org/wiki/Great-circle_distance
-  // and not worrying about rounding errors
+  // and not really worrying about rounding errors (although this
+  // has come back to bite me)
   //
   // Input arguments are in degrees, as is the
   // return value.
@@ -1740,7 +1738,13 @@ var wwt = (function () {
 
     const term = Math.sin(lat1) * Math.sin(lat2) +
           Math.cos(lat1) * Math.cos(lat2) * Math.cos(dlon);
-    return Math.acos(term) * 180.0 / Math.PI;
+    if (term >= 1.0) {
+      return 0.0;
+    } else if (term > -1.0) {
+      return Math.acos(term) * 180.0 / Math.PI;
+    } else {
+      return 180.0;
+    }
   }
 
   // Return a sorted list of objects within maxRadius (degrees)
@@ -1894,43 +1898,11 @@ var wwt = (function () {
     // wwt.addAnnotation(regionPolygon);
   }
 
-  // Show this source using the "nearest source" logic.
-  // There is excessive looping here, since have to loop to
-  // find the source and then loop through the same data in
-  // processSourceSelection.
+  // Rank the selected sources from the distance to the
+  // given location (decimal degrees), and radius (degrees).
+  // as a maximum radius.
   //
-  function processSourceSelectionByName(srcname) {
-
-    // Assume we can limit to shownSrcsIds
-    const nameIdx = getCSCColIdx('name');
-    const smatches = shownSrcsIds.filter(idx => {
-      return catalogData[idx][nameIdx] === srcname;
-    });
-    if (smatches.length === 0) {
-      console.log('INTERNAL ERROR: unknown srcname=' + srcname);
-      return;
-    }
-
-    // Assume only one match
-    const src = catalogData[smatches[0]];
-    const raIdx = getCSCColIdx('ra');
-    const decIdx = getCSCColIdx('dec');
-    processSourceSelection(src[raIdx], src[decIdx]);
-  }
-
-  // Find the nearest source; we only have to loop through
-  // the currently-drawn set.
-  //
-  // See processStackSelection
-  //
-  // ra and dec are in degrees
-  function processSourceSelection(ra0, dec0) {
-
-    // Should we check to see if the nearest source is the currently
-    // selected one (i.e. if so can do nothing here).
-    //
-    clearNearestSource();
-
+  function rankSelectedSources(ra0, dec0, maxSep) {
     const raIdx = getCSCColIdx('ra');
     const decIdx = getCSCColIdx('dec');
 
@@ -1942,36 +1914,66 @@ var wwt = (function () {
     const toStore = (srcid, p) => { return {id: srcid, pos: p}; };
 
     // This used to use an adaptive scheme, where the maximum radius
-    // was reduced each time it moved nearer the position. With the
-    // rewrite to findNearestTo, I have switched back to using the
-    // current fov.
+    // was reduced each time it moved nearer the position.
     //
-    const maxSep = wwt.get_fov();
-    const seps = findNearestTo(ra0, dec0, maxSep, shownSrcsIds,
-			       getPos, toStore);
+    return findNearestTo(ra0, dec0, maxSep, shownSrcsIds,
+			 getPos, toStore);
+  }
 
-    if (seps.length === 0) {
-      return;
-    }
+  // Highlight the selected source (given its index into
+  // the csc2.0 annotations list).
+  //
+  function selectSource(idx) {
+    const src = catalogProps.csc20.annotations[idx][2];
 
-    // Only interested in the closest item
-    //
-    const el0 = seps.shift();
-    const selid = el0[1].id;
-    const selpos = el0[1].pos;
-    const src = catalogProps.csc20.annotations[selid][2];
+    const origLineColor = src.get_lineColor();
+    const origFillColor = src.get_fillColor();
+    const origOpacity = src.get_opacity();
 
-    nearestSource = [src,
-                     src.get_lineColor(),
-                     src.get_fillColor(),
-                     src.get_opacity()];
+    const current = {fov: src,
+		     reset: () => {
+		       src.set_lineColor(origLineColor);
+		       src.set_fillColor(origFillColor);
+		       src.set_opacity(origOpacity);
+		     }
+		    };
+    nearestSource = [current];
 
     src.set_lineColor(selectedSourceColor);
     src.set_fillColor(selectedSourceColor);
     src.set_opacity(selectedSourceOpacity);
+  }
 
+  // See processStackSelection
+  //
+  // ra and dec are in degrees
+  function processSourceSelection(ra0, dec0) {
+
+    // Should we check to see if the nearest source is the currently
+    // selected one (i.e. if so can do nothing here).
+    //
+    clearNearestSource();
+
+    // Does it make sense to have a "maximum radius" here, since
+    // could just loop through all the selected sources.
+    //
+    const maxSep = wwt.get_fov();
+    const seps = rankSelectedSources(ra0, dec0, maxSep);
+    if (seps.length === 0) {
+      return;
+    }
+
+    // Identify the nearest source
+    //
+    const el0 = seps.shift();
+    const selid = el0[1].id;
+    const selpos = el0[1].pos;
+
+    selectSource(selid);
     wwtprops.addSourceInfo(getCSCObject(catalogData[selid]));
 
+    // Do we have any neighbors?
+    //
     if (seps.length === 0) { return; }
 
     // Create a table of the sources near to selid
@@ -2259,11 +2261,7 @@ var wwt = (function () {
 
   function clearNearestSource() {
     if (nearestSource.length < 1) { return; }
-
-    const src = nearestSource[0];
-    src.set_lineColor(nearestSource[1]);
-    src.set_fillColor(nearestSource[2]);
-    src.set_opacity(nearestSource[3]);
+    nearestSource.forEach(src => src.reset());
     nearestSource = [];
     wwtprops.clearSourceInfo();
     wwtprops.clearNearestSourceTable();
@@ -3525,11 +3523,13 @@ var wwt = (function () {
     removeToolTipHandler: removeToolTipHandler,
 
     processStackSelectionByName: processStackSelectionByName,
-    processSourceSelectionByName: processSourceSelectionByName,
+    processSourceSelection: processSourceSelection,
 
     // debug/testing access below
     //
     getWWTControl: function () { return wwt; },
+
+    rankSelectedSources: rankSelectedSources,
 
     setPosition: setPosition,
 

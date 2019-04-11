@@ -829,9 +829,7 @@ const wwtprops = (function () {
     const tbody = document.createElement('tbody');
     tbl.appendChild(tbody);
 
-    const mkStack = (stkid) => {
-      const fovs = stackAnnotations[stkid];
-
+    const mkStack = (stkid, fovs) => {
       const lnk = document.createElement('a');
       lnk.setAttribute('href', '#');
       addText(lnk, stkid);
@@ -842,14 +840,6 @@ const wwtprops = (function () {
       lnk.addEventListener('click', () => {
 	fovs.forEach(fov => fov.set_fill(false));
 	wwt.processStackSelectionByName(stkid);
-      });
-
-      lnk.addEventListener('mouseenter', () => {
-	fovs.forEach(fov => fov.set_fill(true));
-      });
-
-      lnk.addEventListener('mouseleave', () => {
-	fovs.forEach(fov => fov.set_fill(false));
       });
 
       const td = document.createElement('td');
@@ -868,11 +858,23 @@ const wwtprops = (function () {
     neighbors.forEach(d => {
       const sep = d[0];
       const stack = d[1];
+      const fovs = stackAnnotations[stack.stackid];
+
       const trow = document.createElement('tr');
       tbody.appendChild(trow);
 
+      trow.addEventListener('mouseenter', () => {
+	fovs.forEach(fov => fov.set_fill(true));
+	trow.classList.add('selected');
+      });
+
+      trow.addEventListener('mouseleave', () => {
+	fovs.forEach(fov => fov.set_fill(false));
+	trow.classList.remove('selected');
+      });
+
       const stackSep = (sep * 60.0).toFixed(1);
-      trow.appendChild(mkStack(stack.stackid));
+      trow.appendChild(mkStack(stack.stackid, fovs));
       trow.appendChild(mkElem('td', stackSep));
     });
 
@@ -949,28 +951,18 @@ const wwtprops = (function () {
       parent.appendChild(document.createTextNode(text));
     };
 
-    const mkStack = (src, ann) => {
+    const mkSrcLink = (src, ra, dec, ann, origColor) => {
       const name = src[nameIdx];
       const lnk = document.createElement('a');
       lnk.setAttribute('href', '#');
       addText(lnk, name);
-
-      const origColor = ann.get_lineColor();
 
       // The mouseleave event will not fire if a user clicks on a link,
       // so ensure we clean up.
       //
       lnk.addEventListener('click', () => {
 	ann.set_lineColor(origColor);
-	wwt.processSourceSelectionByName(name);
-      });
-
-      lnk.addEventListener('mouseenter', () => {
-	ann.set_lineColor('orange');
-      });
-
-      lnk.addEventListener('mouseleave', () => {
-	ann.set_lineColor(origColor);
+	wwt.processSourceSelection(ra, dec);
       });
 
       const td = document.createElement('td');
@@ -999,13 +991,28 @@ const wwtprops = (function () {
 
     neighbors.forEach(d => {
       const sep = d[0];
-      const src = catalogData[d[1].id];
+      const idx = d[1].id;
+      const pos = d[1].pos;
+      const src = catalogData[idx];
+
+      const ann = annotations[idx][2];
+      const origColor = ann.get_lineColor();
 
       const trow = document.createElement('tr');
       tbody.appendChild(trow);
 
+      trow.addEventListener('mouseenter', () => {
+	ann.set_lineColor('orange');
+	trow.classList.add('selected');
+      });
+
+      trow.addEventListener('mouseleave', () => {
+	ann.set_lineColor(origColor);
+	trow.classList.remove('selected');
+      });
+
       const srcSep = (sep * 60.0).toFixed(1);
-      trow.appendChild(mkStack(src, annotations[d[1].id][2]));
+      trow.appendChild(mkSrcLink(src, pos.ra, pos.dec, ann, origColor));
       trow.appendChild(mkElem('td', srcSep));
       trow.appendChild(mkElem('td', src[sigIdx]));
 

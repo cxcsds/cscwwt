@@ -296,6 +296,10 @@ img.close {
 }
 
 
+tr.selected {
+  background: rgba(0, 0, 0, 0.1);
+}
+
 div.iconarea {
   /* background-color: rgba(255, 255, 255, 0.6); */
   background-color: rgba(0, 0, 0, 0.3); /* adjusted to look like panel background */
