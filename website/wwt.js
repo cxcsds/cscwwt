@@ -1409,7 +1409,7 @@ var wwt = (function () {
 
     // Combine the plot data
     //
-    const out = {flux_b: null, fluxW: null, hr: null, poserr: null,
+    const out = {flux_b: null, flux_w: null, hr: null, poserr: null,
                  obscount: null};
 
     if (fluxB.length > 0) {
