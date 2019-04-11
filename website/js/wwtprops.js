@@ -238,51 +238,70 @@ const wwtprops = (function () {
     return div;
   }
 
+  // Sent the div for the main contents and the title sections
+  //
+  function addHideShowButton(parent, titleBar) {
+    const el = document.createElement('span');
+    el.classList.add('switchable');
+    el.classList.add('hideable');
+    el.addEventListener('click', () => {
+      if (el.classList.contains('hideable')) {
+	parent.style.display = 'none';
+	el.classList.remove('hideable');
+	el.classList.add('showable');
+	titleBar.classList.remove('controlElementsShown');
+      } else {
+	parent.style.display = 'block';
+	el.classList.remove('showable');
+	el.classList.add('hideable');
+	titleBar.classList.add('controlElementsShown');
+      }
+    });
+    return el;
+  }
+
+  // Add a button that closes the stack (this logic is handled by the
+  // close callback).
+  //
+  function addCloseButton(close) {
+    const el = document.createElement('span');
+    el.setAttribute('class', 'closable');
+    el.addEventListener('click', close);
+    return el;
+  }
+
   // Create a "pop-up" window with details on the given stack.
   //
   // TODO: can I give the number of sources IN THIS STACK?
   //       not really a good answer to this, as have number of
   //       detections, but not sources.
   //
-  /***
-
-      No longer display the "completion" date of a stack so
-      do not need these.
-
-      const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-      'Thursday', 'Friday', 'Saturday'];
-      const monthName = ['January', 'February', 'March', 'April',
-      'May', 'June', 'July', 'August', 'September',
-      'October', 'November', 'December'];
-  ***/
 
   function addStackInfo(stack, stackEventVersions) {
 
     const bcol = stack.status ? 'gold' : 'grey';
-
-    /***
-	TODO: want to make bcol the same as the stack was, before it
-	got changed to cyan. So can't ask the stack structure, unless
-	we manually store it there as the "default" color
-    ***/
-
     const parent = document.querySelector('#stackinfo');
     if (parent === null) {
       console.log('Internal error: no #stackinfo found');
       return;
     }
 
-    const nameDiv = mkDiv('name');
-    addText(nameDiv, 'Stack: ' + stack.stackid);
-    parent.appendChild(nameDiv);
+    const controlElements = document.createElement('div');
+    controlElements.classList.add('controlElements');
+    controlElements.classList.add('controlElementsShown');
 
-    const imgClose = mkImg('Close', 'wwtimg/glyphicons-208-remove.png',
-			   18, 18, 'close');
-    imgClose.id = 'closestackinfo';
-    imgClose.addEventListener('click', () => wwt.clearNearestStack());
-    parent.appendChild(imgClose);
+    parent.appendChild(controlElements);
+
+    const name = document.createElement('span');
+    name.setAttribute('class', 'title');
+    addText(name, 'Stack: ' + stack.stackid);
+    controlElements.appendChild(name);
 
     const mainDiv = mkDiv('main');
+
+    controlElements.appendChild(addCloseButton(wwt.clearNearestStack));
+    controlElements.appendChild(addHideShowButton(mainDiv, controlElements));
+
     parent.appendChild(mainDiv);
 
     const binfoDiv = mkDiv('basicinfo');
@@ -696,17 +715,22 @@ const wwtprops = (function () {
       return;
     }
 
-    const nameDiv = mkDiv('name');
-    addText(nameDiv, 'Source: ' + src.name);
-    parent.appendChild(nameDiv);
+    const controlElements = document.createElement('div');
+    controlElements.classList.add('controlElements');
+    controlElements.classList.add('controlElementsShown');
 
-    const imgClose = mkImg('Close', 'wwtimg/glyphicons-208-remove.png',
-			   18, 18, 'close');
-    imgClose.id = 'closesourceinfo';
-    imgClose.addEventListener('click', () => wwt.clearNearestSource());
-    parent.appendChild(imgClose);
+    parent.appendChild(controlElements);
+
+    const name = document.createElement('span');
+    name.setAttribute('class', 'title');
+    addText(name, 'Source: ' + src.name);
+    controlElements.appendChild(name);
 
     const mainDiv = mkDiv('main');
+
+    controlElements.appendChild(addCloseButton(wwt.clearNearestSource));
+    controlElements.appendChild(addHideShowButton(mainDiv, controlElements));
+
     parent.appendChild(mainDiv);
 
     const binfoDiv = mkDiv('basicinfo');
@@ -775,6 +799,18 @@ const wwtprops = (function () {
     wwt.removeToolTipHandler('export-samp-source');
   }
 
+  // Convert a separation in degrees to a "nice" string.
+  // Assume that the separation is <~ 20 arcminutes or so.
+  //
+  function mkSep(sep) {
+    const asep = sep * 60.0;
+    if (asep >= 1.0) {
+      return asep.toFixed(1) + "'";
+    } else {
+      return (asep * 60.0).toFixed(1) + '"';
+    }
+  }
+
   function addNearestStackTable(stackAnnotations, stack0, neighbors,
 				nearestFovs) {
     const n = neighbors.length;
@@ -786,14 +822,21 @@ const wwtprops = (function () {
       return;
     }
 
-    const name = mkDiv('name');
-    name.innerHTML = 'Nearest stack' + (n > 1 ? 's' : '');
-    pane.appendChild(name);
+    const controlElements = document.createElement('div');
+    controlElements.classList.add('controlElements');
+    controlElements.classList.add('controlElementsShown');
 
-    const imgClose = mkImg('Close', 'wwtimg/glyphicons-208-remove.png',
-			   18, 18, 'close');
-    imgClose.addEventListener('click', () => {
-      clearNearestStackTable()
+    pane.appendChild(controlElements);
+
+    const name = document.createElement('span');
+    name.setAttribute('class', 'title');
+    name.innerHTML = 'Nearest stack' + (n > 1 ? 's' : '');
+    controlElements.appendChild(name);
+
+    const main = mkDiv('main');
+
+    const close = () => {
+      clearNearestStackTable();
 
       // clear out the "nearest" stack outline; the easiest way is
       // to just change them but do not change the nearestFovs array,
@@ -803,10 +846,10 @@ const wwtprops = (function () {
 	fov.reset();
       });
 
-    });
-    pane.appendChild(imgClose);
+    };
+    controlElements.appendChild(addCloseButton(close));
+    controlElements.appendChild(addHideShowButton(main, controlElements));
 
-    const main = mkDiv('main');
     pane.appendChild(main);
 
     const tbl = document.createElement('table');
@@ -873,9 +916,8 @@ const wwtprops = (function () {
 	trow.classList.remove('selected');
       });
 
-      const stackSep = (sep * 60.0).toFixed(1);
       trow.appendChild(mkStack(stack.stackid, fovs));
-      trow.appendChild(mkElem('td', stackSep));
+      trow.appendChild(mkElem('td', mkSep(sep)));
     });
 
     pane.style.display = 'block';
@@ -892,13 +934,20 @@ const wwtprops = (function () {
       return;
     }
 
-    const name = mkDiv('name');
-    name.innerHTML = 'Nearest source' + (n > 1 ? 's' : '');
-    pane.appendChild(name);
+    const controlElements = document.createElement('div');
+    controlElements.classList.add('controlElements');
+    controlElements.classList.add('controlElementsShown');
 
-    const imgClose = mkImg('Close', 'wwtimg/glyphicons-208-remove.png',
-			   18, 18, 'close');
-    imgClose.addEventListener('click', () => {
+    pane.appendChild(controlElements);
+
+    const name = document.createElement('span');
+    name.setAttribute('class', 'title');
+    name.innerHTML = 'Nearest source' + (n > 1 ? 's' : '');
+    controlElements.appendChild(name);
+
+    const main = mkDiv('main');
+
+    const close = () => {
       clearNearestSourceTable()
 
       // Are we going to be highlighting the nearby sources in any way?
@@ -909,10 +958,10 @@ const wwtprops = (function () {
 	fov.reset();
       });
       ***/
-    });
-    pane.appendChild(imgClose);
+    };
+    controlElements.appendChild(addCloseButton(close));
+    controlElements.appendChild(addHideShowButton(main, controlElements));
 
-    const main = mkDiv('main');
     pane.appendChild(main);
 
     const tbl = document.createElement('table');
@@ -1011,9 +1060,8 @@ const wwtprops = (function () {
 	trow.classList.remove('selected');
       });
 
-      const srcSep = (sep * 60.0).toFixed(1);
       trow.appendChild(mkSrcLink(src, pos.ra, pos.dec, ann, origColor));
-      trow.appendChild(mkElem('td', srcSep));
+      trow.appendChild(mkElem('td', mkSep(sep)));
       trow.appendChild(mkElem('td', src[sigIdx]));
 
       trow.appendChild(mkButton(src[varIdx]));

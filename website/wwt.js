@@ -2132,6 +2132,48 @@ var wwt = (function () {
 
   }
 
+  // Set up the onclick handler for the given "pane". This should check
+  // that the handler hasn't already been added.
+  //
+  function setupShowHide(sel) {
+    const pane = document.querySelector(sel);
+    if (pane === null) {
+      console.log('INTERNAL ERROR: unable to find ' + sel);
+      return;
+    }
+
+    const find = lbl => {
+      const el = pane.querySelector(lbl);
+      if (el === null) {
+	console.log(`INTERNAL ERROR: umable to find ${lbl} in ${sel}`);
+      }
+      return el;
+    };
+
+    // Assume we can take the first one, since we have not given the
+    // element an id.
+    const control = find('div.controlElements');
+    const main = find('div.main');
+    const el = find('span.switchable');
+    if ((control === null) || (main === null) || (el === null)) {
+      return;
+    }
+
+    el.addEventListener('click', () => {
+      if (el.classList.contains('hideable')) {
+	main.style.display = 'none';
+	el.classList.remove('hideable');
+	el.classList.add('showable');
+	control.classList.remove('controlElementsShown');
+      } else {
+	main.style.display = 'block';
+	el.classList.remove('showable');
+	el.classList.add('hideable');
+	control.classList.add('controlElementsShown');
+      }
+    });
+  }
+
   // This used to be sent in data, hence the function returning a function,
   // but that should no-longer be needed.
   //
@@ -2184,6 +2226,12 @@ var wwt = (function () {
       removeSetupBanner();
 
       wwtsamp.setup(reportUpdateMessage, trace);
+
+      // The pane width is lost when re-selected which messes up the
+      // grid in the preselected pane.
+      // setupShowHide('#preselected');
+      setupShowHide('#settings');
+      setupShowHide('#plot');
 
       // Display the control panel
       //

@@ -295,6 +295,82 @@ img.close {
   margin-top: 0.4em;
 }
 
+/* location of window-UI-like elements */
+
+div.controlElements {
+
+    height: 1em;
+
+    /* The control box extends across the full pane.
+     * Do we need to 'undo' any padding from a parent element? */
+    /***
+    margin-left: -0.5em;
+    margin-right: -0.5em;
+ ***/
+    
+    padding-bottom: 0.3em;
+    padding-right: 0.3em;
+    padding-top: 0.3em;
+}
+
+/* do we want a border when the whole pane is displayed? */
+div.controlElementsShown {
+    /* border-bottom: 2px solid rgba(0, 0, 0, 0.4); */
+}
+
+span.title {
+  background: rgba(255, 255, 255, 0.6);
+  /* float: left; */
+  /* margin-bottom: 0; */
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  /* margin-top: 0.3em; */
+  padding-bottom: 0.2em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-top: 0.2em;
+}
+
+/* CSS window "widgets" */
+
+.closable {
+    background: black;
+    border-radius: 50%;
+    cursor: pointer;
+    float: right;
+    height: 1em;
+    width: 1em;
+}
+
+/* need to add extra vertical space in several cases */
+#about .closable , #credits .closable {
+  margin-top: 1em;
+}
+
+/* hideable and showable are assumed to be attached to this */
+.switchable {
+    cursor: pointer;
+    float: right;
+    height: 0;
+    margin-left: 0.5em;
+    margin-right: 0.2em;
+    width: 0;
+}
+
+/* down-pointing triangle */
+.hideable {
+    border-left: 0.5em solid transparent;
+    border-right: 0.5em solid transparent;
+    border-top: 1em solid black;
+}
+
+/* up-pointing triangle */
+.showable {
+    border-bottom: 1em solid black;
+    border-left: 0.5em solid transparent;
+    border-right: 0.5em solid transparent;
+}
+
 
 tr.selected {
   background: rgba(0, 0, 0, 0.1);
@@ -871,7 +947,8 @@ div.mainbar + br {
   z-index: 250;
 }
 
-#plotarea {
+/* not sure how many of these settings are still needed */
+div#plot #main {
   background: rgba(255, 255, 255, 1.0);
   clear: both;
   padding: 0.5em 1em;
