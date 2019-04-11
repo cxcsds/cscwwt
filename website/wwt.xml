@@ -812,8 +812,10 @@ main#content div.wrap {
           <span class="title">Move to:</span>
 	  <span class="closable" onclick="wwt.hidePreSelected();">
 	  </span>
+	  <!-- does not work well at the moment when re-displaying the pane
 	  <span class="switchable hideable">
 	  </span>
+	  -->
 	</div>
 
         <div class="main gridable">

@@ -2227,7 +2227,9 @@ var wwt = (function () {
 
       wwtsamp.setup(reportUpdateMessage, trace);
 
-      setupShowHide('#preselected');
+      // The pane width is lost when re-selected which messes up the
+      // grid in the preselected pane.
+      // setupShowHide('#preselected');
       setupShowHide('#settings');
       setupShowHide('#plot');
 
