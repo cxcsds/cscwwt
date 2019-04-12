@@ -923,8 +923,7 @@ const wwtprops = (function () {
     pane.style.display = 'block';
   }
 
-  function addNearestSourceTable(catalogData, indexes, annotations,
-				 neighbors) {
+  function addNearestSourceTable(indexes, neighbors) {
     const n = neighbors.length;
     if (n === 0) { return; }
 
@@ -996,10 +995,6 @@ const wwtprops = (function () {
     const bandIdx = indexes.fluxband;
     const fluxIdx = indexes.flux;
 
-    const addText = (parent, text) => {
-      parent.appendChild(document.createTextNode(text));
-    };
-
     const mkSrcLink = (src, ra, dec, ann, origColor) => {
       const name = src[nameIdx];
       const lnk = document.createElement('a');
@@ -1040,11 +1035,11 @@ const wwtprops = (function () {
 
     neighbors.forEach(d => {
       const sep = d[0];
-      const idx = d[1].id;
-      const pos = d[1].pos;
-      const src = catalogData[idx];
+      const src = d[1].data;
+      const ra = d[1].ra;
+      const dec = d[1].dec;
+      const ann = d[1].ann;
 
-      const ann = annotations[idx][2];
       const origColor = ann.get_lineColor();
 
       const trow = document.createElement('tr');
@@ -1060,7 +1055,7 @@ const wwtprops = (function () {
 	trow.classList.remove('selected');
       });
 
-      trow.appendChild(mkSrcLink(src, pos.ra, pos.dec, ann, origColor));
+      trow.appendChild(mkSrcLink(src, ra, dec, ann, origColor));
       trow.appendChild(mkElem('td', mkSep(sep)));
       trow.appendChild(mkElem('td', src[sigIdx]));
 
