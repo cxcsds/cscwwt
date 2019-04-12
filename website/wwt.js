@@ -47,7 +47,7 @@ var wwt = (function () {
 		  keyMilkyWay];
 
     keys.forEach(key => {
-      trace('-- clearing state for key=' + key);
+      trace(`-- clearing state for key=${key}`);
       window.localStorage.removeItem(key);
     });
   }
@@ -210,38 +210,190 @@ var wwt = (function () {
   var selectedSourceColor = 'white';
   var selectedSourceOpacity = 1.0;
 
+  // The CSC2 data is returned as an array of values
+  // which we used to convert to a Javascript object (ie
+  // one per row) since it makes it easier to handle.
+  // However, it bloats memory usage, so we now retain
+  // the array data and use the getCSCObject
+  // accessor functions.
+  //
+  // I hard code the expected row order for documentation
+  // (and because it is slightly simpler), but this could
+  // be set from the input data.
+  //
+  const catalogDataCols = [
+    'name',
+    'ra',
+    'dec',
+    'err_ellipse_r0',
+    'err_ellipse_r1',
+    'err_ellipse_ang',
+    'conf_flag',
+    'sat_src_flag',
+    'acis_num',
+    'hrc_num',
+    'var_flag',
+    'significance',
+    'fluxband',
+    'flux',
+    'flux_lolim',
+    'flux_hilim',
+    'nh_gal',
+    'hard_hm',
+    'hard_hm_lolim',
+    'hard_hm_hilim',
+    'hard_ms',
+    'hard_ms_lolim',
+    'hard_ms_hilim'
+  ];
+
+  // Given a row of catalogData, return the given column value,
+  // where column must be a member of catalogDataCols.
+  //
+  // row should catalogData[i] not i (does array access take much
+  // time in JS?)
+  //
+  function getCSCColIdx(column) {
+    const colidx = catalogDataCols.indexOf(column);
+    if (colidx < 0) {
+      console.log(`ERROR: unknown CSC column "${column}"`);
+      return null;
+    }
+    return colidx;
+  }
+
+  // Convert a row to an object, to make data access easier.
+  //
+  function getCSCObject(row) {
+    const out = Object.create({});
+    zip([catalogDataCols, row]).forEach(el => { out[el[0]] = el[1] });
+    return out
+
+  }
+
+  // Indexes into the CSC 2.0 data array
+  const raIdx = getCSCColIdx('ra');
+  const decIdx = getCSCColIdx('dec');
+
+  // Create an annotation "object" representing a source.
+  // Really should make the add/remove code only call the WWT code once.
+  //
+  function makeAnnotation(data, pos, shp) {
+    return { add: () => wwt.addAnnotation(shp),
+	     remove: () => wwt.removeAnnotation(shp),
+	     data: data,
+	     ra: pos.ra,
+	     dec: pos.dec,
+	     ann: shp };
+  }
+
+  // Return the WWT annotation for a source, which is currently a
+  // circle.
+  //
+  function makeCircle(ra, dec, size, lineWidth, lineColor,
+		      fillColor, fillFlag, opacity) {
+    const cir = wwt.createCircle(fillFlag);
+    cir.setCenter(ra, dec);
+    cir.set_skyRelative(true);
+    cir.set_radius(size);
+    cir.set_lineWidth(lineWidth);
+    cir.set_lineColor(lineColor);
+    cir.set_fillColor(fillColor);
+    cir.set_opacity(opacity);
+    return cir;
+  }
+
+  // Note: set fill color if it has not been processed yet - not ideal
+  //       as no way to change this color.
+  //
+  // Sent in an object, since it is also used to create the plot
+  // properties, rather than the raw array.
+  //
+  function makeSource(color, size, src) {
+    if ((src.ra === null) || (src.dec === null)) {
+      console.log('Err, no location for source:');
+      console.log(src);
+      return null;
+    }
+
+    // Use nh as a proxy for whether we have the source properties or not
+    const unprocessed = src.nh_gal === null;
+
+    const lineColor = unprocessed ? 'grey' : color;
+    const fillColor = unprocessed ? 'grey' : 'white';
+
+    const ann = makeCircle(src.ra, src.dec, size, 1,
+			   lineColor, fillColor, true, 0.1);
+
+    // Note: add a label to indicate that this is unprocessed, so we know not to
+    //       change the color later.
+    //
+    if (unprocessed) {
+      ann.set_label('unprocessed');
+    }
+
+    return ann;
+  }
+
+  function makeSource11(color, size, src) {
+    if ((src.ra === null) || (src.dec == null)) {
+      console.log('Err, no location for CSC 1.1 source:');
+      console.log(src);
+      return null;
+    }
+
+    return makeCircle(src.ra, src.dec, size, 1,
+		      color, color, true, 0.1);
+  }
+
+  function makeXMMSource(color, size, src) {
+    const ra = src[0];
+    const dec = src[1];
+    if ((ra === null) || (dec === null)) {
+      console.log('Err, no location for XMM source:');
+      console.log(src);
+      return null;
+    }
+
+    return makeCircle(ra, dec, size, 1,
+                      color, color, true, 0.1);
+  }
+
   // Store data about the supported catalogs.
   //    color, size  - how they are displayed (size in arcseconds)
-  //    annotations  - null or a list of items, where each item is a
-  //                   three-element list of ra, dec, WWT annotation
-  //    shown        - a list of those annotations that are being displayed
-  //                   (can be null when annotations is not null)
+  //    data         - catalog data, or null
+  //    getPos       - return ra and dec given an element of data
+  //    annotations  - empty or a list of shown items, where each item
+  //                   is the output of makeAnnotation.
   //
+  //    makeShape is a function that takes color, size, data item
+  //      and returns a WWT annotation.
   //
   const catalogProps = {
     csc20: { label: 'CSC2.0', button: '#togglesources',
              changeWidget: '#sourceprops',
              color: 'cyan', size: 5.0 / 3600.0,
-             annotations: null, shown: null },
+	     loaded: false, data: null,
+	     getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	     makeShape: makeSource,
+             annotations: null },
     csc11: { label: 'CSC1.1', button: '#togglesources11',
              changeWidget: 'source11props',
              color: 'orange', size: 7.0 / 3600.0,
-             annotations: null, shown: null },
+	     loaded: false, data: null,
+	     getPos: (d) => { return { ra: d.ra, dec: d.dec }; },
+	     makeShape: makeSource11,
+             annotations: null },
     xmm: { label: 'XMM', button: '#toggleXMMsources',
            changeWidget: 'xmmsourceprops',
            color: 'green', size: 10.0 / 3600.0,
-           annotations: null, shown: null }
+	   loaded: false, data: null,
+	   getPos: (d) => { return { ra: d[0], dec: d[1] }; },
+	   makeShape: makeXMMSource,
+           annotations: null }
   };
 
-  // Trying to rationalize the use and display of catalog data,
-  // but for CSC 2.0 we store a lot more than we do for any other
-  // catalog, so it isn't completely possible.
-  //
-  var shownSrcsIds = [];
-
   var nearestSource = [];
-
-  var xmmCatalog = null;
 
   // Was originally passing around the stack data to the functions
   // that needed it, but now store it.
@@ -338,7 +490,7 @@ var wwt = (function () {
     toggleInfo.forEach(o => {
       const el = document.querySelector(o.sel);
       if (el === null) {
-	console.log('ERROR: unable to find toggle element ' + o.sel);
+	console.log(`ERROR: unable to find toggle element ${o.sel}`);
 	return;
       }
 
@@ -354,7 +506,7 @@ var wwt = (function () {
 	el.dispatchEvent(new CustomEvent('click'));
       }
       catch (e) {
-	console.log('ERROR: Unable to send click event to ' + o.sel);
+	console.log(`ERROR: Unable to send click event to ${o.sel}`);
       }
     });
   }
@@ -401,12 +553,12 @@ var wwt = (function () {
       return;
     }
 
-    for (var src of catalogData) {
+    for (var src of catalogProps.csc20.data) {
       const sname = src[nameIdx];
       if (sname !== sourcename) { continue; }
 
-      const ra = getCSCRow(src, 'ra');
-      const dec = getCSCRow(src, 'dec');
+      const ra = src[raIdx];
+      const dec = src[decIdx];
       wwt.gotoRaDecZoom(ra, dec, 0.06, false);
       wwtsamp.moveTo(ra, dec);
       return;
@@ -426,8 +578,9 @@ var wwt = (function () {
 
     const color = '#' + val;
     props.color = color;
-    props.annotations.forEach(ann => {
-      const cir = ann[2];
+    if (props.annotations === null) { return; }
+    props.annotations.forEach(d => {
+      const cir = d.ann;
       var x = cir.get_label();
       if (typeof x === 'undefined') {
         cir.set_lineColor(color);
@@ -444,8 +597,9 @@ var wwt = (function () {
     return (val) => {
       const color = '#' + val;
       props.color = color;
-      props.annotations.forEach(ann => {
-        const cir = ann[2];
+      if (props.annotations === null) { return; }
+      props.annotations.forEach(d => {
+        const cir = d.ann;
         cir.set_lineColor(color);
         cir.set_fillColor(color);
       });
@@ -462,13 +616,14 @@ var wwt = (function () {
   function makeSizeUpdate(props) {
     return (newSize) => {
       if (newSize <= 0) {
-        console.log('ERROR: Invalid source size: [' + newSize + ']');
+        console.log(`ERROR: Invalid source size: [${newSize}]`);
         return;
       }
 
       const size = newSize * 1.0 / 3600.0;
       props.size = size;
-      props.annotations.forEach(ann => ann[2].set_radius(size));
+      if (props.annotations === null) { return; }
+      props.annotations.forEach(d => d.ann.set_radius(size));
     };
   }
 
@@ -587,78 +742,6 @@ var wwt = (function () {
 
     const cb = () => { pane.style.display = 'none' };
     setTimeout(cb, timeout * 1000);
-  }
-
-  // Return an "annotation", which is a three-element array containing
-  //    ra, dec, circle
-  //
-  function makeAnnotation(ra, dec, size, lineWidth, lineColor, fillColor, fillFlag, opacity) {
-    const cir = wwt.createCircle(fillFlag);
-    cir.setCenter(ra, dec);
-    cir.set_skyRelative(true);
-    cir.set_radius(size);
-    cir.set_lineWidth(lineWidth);
-    cir.set_lineColor(lineColor);
-    cir.set_fillColor(fillColor);
-    cir.set_opacity(opacity);
-
-    return [ra, dec, cir];
-  }
-
-  // Note: set fill color if it has not been processed yet - not ideal
-  //       as no way to change this color.
-  //
-  function makeSource(srcrow) {
-
-    const src = getCSCObject(srcrow);
-    if ((src.ra === null) || (src.dec === null)) {
-      console.log('Err, no location for source:');
-      console.log(src);
-      return null;
-    }
-
-    const lineColor = src.nh_gal === null ? 'grey' :
-      catalogProps.csc20.color;
-    const fillColor = src.nh_gal === null ? 'grey' : 'white';
-
-    const ann = makeAnnotation(src.ra, src.dec, catalogProps.csc20.size,
-                               1, lineColor, fillColor, true, 0.1);
-
-    // Note: add a label to indicate that this is unprocessed, so we know not to
-    //       change the color later.
-    //
-    if (src.nh_gal === null) {
-      ann[2].set_label('unprocessed');
-    }
-
-    return ann;
-  }
-
-  function makeSource11(src) {
-    if ((src.ra === null) || (src.dec == null)) {
-      console.log('Err, no location for CSC 1.1 source:');
-      console.log(src);
-      return null;
-    }
-
-    const color = catalogProps.csc11.color;
-    return makeAnnotation(src.ra, src.dec, catalogProps.csc11.size,
-                          1, color, color, true, 0.1);
-  }
-
-  function makeXMMSource(src) {
-
-    const ra = src[0];
-    const dec = src[1];
-    if ((ra === null) || (dec === null)) {
-      console.log('Err, no location for XMM source:');
-      console.log(src);
-      return null;
-    }
-
-    const color = catalogProps.xmm.color;
-    return makeAnnotation(ra, dec, catalogProps.xmm.size,
-                          1, color, color, true, 0.1);
   }
 
   // Let's see how the WWT does with all the stacks
@@ -816,7 +899,7 @@ var wwt = (function () {
     if (el !== null) {
       el.style.display = display;
     } else {
-      console.log('Internal error: unable to find "' + sel + '"');
+      console.log(`Internal error: unable to find "${sel}"`);
     }
   }
 
@@ -842,19 +925,19 @@ var wwt = (function () {
 
 	if (toggleSel !== null) {
 	  document.querySelector(toggleSel)
-            .innerHTML = 'Unable to load ' + dataLabel;
+            .innerHTML = `Unable to load ${dataLabel}`;
 	}
 	return;
       }
 
       startSpinner();
       req.addEventListener('load', () => {
-	trace('-- downloaded: ' + url);
+	trace(`-- downloaded: ${url}`);
 	processData(req.response);
 	stopSpinner();
       });
       req.addEventListener('error', () => {
-	trace('-- error downloading:' + url);
+	trace(`-- error downloading: ${url}`);
 	stopSpinner();
       });
 
@@ -864,15 +947,16 @@ var wwt = (function () {
     };
   }
 
-  // number of chunks for the source properties
-  const NCHUNK = 8;
-
   function downloadCatalog20Data() {
+
+    // number of chunks for the source properties
+    const NCHUNK = 8;
+    const chunks = new Array(NCHUNK).fill(false);
 
     // Have to be careful about scoping rules, so make a function
     // that returns a function to process the chunk
     //
-    const processChunk = (x) => (d) => { processCatalogData(d, x); };
+    const processChunk = (x) => (d) => { processCatalogData(chunks, x, d); };
 
     for (var ctr = 1; ctr <= NCHUNK; ctr++) {
       // Try without any cache-busting identifier
@@ -921,48 +1005,43 @@ var wwt = (function () {
   //
   function makeShowCatalog(props) {
     return () => {
-      if (props.annotations === null) {
-        console.log('Internal error: showCatalog ' + props.label +
+      if (!props.loaded) {
+        console.log(`Internal error: showCatalog ${props.label} ` +
                     ' called when no data exists!');
         return;
       }
 
       // Shouldn't be any shown, but just in case.
       //
-      if (props.shown !== null) {
-        props.shown.forEach(wwt.removeAnnotation);
-        props.shown = null;
+      if (props.annotations !== null) {
+        props.annotations.forEach(ann => ann.remove());
+        props.annotations = null;
       }
 
       const ra0 = 15.0 * wwt.getRA(); // convert from hours
       const dec0 = wwt.getDec();
       const fov = wwt.get_fov();
 
-      // The following forEach loop can alter props.shown
-      //
-      const getPos = d => { return {ra: d[0], dec: d[1]}; };
-      const toStore = (d, p) => {
-	const ann = d[2];
-	wwt.addAnnotation(ann);
+      const toStore = (d, pos) => {
+	const shp = props.makeShape(props.color, props.size, d);
+	const ann = makeAnnotation(d, pos, shp);
+	ann.add();
 	return ann;
       };
 
-      // This sorts the shown list, which is unnescessary here.
-      //
-      const shown = findNearestTo(ra0, dec0, fov, props.annotations,
-				  getPos, toStore);
-
-      // remove the separation value
-      props.shown = shown.map(d => d[1]);
-
-      if (props.shown.length === 0) {
-        reportUpdateMessage('No ' + props.label +
-                            ' sources found in this area of the sky.');
+      const shown = findNearestTo(ra0, dec0, fov, props.data,
+				  props.getPos, toStore);
+      if (shown.length === 0) {
+        reportUpdateMessage(`No ${props.label} sources found in ` +
+                            'this area of the sky.');
         return;
       }
 
+      // remove the separation value
+      props.annotations = shown.map(d => d[1]);
+
       document.querySelector(props.button).innerHTML =
-        'Hide ' + props.label + ' Sources';
+        `Hide ${props.label} Sources`;
     };
   }
 
@@ -971,23 +1050,23 @@ var wwt = (function () {
   //
   function makeHideCatalog(props) {
     return () => {
+      if (!props.loaded) {
+        console.log(`Internal error: hideCatalog ${props.label} ` +
+                    'called when no data exists!');
+        return;
+      }
+
       if (props.annotations === null) {
-        console.log('Internal error: hideCatalog ' + props.label +
-                    ' called when no data exists!');
+        console.log(`Internal error: hideCatalog ${props.label} ` +
+                    'called when no data plotted!');
         return;
       }
 
-      if (props.shown === null) {
-        console.log('Internal error: hideCatalog ' + props.label +
-                    ' called when no data plotted!');
-        return;
-      }
-
-      props.shown.forEach(wwt.removeAnnotation);
-      props.shown = null;
+      props.annotations.forEach(ann => ann.remove());
+      props.annotations = null;
 
       document.querySelector(props.button).innerHTML =
-        'Show ' + props.label + ' Sources';
+        `Show ${props.label} Sources`;
 
       hideElement(props.changeWidget);
 
@@ -1001,7 +1080,6 @@ var wwt = (function () {
   // (no arguments); if these are undefined then use
   // makeShowCatalog/makeHideCatalog to create them.
   //
-
   function makeToggleCatalog(props, download, show, hide) {
 
     if (typeof show === 'undefined') {
@@ -1013,16 +1091,16 @@ var wwt = (function () {
     }
 
     return () => {
-      if (props.annotations === null) {
+      if (!props.loaded) {
         const el = document.querySelector(props.button);
-        el.innerHTML = 'Loading ' + props.label + ' Sources';
+        el.innerHTML = `Loading ${props.label} Sources`;
         el.disabled = true;
 
         download();
         return;
       }
 
-      if (props.shown === null) {
+      if (props.annotations === null) {
         show();
       } else {
         hide();
@@ -1107,7 +1185,7 @@ var wwt = (function () {
     const sel = '#' + elname;
     const el = document.querySelector(sel);
     if (el === null) {
-      console.log('Internal error: unable to find "' + elname + '"');
+      console.log(`Internal error: unable to find "${elname}"`);
       return;
     }
 
@@ -1230,7 +1308,7 @@ var wwt = (function () {
     _hideSources();
 
     // could cache these
-    if (haveCatalogData) {
+    if (catalogProps.csc20.loaded) {
       // assume that the label can only have been changed
       // if the sources have been loaded
       document.querySelector('#togglesources').innerHTML =
@@ -1257,9 +1335,9 @@ var wwt = (function () {
   function _hideSources() {
 
     const props = catalogProps.csc20;
-    if (props.shown !== null) {
-      props.shown.forEach(wwt.removeAnnotation);
-      props.shown = null;
+    if (props.annotations !== null) {
+      props.annotations.forEach(ann => ann.remove());
+      props.annotations = null;
     }
 
     if (typeof sourceCircle !== 'undefined') {
@@ -1277,7 +1355,7 @@ var wwt = (function () {
   function showSources() {
     const flag = _showSources();
     if (!flag) {
-      reportUpdateMessage('No CSC 2 sources found in this area of the sky.');
+      reportUpdateMessage('No CSC 2.0 sources found in this area of the sky.');
       return;
     }
 
@@ -1333,32 +1411,19 @@ var wwt = (function () {
     // still shown. It also helps at the corners.
     //
     //
-    shownSrcsIds = [];
-
-    const raIdx = getCSCColIdx('ra');
-    const decIdx = getCSCColIdx('dec');
-
     const props = catalogProps.csc20;
-    props.shown = [];
-
-    // Can we rework this so we don't need to pass through the
-    // counter?
-    let ctr = -1;
-    const getPos = row => {
-      ctr += 1;
-      return {ra: row[raIdx], dec: row[decIdx], ctr: ctr};
-    };
+    props.annotations = null;
 
     // Storage routine also has to fill in the plot data
     //
-    const toStore = (row, p) => {
+    const toStore = (row, pos) => {
+
       // could access the elements without creating an object
       // but I don't want to change existing code too much
       const src = getCSCObject(row);
-
-      const circle = props.annotations[p.ctr][2];
-      wwt.addAnnotation(circle);
-      shownSrcsIds.push(p.ctr);
+      const shp = props.makeShape(props.color, props.size, src);
+      const ann = makeAnnotation(row, pos, shp);
+      ann.add();
 
       // plot data
       if (src.err_ellipse_r0 !== null &&
@@ -1395,17 +1460,20 @@ var wwt = (function () {
           sigW.push(src.significance);
         }
       }
-      return circle;
+      return ann;
     };
 
-    const shown = findNearestTo(ra0, dec0, fov, catalogData,
-				getPos, toStore);
-
-    // remove separation
-    props.shown = shown.map(d => d[1]);
+    const selected = findNearestTo(ra0, dec0, fov,
+				   catalogProps.csc20.data,
+				   props.getPos, toStore);
 
     // can bail out now if there are no sources
-    if (props.shown.length === 0) { return false; }
+    //
+    if (selected.length === 0) { return; }
+
+    // remove separation and store the results
+    //
+    props.annotations = selected.map(d => d[1]);
 
     // Combine the plot data
     //
@@ -1516,26 +1584,6 @@ var wwt = (function () {
     trace('... added image collection');
   }
 
-  function createSourceAnnotations() {
-    const props = catalogProps.csc20;
-    props.annotations = [];
-    catalogData.forEach(src => {
-      const ann = makeSource(src);
-      if (ann !== null) {
-        props.annotations.push(ann);
-      }
-    });
-
-    // Let the user know they can "show sources"
-    //
-    const el = document.querySelector('#togglesources');
-    el.innerHTML = 'Show CSC2.0 Sources';
-    el.disabled = false;
-
-    showBlockElement('sourcecolor');
-    trace('Created CSC 2.0 annotations');
-  }
-
   // Tweaking the "definition" of the CHS format as we work out
   // what we want
   function makeCHS(chs) {
@@ -1632,26 +1680,6 @@ var wwt = (function () {
     trace('Created CHS annotations');
   }
 
-  function createSource11Annotations() {
-
-    const props = catalogProps.csc11;
-    props.annotations = [];
-    catalog11Data.forEach(src => {
-      const ann = makeSource11(src);
-      if (ann !== null) {
-        props.annotations.push(ann);
-      }
-    });
-
-    const el = document.querySelector('#togglesources11');
-    el.innerHTML = 'Show CSC1.1 Sources';
-    el.disabled = false;
-
-    showBlockElement('source11color');
-
-    trace('Created CSC1.1 annotations');
-  }
-
   // This should only be called after the event handlers for the
   // toggle options have been set up. As I extend this to include
   // items that require external data, that may be loaded asynchrounously,
@@ -1668,7 +1696,7 @@ var wwt = (function () {
 	if (el !== null) {
 	  el.checked = val;
 	} else {
-	  console.log('ERROR: unable to find toggle element ' + o.sel);
+	  console.log(`ERROR: unable to find toggle element ${o.sel}`);
 	}
       }
       o.change(val);
@@ -1719,7 +1747,7 @@ var wwt = (function () {
     } else if (mode === 'region') {
       clickMode = processRegionSelection;
     } else {
-      console.log('Unknown selection mode: ' + mode);
+      console.log(`Unknown selection mode: [${mode}]`);
     }
   }
 
@@ -1804,10 +1832,13 @@ var wwt = (function () {
   // reason this wouldn't hold would be numerical errors, and the way the
   // stacks are created should mean this won't happen.
   //
+  // TODO: shold be able to rewrite calling code to send in ra/dec
+  //       and so call processStackSelection directly
+  //
   function processStackSelectionByName(stackid) {
     const smatches = inputStackData.stacks.filter(d => d.stackid === stackid);
     if (smatches.length === 0) {
-      console.log('INTERNAL ERROR: unknown stackid=' + stackid);
+      console.log(`INTERNAL ERROR: unknown stackid=${stackid}`);
       return;
     }
 
@@ -1898,34 +1929,9 @@ var wwt = (function () {
     // wwt.addAnnotation(regionPolygon);
   }
 
-  // Rank the selected sources from the distance to the
-  // given location (decimal degrees), and radius (degrees).
-  // as a maximum radius.
+  // Highlight the selected source.
   //
-  function rankSelectedSources(ra0, dec0, maxSep) {
-    const raIdx = getCSCColIdx('ra');
-    const decIdx = getCSCColIdx('dec');
-
-    const getPos = srcid => {
-      const src = catalogData[srcid];
-      return {ra: src[raIdx], dec: src[decIdx]};
-    };
-
-    const toStore = (srcid, p) => { return {id: srcid, pos: p}; };
-
-    // This used to use an adaptive scheme, where the maximum radius
-    // was reduced each time it moved nearer the position.
-    //
-    return findNearestTo(ra0, dec0, maxSep, shownSrcsIds,
-			 getPos, toStore);
-  }
-
-  // Highlight the selected source (given its index into
-  // the csc2.0 annotations list).
-  //
-  function selectSource(idx) {
-    const src = catalogProps.csc20.annotations[idx][2];
-
+  function selectSource(src) {
     const origLineColor = src.get_lineColor();
     const origFillColor = src.get_fillColor();
     const origOpacity = src.get_opacity();
@@ -1944,46 +1950,59 @@ var wwt = (function () {
     src.set_opacity(selectedSourceOpacity);
   }
 
-  // See processStackSelection
-  //
   // ra and dec are in degrees
+  //
+  // This does not need to create sources, just find the nearest to
+  // the click. This assumes that sources are shown.
+  //
   function processSourceSelection(ra0, dec0) {
 
-    // Should we check to see if the nearest source is the currently
-    // selected one (i.e. if so can do nothing here).
-    //
+    const props = catalogProps.csc20;
+    if ((props.annotations === null) || (props.annotations.length === 0)) {
+      console.log('INTERNAL ERROR: processSouece selection called ' +
+		  `with annotations=${props.annotations}`);
+      return;
+    }
+
     clearNearestSource();
 
-    // Does it make sense to have a "maximum radius" here, since
-    // could just loop through all the selected sources.
-    //
     const maxSep = wwt.get_fov();
-    const seps = rankSelectedSources(ra0, dec0, maxSep);
-    if (seps.length === 0) {
-      return;
+
+    // Find the annotations that are within maxSep of ra0, dec0.
+    //
+    const shown = findNearestTo(ra0, dec0, maxSep, props.annotations,
+				d => d, (d, p) => d);
+    if (shown.length === 0) {
+      return 0;
     }
 
     // Identify the nearest source
     //
-    const el0 = seps.shift();
-    const selid = el0[1].id;
-    const selpos = el0[1].pos;
+    const el0 = shown[0];
+    const ann0 = el0[1];
+    const src0 = ann0.data;
 
-    selectSource(selid);
-    wwtprops.addSourceInfo(getCSCObject(catalogData[selid]));
-
-    // Do we have any neighbors?
+    // Let the user know what was selected.
     //
-    if (seps.length === 0) { return; }
+    selectSource(ann0.ann);
+    wwtprops.addSourceInfo(getCSCObject(src0));
 
-    // Create a table of the sources near to selid
+    // Need to repeat the search since we now want the separations
+    // relative to the selected source. We could loop over shown
+    // - perhaps restricting to twice the cut off we use in
+    //   creating neighbors, as a safety net - since this
+    // has already been sorted? For now leave that as a future
+    // optimisation.
     //
-    const neighborsAll = findNearestTo(selpos.ra, selpos.dec, maxSep,
-				       seps.map(d => d[1]),
-				       d => d.pos, d => d);
+    const neighborsAll = findNearestTo(ann0.ra, ann0.dec, maxSep,
+				       props.annotations,
+				       d => d, (d, pos) => d);
 
     // Arbitrarily limit to the nearest n
-    const neighbors = neighborsAll.slice(0, 10);
+    // Also note that we have to remove the first item since we
+    // are looping over props.annotations and not shown[1...]
+    //
+    const neighbors = neighborsAll.slice(1, 11);
 
     const indexes = {
       name: getCSCColIdx('name'),
@@ -1993,9 +2012,7 @@ var wwt = (function () {
       flux: getCSCColIdx('flux')
     };
 
-    wwtprops.addNearestSourceTable(catalogData, indexes,
-				   catalogProps.csc20.annotations,
-				   neighbors);
+    wwtprops.addNearestSourceTable(indexes, neighbors);
   }
 
   // It is not clear if the handlers stack, or overwrite, when
@@ -2059,7 +2076,7 @@ var wwt = (function () {
         pane.draggable = true;
         pane.addEventListener('dragstart', draggable.startDrag);
       } else {
-        console.log('INTERNAL error: unable to find "' + n + '"');
+        console.log(`INTERNAL error: unable to find "${n}"`);
       }
     });
 
@@ -2119,7 +2136,7 @@ var wwt = (function () {
     } else {
       if (zoom < minFOV) { zoom = minFOV; }
       else if (zoom > maxFOV) { zoom = maxFOV; }
-      trace('Setting zoom to: ' + zoom);
+      trace(`Setting zoom to: ${zoom}`);
     }
 
     if ((ra === null) || (dec === null)) {
@@ -2138,7 +2155,7 @@ var wwt = (function () {
   function setupShowHide(sel) {
     const pane = document.querySelector(sel);
     if (pane === null) {
-      console.log('INTERNAL ERROR: unable to find ' + sel);
+      console.log(`INTERNAL ERROR: unable to find ${sel}`);
       return;
     }
 
@@ -2285,7 +2302,7 @@ var wwt = (function () {
       coords = stackid.slice(5, 19);
     } else {
       // just return an invalid position
-      console.log('Error: invalid stackid=' + stackid);
+      console.log(`Error: invalid stackid=${stackid}`);
       return [-100, -100];
     }
 
@@ -2326,7 +2343,7 @@ var wwt = (function () {
 
   var traceCounter = 1;
   function trace(msg) {
-    console.log('TRACE[' + traceCounter.toString() + '] ' + msg.toString());
+    console.log(`TRACE[${traceCounter}] ${msg}`);
     traceCounter += 1;
   }
 
@@ -2385,7 +2402,7 @@ var wwt = (function () {
   // time out is in seconds, default is 3
   function addToolTipHandler(name, timeout) {
     if (name in tooltipTimers) {
-      console.log('WARNING: multiple calls to addToolTipHandler ' + name);
+      console.log(`WARNING: multiple calls to addToolTipHandler ${name}`);
       return;
     }
 
@@ -2428,12 +2445,12 @@ var wwt = (function () {
       tt.style.display = 'none';
     });
 
-    trace('set up tooltips for ' + name);
+    trace(`set up tooltips for ${name}`);
   }
 
   function removeToolTipHandler(name) {
     if (!(name in tooltipTimers)) {
-      console.log('WARNING: removeToolTipHandler sent unknown ' + name);
+      console.log(`WARNING: removeToolTipHandler sent unknown ${name}`);
       return;
     }
 
@@ -2597,7 +2614,7 @@ var wwt = (function () {
     toggleInfo.forEach(o => {
       const el = document.querySelector(o.sel);
       if (el === null) {
-	console.log('ERROR: unable to find toggle element ' + o.sel);
+	console.log(`ERROR: unable to find toggle element ${o.sel}`);
 	return;
       }
       el.addEventListener('click', ev => { o.change(ev.target.checked); });
@@ -3039,7 +3056,7 @@ var wwt = (function () {
       spinnerCounter = 0;
     }
     spinnerCounter += 1;
-    trace('Spinner count increased to ' + spinnerCounter);
+    trace(`Spinner count increased to ${spinnerCounter}`);
 
     if (spinnerCounter > 1) {
       return;
@@ -3063,7 +3080,7 @@ var wwt = (function () {
     }
 
     spinnerCounter -= 1;
-    trace('Spinner count decreased to ' + spinnerCounter);
+    trace(`Spinner count decreased to ${spinnerCounter}`);
 
     if (spinnerCounter > 0) {
       return;
@@ -3075,24 +3092,24 @@ var wwt = (function () {
   }
 
   function find2CXO(target) {
-    if (haveCatalogData) {
-      const nameIdx = getCSCColIdx('name');
-      const matches = catalogData.filter(d => d[nameIdx] === target);
-
-      // Take the first match if any (shouldn't be multiple matches)
-      //
-      if (matches.length > 0) {
-        const ra = getCSCRow(matches[0], 'ra');
-        const dec = getCSCRow(matches[0], 'dec');
-        setPosition(ra, dec, target);
-        reportLookupSuccess('Moving to ' + target);
-        return true;
-      }
-    } else {
+    if (!catalogProps.csc20.loaded) {
       reportLookupFailure('<p>The CSC 2.0 sources must be loaded ' +
                           'before they can be used in a search.</p>');
+      return true; // TODO: should probably return false here
+    }
+
+    const nameIdx = getCSCColIdx('name');
+    const matches = catalogProps.csc20.data.filter(d => d[nameIdx] === target);
+
+    // Take the first match if any (shouldn't be multiple matches)
+    //
+    if (matches.length > 0) {
+      const pos = catalogProps.csc20.getPos(matches[0]);
+      setPosition(pos.ra, pos.dec, target);
+      reportLookupSuccess(`Moving to ${target}`);
       return true;
     }
+
     return false;
   }
 
@@ -3120,24 +3137,24 @@ var wwt = (function () {
     } else if (target.startsWith('ens')) {
       label = target.slice(3);
     } else {
-      console.log('findEnsemble: did not recognize ' + target);
+      console.log(`findEnsemble: did not recognize ${target}`);
       return false;
     }
 
     ens = parseInt(label);
     if (isNaN(ens)) {
-      console.log('findEnsemble: Unable to parse ' + target);
+      console.log(`findEnsemble: Unable to parse ${target}`);
       return false;
     }
 
     const coords = ensData[ens];
     if (typeof coords === 'undefined') {
-      console.log('findEnsemble: no match for ' + target);
+      console.log(`findEnsemble: no match for ${target}`);
       return false;
     }
 
-    setPosition(coords.ra, coords.dec, 'Ensemble ' + ens);
-    reportLookupSuccess('Moving to ensemble ' + ens);
+    setPosition(coords.ra, coords.dec, `Ensemble ${ens}`);
+    reportLookupSuccess(`Moving to ensemble ${ens}`);
     return true;
   }
 
@@ -3152,7 +3169,7 @@ var wwt = (function () {
     const target = document.querySelector('#targetName').value.trim();
     if (target === '') {
       // this should not happen, but just in case
-      console.log('Unexpected targetName=[' + target + ']');
+      console.log(`Unexpected targetName=[${target}]`);
       return;
     }
 
@@ -3195,8 +3212,7 @@ var wwt = (function () {
           const lbl = toks[0].trim() + ', ' + toks[1].trim();
 
           setPosition(ra, dec, lbl);
-          reportLookupSuccess('Moving to ' + raVal + ' ' +
-                              decVal);
+          reportLookupSuccess(`Moving to ${raVal} ${decVal}`);
           return;
         }
       }
@@ -3207,7 +3223,7 @@ var wwt = (function () {
     const smatches = inputStackData.stacks.filter(d => d.stackid === target);
     if (smatches.length > 0) {
       setPosition(smatches[0].pos[0], smatches[0].pos[1], target);
-      reportLookupSuccess('Moving to stack ' + target);
+      reportLookupSuccess(`Moving to stack ${target}`);
       return;
     }
 
@@ -3220,7 +3236,7 @@ var wwt = (function () {
 
     startSpinner();
 
-    reportLookupSuccess('Searching for ' + target, false);
+    reportLookupSuccess(`Searching for ${target}`, false);
 
     // disable both the target widgets; note that on success both get re-enabled,
     // which is okay because the user-entered target is still
@@ -3242,8 +3258,7 @@ var wwt = (function () {
 
       var msg;
       if (service) {
-        msg = '<p>Location provided for ' + target +
-          ' by ' + service + '.</p>';
+        msg = `<p>Location provided for ${target} by ${service}.</p>`;
       } else {
         msg = '<p>Location found.</p>';
       }
@@ -3319,7 +3334,7 @@ var wwt = (function () {
     }
     const fullName = wtml[name];
     if (typeof fullName === 'undefined') {
-      console.log('Unknown name: ' + name);
+      console.log(`Unknown name: ${name}`);
       return;
     }
     wwt.setForegroundImageByName(fullName);
@@ -3327,88 +3342,16 @@ var wwt = (function () {
     saveState(keyForeground, name);
   }
 
-  // The CSC2 data is returned as an array of values
-  // which we used to convert to a Javascript object (ie
-  // one per row) since it makes it easier to handle.
-  // However, it bloats memory usage, so we now retain
-  // the array data and use the getCSCRow or getCSCObject
-  // accessor functions.
+  // Extract the data from this chunk and, if all chunks have
+  // been read in, finalize things.
   //
-  // I hard code the expected row order for documentation
-  // (and because it is slightly simpler), but this could
-  // be set from the input data.
-  //
-  const catalogDataCols = [
-    'name',
-    'ra',
-    'dec',
-    'err_ellipse_r0',
-    'err_ellipse_r1',
-    'err_ellipse_ang',
-    'conf_flag',
-    'sat_src_flag',
-    'acis_num',
-    'hrc_num',
-    'var_flag',
-    'significance',
-    'fluxband',
-    'flux',
-    'flux_lolim',
-    'flux_hilim',
-    'nh_gal',
-    'hard_hm',
-    'hard_hm_lolim',
-    'hard_hm_hilim',
-    'hard_ms',
-    'hard_ms_lolim',
-    'hard_ms_hilim'
-  ];
-
-  // Given a row of catalogData, return the given column value,
-  // where column must be a member of catalogDataCols.
-  //
-  // row should catalogData[i] not i (does array access take much
-  // time in JS?)
-  //
-  function getCSCColIdx(column) {
-    const colidx = catalogDataCols.indexOf(column);
-    if (colidx < 0) {
-      console.log('ERROR: unknown CSC column "' + column + '"');
-      return null;
-    }
-    return colidx;
-  }
-
-  function getCSCRow(row, column) {
-    return row[getCSCColIdx(column)];
-  }
-
-  // Convert a row to an object, to make data access easier.
-  //
-  function getCSCObject(row) {
-    const out = Object.create({});
-    zip([catalogDataCols, row]).forEach(el => { out[el[0]] = el[1] });
-    return out
-
-  }
-
-  // I would rather not pay the price for storing a huge array
-  // (catalogData) until it is needed, but is there a large cost
-  // in execution time in how I extend the array during the read phase
-  // (that is the data comes in in chunks, with no guarantee of the
-  // order of the chunks but each chunk is contiguous)?
-  //
-  var chunkedCatalogData = new Array(NCHUNK).fill(false);
-  var catalogData = [];
-  var haveCatalogData = false;
-  function processCatalogData(json, ctr) {
+  function processCatalogData(chunks, ctr, json) {
     if (json === null) {
-      console.log('WARNING: unable to download catalog data ' +
-                  ctr);
+      console.log(`WARNING: unable to download catalog data ${ctr}`);
       return;
     }
 
-    trace('Finalizing chunk ' + ctr);
+    trace(`Finalizing chunk ${ctr}`);
 
     // Validate the "schema"
     //
@@ -3428,35 +3371,51 @@ var wwt = (function () {
       return;
     }
 
+    const props = catalogProps.csc20;
+    if (props.data === null) {
+      props.data = new Array(json.ntotal);
+    }
+
     // What is the best way to fill in a slice of values of an array?
     //
     let i;
     for (i = 0; i < json.rows.length; i++) {
-      catalogData[json.start + i] = json.rows[i];
+      props.data[json.start + i] = json.rows[i];
     }
 
-    chunkedCatalogData[ctr - 1] = true;
-    haveCatalogData = chunkedCatalogData.reduce((a, v) => a && v, true);
+    chunks[ctr - 1] = true;
+    const haveCatalogData = chunks.reduce((a, v) => a && v, true);
     if (!haveCatalogData) { return; }
 
-    const nsrcs = catalogData.length;
-    trace('== CSC 2.0 contains ' + nsrcs + ' sources');
+    props.loaded = true;
+
+    const nsrcs = props.data.length;
+    if (nsrcs !== json.ntotal) {
+      console.log(`WARNING: CSC2.0 count expected ${json.ntotal} got ${nsrcs}`);
+    }
+
+    trace(`== CSC 2.0 contains ${nsrcs} sources`);
 
     // Report any missing sources
     //
-    let nmiss = catalogData.reduce((a, v) => {
+    let nmiss = props.data.reduce((a, v) => {
       return a + typeof v === 'undefined' ? 1 : 0;
     }, 0);
     if (nmiss !== 0) {
       console.log(`WARNING: there are ${nmiss} missing sources in CSC 2.0!`);
     }
 
-    chunkedCatalogData = null;
-    createSourceAnnotations();
+    // Let the user know they can "show sources"
+    //
+    const el = document.querySelector('#togglesources');
+    el.innerHTML = 'Show CSC2.0 Sources';
+    el.disabled = false;
 
+    showBlockElement('sourcecolor');
     document.querySelector('#togglesourceprops')
       .style.display = 'inline-block';
 
+    trace('Loaded CSC 2.0 data');
   }
 
   var ensData = null;
@@ -3468,6 +3427,9 @@ var wwt = (function () {
     ensData = json;
   }
 
+  // The CHS stuff is for testing, so do not try to optimise it just
+  // now.
+  //
   var chsData = null;
   function processCHSData(json) {
     if (json === null) {
@@ -3485,9 +3447,9 @@ var wwt = (function () {
     document.querySelector('#togglechs')
       .style.display = 'inline-block';
 
+    trace('Loaded CHS data');
   }
 
-  var catalog11Data = [];
   function processCatalog11Data(json) {
     if (json === null) {
       console.log('ERROR: unable to download catalog 1.1 data');
@@ -3498,12 +3460,20 @@ var wwt = (function () {
       return;
     }
 
-    catalog11Data = json;
-    createSource11Annotations();
+    const props = catalogProps.csc11;
 
+    props.data = json;
+    props.loaded = true;
+
+    const el = document.querySelector('#togglesources11');
+    el.innerHTML = 'Show CSC1.1 Sources';
+    el.disabled = false;
+
+    showBlockElement('source11color');
     document.querySelector('#togglesource11props')
       .style.display = 'inline-block';
 
+    trace('Loaded CSC 1.1 data');
   }
 
   function processXMMData(json) {
@@ -3517,27 +3487,19 @@ var wwt = (function () {
     }
 
     trace('Processing XMM data');
-
-    xmmCatalog = json.catalog;
-
     const props = catalogProps.xmm;
 
-    trace(' from [' + props.label + ']');
-    props.label = xmmCatalog;
-    trace('   to [' + props.label + ']');
+    trace(` from [${props.label}]`);
+    props.label = json.catalog;
+    trace(`   to [${props.label}]`);
 
-    props.annotations = [];
-    for (let source of json.sources) {
-      const ann = makeXMMSource(source);
-      if (ann !== null) {
-        props.annotations.push(ann);
-      }
-    }
+    props.data = json.sources;
+    props.loaded = true;
 
     // Let the user know they can "show XMM sources"
     //
     const el = document.querySelector('#toggleXMMsources');
-    el.innerHTML = 'Show ' + xmmCatalog + ' Sources';
+    el.innerHTML = `Show ${props.label} Sources`;
     el.disabled = false;
 
     showBlockElement('xmmsourcecolor');
@@ -3545,8 +3507,7 @@ var wwt = (function () {
     document.querySelector('#togglexmmsourceprops')
       .style.display = 'inline-block';
 
-    trace('Created XMM annotations');
-
+    trace('Loaded XMM data');
   }
 
   // Most of these are likely to be removed or replaced
@@ -3576,8 +3537,6 @@ var wwt = (function () {
     // debug/testing access below
     //
     getWWTControl: function () { return wwt; },
-
-    rankSelectedSources: rankSelectedSources,
 
     setPosition: setPosition,
 
