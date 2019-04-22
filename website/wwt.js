@@ -28,6 +28,7 @@ var wwt = (function () {
 
   // keys for local storage values; not guaranteed all in use yet.
   //
+  const keySchema = 'wwt-schema';
   const keySave = 'wwt-save';
   const keyLocation = 'wwt-location';
   const keyFOV = 'wwt-fov';
@@ -41,7 +42,8 @@ var wwt = (function () {
   // Remove any user-stored values.
   //
   function clearState() {
-    const keys = [keySave, keyLocation, keyFOV, keyForeground,
+    const keys = [keySchema,
+		  keySave, keyLocation, keyFOV, keyForeground,
 		  keyCoordinateGrid,
 		  keyCrosshairs, keyConstellations, keyBoundaries,
 		  keyMilkyWay];
@@ -87,6 +89,19 @@ var wwt = (function () {
 
   function setSaveState(flag) {
     saveState(keySave, flag);
+  }
+
+  // This is called when the page is first loaded and is intended to support
+  // any "breaking change" to the local storage schema between when the
+  // user last ran the code and the current version. At the moment this
+  // is a no-op (the version is set just in case).
+  //
+  // It should not be run multiple times (although it probably doesn't matter
+  // if it does).
+  //
+  function updateSchema() {
+    trace('Setting schema version to 1');
+    window.localStorage.setItem(keySchema, '1');
   }
 
   // What is the minimum FOV size we want to try and "enforce"?
@@ -2473,6 +2488,9 @@ var wwt = (function () {
     }
 
     trace('initialize');
+
+    // In case the local-storage schema ever needs to be updated.
+    updateSchema();
 
     // At present this just changes the box size/height
     resize();
