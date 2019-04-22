@@ -2488,6 +2488,32 @@ var wwt = (function () {
       description: 'The stack contains 4 ACIS observations',
       status: true};
 
+  // '2CXO J061859.6-705831'
+  const sourceExample =
+    ["2CXO J061859.6-705831",
+     94.74868,
+     -70.97541,
+     0.93,
+     0.61,
+     25.5,
+     "FALSE",
+     "FALSE",
+     3,
+     0,
+     "FALSE",
+     2.78,
+     "broad",
+     8.111e-16,
+     4.442e-16,
+     1.159e-15,
+     8.76,
+     -0.2561,
+     -0.634,
+     0.1418,
+     -0.1549,
+     -0.4716,
+     0.203];
+
   // Call on page load, when WWT is to be initialized.
   //
   var resizeState = true;
@@ -2523,6 +2549,7 @@ var wwt = (function () {
 
     // Add in the example stack and source panes to the help page
     wwtprops.addStackInfoHelp(stackExample);
+    wwtprops.addSourceInfoHelp(getCSCObject(sourceExample));
 
     // TODO: should this check that the name is not blank/empty?
     const tfind = host.querySelector('#targetFind');

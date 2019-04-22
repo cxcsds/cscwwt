@@ -628,9 +628,10 @@ main#content div.wrap {
 	  summary details about the source from CSC v2.
 	</p>
 
-	<img src="wwtimg/wwt-source-info.png"
-	     alt="Basic properties about the source - such as location, positional error, fluxes, hardness ratios, and various flags (is it variable, confused, or affected by saturation) are shown"
-	     />
+	<div class="infocontainer">
+	  <div id="sourceinfoexample" class="sourceinfopane">
+	  </div>
+	</div>
 
         <p>
 	  The exact set of properties shown depend on the source, but
