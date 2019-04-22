@@ -363,16 +363,16 @@ main#content div.wrap {
 
       </div>
       
-      <div id="stackinfo">
+      <div id="stackinfo" class="stackinfopane">
       </div>
 
-      <div id="sourceinfo">
+      <div id="sourceinfo" class="sourceinfopane">
       </div>
 
       <!-- used to identify "nearby" objects; an experiment -->
-      <div id="neareststackinfo">
+      <div id="neareststackinfo" class="neareststackinfopane">
       </div>
-      <div id="nearestsourceinfo">
+      <div id="nearestsourceinfo" class="nearestsourceinfopane">
       </div>
       
       <!-- Inform the user when the stack status has been updated -->
@@ -383,7 +383,7 @@ main#content div.wrap {
       <div id="targetFailure"></div>
 
       <!-- HACK for CHS work; depends on what we want to show -->
-      <div id="chspane"></div>
+      <div id="chs"></div>
 
       <!-- <div class="pane" id="welcome"> -->
       <div id="welcome">
@@ -509,78 +509,96 @@ main#content div.wrap {
 	  or other factors, as explained below.
 	</p>
 
-	<div class="iconarea">
-          <img width="18" height="18" alt="Hide"
-	       src="wwtimg/glyphicons-215-resize-small.png"/>
-          <img width="18" height="18" alt="Show"
-	       src="wwtimg/glyphicons-216-resize-full.png"/>
-	</div>
+	<dl>
+	  <dt>
+	    <div class="iconarea">
+              <img width="18" height="18" alt="Hide"
+		   src="wwtimg/glyphicons-215-resize-small.png"/>
+              <img width="18" height="18" alt="Show"
+		   src="wwtimg/glyphicons-216-resize-full.png"/>
+	    </div>
+	  </dt>
 
-	<p>
-	  These two icons control whether the control panel is
-	  hidden or displayed.
-	</p>
+	  <dd>
+	    <p>
+	      These two icons control whether the control panel is
+	      hidden or displayed.
+	    </p>
+	  </dd>
 
-	<div class="iconarea">
-          <img width="18" height="18" alt="Zoom fully out"
-	       src="wwtimg/glyphicons-350-fullscreen.png"/>
-          <img width="18" height="18" alt="Zoom In"
-	       src="wwtimg/glyphicons-237-zoom-in.png"/>
-          <img width="18" height="18" alt="Zoom Out"
-	       src="wwtimg/glyphicons-238-zoom-out.png"/>
-	</div>
+	  <dt>
+	    <div class="iconarea">
+              <img width="18" height="18" alt="Zoom fully out"
+		   src="wwtimg/glyphicons-350-fullscreen.png"/>
+              <img width="18" height="18" alt="Zoom In"
+		   src="wwtimg/glyphicons-237-zoom-in.png"/>
+              <img width="18" height="18" alt="Zoom Out"
+		   src="wwtimg/glyphicons-238-zoom-out.png"/>
+	    </div>
+	  </dt>
 
-	<p>
-	  The zoom level of the WWT display can be changed with these
-	  three buttons. The three buttons allow you to zoom fully out
-	  (or at least as far as the WWT allows), slightly in, or
-	  slightly out.
-	</p>
+	  <dd>
+	    <p>
+	      The zoom level of the WWT display can be changed with these
+	      three buttons. The three buttons allow you to zoom fully out
+	      (or at least as far as the WWT allows), slightly in, or
+	      slightly out.
+	    </p>
+	  </dd>
 
-	<div class="iconarea">
-          <img width="18" height="18"
-	       alt="Plot source properties"
-	       src="wwtimg/glyphicons-42-charts.png"/>
+	  <dt>
+	    <div class="iconarea">
+              <img width="18" height="18"
+		   alt="Plot source properties"
+		   src="wwtimg/glyphicons-42-charts.png"/>
+	    </div>
+	  </dt>
 
-	</div>
+	  <dd>
+	    <p>
+	      This icon appears when CSC 2.0 sources are displayed.
+	      Selecting the icon will display a set of summary plots of
+	      the properties of the displayed sources.
+	    </p>
+	  </dd>
 
-	<p>
-	  This icon appears when CSC 2.0 sources are displayed.
-	  Selecting the icon will display a set of summary plots of
-	  the properties of the displayed sources.
-	</p>
+	  <dt>
+	    <div class="iconarea">
+              <img width="18" height="18"
+		   alt="Register with a SAMP Hub"
+		   src="wwtimg/glyphicons-33-wifi-alt.png"/>
+              <img width="18" height="18" alt="Send via SAMP"
+		   src="wwtimg/glyphicons-223-share.png"/>
+	    </div>
+	  </dt>
 
-	<div class="iconarea">
-          <img width="18" height="18"
-	       alt="Register with a SAMP Hub"
-	       src="wwtimg/glyphicons-33-wifi-alt.png"/>
-          <img width="18" height="18" alt="Send via SAMP"
-	       src="wwtimg/glyphicons-223-share.png"/>
-	</div>
+	  <dd>
+	    <p>
+	      These two icons will only appear if a SAMP hub (one
+	      that supports the
+	      <extlink target="_blank"
+		       href="http://www.ivoa.net/documents/SAMP/20120411/REC-SAMP-1.3-20120411.html#tth_sEc5">SAMP Web Profile</extlink>)
+	      is running on the same machine as the web browser,
+	      such as the 
+	      <extlink target="_blank"
+		       href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT
+	      Virtual-Observatory table viewer</extlink>.
+	      The first icon will register the WWT display with
+	      the SAMP hub: this is an optional step but selecting it will
+	      mean that the WWT interface will both send and respond to
+	      <span class="term">coord.pointAt.sky</span> messages.
+	      The second icon is displayed if a SAMP hub is available
+	      and CSC 2.0 sources are shown: selecting the icon will send
+	      the summary master source properties to any table viewer (such
+	      as TOPCAT) to support more in-depth analysis.
+	      Note that this icon can also be found in the
+	      "source properties" window that is displayed when a CSC 2.0
+	      source is selected. In this case the full set of master-source
+	      properties for this source will be sent to any table viewer.
+	    </p>
+	  </dd>
 
-	<p>
-	  These two icons will only appear if a SAMP hub (one
-	  that supports the
-	  <extlink target="_blank"
-		   href="http://www.ivoa.net/documents/SAMP/20120411/REC-SAMP-1.3-20120411.html#tth_sEc5">SAMP Web Profile</extlink>)
-	  is running on the same machine as the web browser,
-	  such as the 
-	  <extlink target="_blank"
-		   href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT
-	  Virtual-Observatory table viewer</extlink>.
-	  The first icon will register the WWT display with
-	  the SAMP hub: this is an optional step but selecting it will
-	  mean that the WWT interface will both send and respond to
-	  <span class="term">coord.pointAt.sky</span> messages.
-	  The second icon is displayed if a SAMP hub is available
-	  and CSC 2.0 sources are shown: selecting the icon will send
-	  the summary master source properties to any table viewer (such
-	  as TOPCAT) to support more in-depth analysis.
-	  Note that this icon can also be found in the
-	  "source properties" window that is displayed when a CSC 2.0
-	  source is selected. In this case the full set of master-source
-	  properties for this source will be sent to any table viewer.
-	</p>
+	</dl>
 
 	<h3>Searching for a name or position</h3>
 
@@ -611,9 +629,10 @@ main#content div.wrap {
           at the <cxclink href="/cda/">Chandra Data Archive</cxclink>.
 	</p>
 
-	<img src="wwtimg/wwt-stack-info.png"
-	     alt="A window displays basic information about the selected stack, such as target names, number of Chandra observations in the stack, and links to the individual observations."
-	     />
+	<div class="infocontainer">
+	  <div id="stackinfoexample" class="stackinfopane">
+	  </div>
+	</div>
 
 	<h3>Selecting a source</h3>
 
@@ -627,9 +646,10 @@ main#content div.wrap {
 	  summary details about the source from CSC v2.
 	</p>
 
-	<img src="wwtimg/wwt-source-info.png"
-	     alt="Basic properties about the source - such as location, positional error, fluxes, hardness ratios, and various flags (is it variable, confused, or affected by saturation) are shown"
-	     />
+	<div class="infocontainer">
+	  <div id="sourceinfoexample" class="sourceinfopane">
+	  </div>
+	</div>
 
         <p>
 	  The exact set of properties shown depend on the source, but
@@ -737,7 +757,7 @@ main#content div.wrap {
 	</p>
       </div>
 
-      <div id="settings">
+      <div id="settings" class="settingspane">
 	<div class="controlElements controlElementsShown">
           <span class="title">Settings:</span>
 	  <span class="closable" onclick="wwt.hideSettings();">
@@ -806,7 +826,7 @@ main#content div.wrap {
 	</div> <!-- .main -->
       </div> <!-- #settings -->
 
-      <div id="preselected">
+      <div id="preselected" class="preselectedpane">
 
 	<div class="controlElements controlElementsShown">
           <span class="title">Move to:</span>
@@ -1065,7 +1085,7 @@ main#content div.wrap {
       </div>
 
       <!-- plot areas -->
-      <div id="plot">
+      <div id="plot" class="plotpane">
 	<div class="controlElements controlElementsShown">
           <span class="title">Overview of the selected CSC 2.0 sources</span>
 	  <span class="closable" onclick="wwt.hideElement('plot');">

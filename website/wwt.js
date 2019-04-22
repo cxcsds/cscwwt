@@ -1151,7 +1151,7 @@ var wwt = (function () {
     } else {
       hideCHS();
       removeAnnotationClicked();
-      const pane = document.querySelector('#chspane');
+      const pane = document.querySelector('#chs');
       pane.style.display = 'none';
     }
   }
@@ -1644,7 +1644,7 @@ var wwt = (function () {
     wwt.add_annotationClicked((obj, eventArgs) => {
       const id = eventArgs.get_id();
 
-      const pane = document.querySelector('#chspane');
+      const pane = document.querySelector('#chs');
       pane.innerHTML = 'CHS: ' + id;
       pane.style.display = 'inline-block';
 
@@ -2472,6 +2472,48 @@ var wwt = (function () {
     delete tooltipTimers[name];
   }
 
+  /*
+   * Set up the help section: create the "panes" for the stack
+   * and source info examples. This relies on "fake" data
+   * structures (we could use inputStackData but would need to do
+   * this after the status field has been added or hack that), but
+   * this is not possible with the source info with the current
+   * architecture, since it will not have been read in. So use
+   * hand-built versions.
+   */
+  const stackExample =
+    { stackid: 'acisfJ0618409m705956_001',
+      nobs: 4,
+      pos: decodeStackName('acisfJ0618409m705956_001'),
+      description: 'The stack contains 4 ACIS observations',
+      status: true};
+
+  // '2CXO J061859.6-705831'
+  const sourceExample =
+    ["2CXO J061859.6-705831",
+     94.74868,
+     -70.97541,
+     0.93,
+     0.61,
+     25.5,
+     "FALSE",
+     "FALSE",
+     3,
+     0,
+     "FALSE",
+     2.78,
+     "broad",
+     8.111e-16,
+     4.442e-16,
+     1.159e-15,
+     8.76,
+     -0.2561,
+     -0.634,
+     0.1418,
+     -0.1549,
+     -0.4716,
+     0.203];
+
   // Call on page load, when WWT is to be initialized.
   //
   var resizeState = true;
@@ -2504,6 +2546,10 @@ var wwt = (function () {
     trace('recoded positions');
 
     inputStackData = obsdata;
+
+    // Add in the example stack and source panes to the help page
+    wwtprops.addStackInfoHelp(stackExample);
+    wwtprops.addSourceInfoHelp(getCSCObject(sourceExample));
 
     // TODO: should this check that the name is not blank/empty?
     const tfind = host.querySelector('#targetFind');

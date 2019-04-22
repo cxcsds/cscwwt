@@ -143,7 +143,7 @@ img.clipboard {
 /* need to override image for sourcinfo block; do not need for stackinfo
  * but lets us add the padding rule to both
  */
-div#sourceinfo div.main img.clipboard , div#stackinfo div.main img.clipboard {
+div.sourceinfopane div.main img.clipboard , div.stackinfopane div.main img.clipboard {
   display: inline;
   padding-left: 0.5em;
 }
@@ -160,13 +160,16 @@ output#ra_s { width: 3.5em; }
 output#dec_s { width: 2.5em; }
 
 /* Should differentiate stack and source boxes */
-div#stackinfo , div#sourceinfo {
+div.stackinfopane , div.sourceinfopane {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid white;
+  padding: 0;
+}
+
+div#stackinfo , div#sourceinfo {
   cursor: move;
   display: none;
   overflow: auto;  /* scroll bar looks ugly when shown */
-  padding: 0;
   position: absolute;
   right: 2em;
   top: 3em;
@@ -175,21 +178,36 @@ div#stackinfo , div#sourceinfo {
 /* appear to need a max height/width given my grab/move code for
    the windows. This feels wrong. */
 
-div#stackinfo {
+div.stackinfopane {
   max-height: 500px;
   max-width: 650px;
 }
 
-div#sourceinfo {
+div.sourceinfopane {
   /* background: rgba(255, 255, 255, 1); */
 
   max-height: 700px;
   max-width: 700px;
 }
 
-/* based on #stackinfo/#sourceinfo */
+/*
+ * "Emulate" the WWT backgtound for the example stack/source info
+ * panes on the help page.
+ */
+div.infocontainer {
+  background: black;
+  /*
+   * at the moment the min max-width of source/stackinfopane + 2*2
+   * from the internal padding
+   */
+  max-width: 654px;
+  padding: 4px;
+}
+
+
+/* based on .stackinfopane/.sourceinfopane */
 /* Would like this centered, but bottom-left is okay to start with */
-div#neareststackinfo , div#nearestsourceinfo {
+div.neareststackinfopane , div.nearestsourceinfopane {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid white;
   bottom: 0.5em;
@@ -202,18 +220,18 @@ div#neareststackinfo , div#nearestsourceinfo {
   z-index: 200;
 }
 
-div#stackinfo div.main , div#sourceinfo div.main ,
-div#neareststackinfo div.main , div#nearestsourceinfo div.main {
+div.stackinfopane div.main , div.sourceinfopane div.main ,
+div.neareststackinfopane div.main , div.nearestsourceinfopane div.main {
   background: rgba(255, 255, 255, 1);
 }
 
-div#sourceinfo div.main img {
+div.sourceinfopane div.main img {
   display: block;
   margin-left: auto;
   margin-right: auto;
 }
 
-div#sourceinfo div.main img#export-samp-source {
+div.sourceinfopane div.main img#export-samp-source {
   display: none;
 }
 
@@ -245,13 +263,13 @@ div.samp {
 
 /* note: using a table for layout as easy to do */
 
-div#sourceinfo td.label {
+div.sourceinfopane td.label {
   font-size: 100%;    /* there is a generic label which makes the font larger */
   font-style: italic;
   padding-right: 2em;
 }
 
-div#sourceinfo td.labellimit {
+div.sourceinfopane td.labellimit {
   font-style: italic;
   padding-left: 2em;
   padding-right: 2em;
@@ -287,10 +305,10 @@ img.close {
   margin-top: 0.5em;
 }
 
-#preselected > img.close , #stackinfo > img.close ,
-#settings > img.close , #sourceinfo > img.close ,
-#neareststackinfo > img.close , #nearestsourceinfo > img.close ,
-#plot > img.close {
+.preselectedpane > img.close , .stackinfopane > img.close ,
+.settingspane > img.close , .sourceinfopane > img.close ,
+.neareststackinfopane > img.close , .nearestsourceinfopane > img.close ,
+.plotpane > img.close {
   margin-right: 0.4em;
   margin-top: 0.4em;
 }
@@ -347,6 +365,14 @@ span.title {
   margin-top: 1em;
 }
 
+/*
+ * need to ensure this doesn't happen to the close buttons
+ * for the "help" versions of the stack/source info panes
+ */
+#stackinfoexample .closable , #sourceinfoexample .closable {
+  margin-top: 0;
+}
+
 /* hideable and showable are assumed to be attached to this */
 .switchable {
     cursor: pointer;
@@ -381,8 +407,10 @@ div.iconarea {
   background-color: rgba(0, 0, 0, 0.3); /* adjusted to look like panel background */
   border: 1px solid #D9D9D9;
   border-radius: 0.5em;
+  /*** remove the float/clear behavior for now
   clear: both;
   float: left;
+  ***/
   margin-bottom: 0.5em;
   margin-right: 0.5em;
   padding: 0.3em;
@@ -464,7 +492,7 @@ div.basicinfo + br {
   cursor: pointer;
 }
 
-#settings .button {
+.settingspane .button {
   margin-bottom: 1em;
   margin-top: 0;
   width: auto;
@@ -745,7 +773,7 @@ div.basicinfo + br {
 }
 
 /* this is for testing only */
-#chspane {
+#chs {
   background: rgba(255, 255, 255, 0.8);
   border: 2px solid white;
   display: none;
@@ -815,7 +843,7 @@ img#csclogo {
 #togglemw {
 }
 
-div#preselected , div#settings {
+div.preselectedpane , div.settingspane {
   background-color: rgba(255, 255, 255, 0.6);
   border: 2px solid #D9D9D9;
   cursor: move;
@@ -826,11 +854,11 @@ div#preselected , div#settings {
   top: 2em;
 }
 
-div#settings {
+div.settingspane {
 	max-width: 28em;
 }
 
-div#settings .main + p {
+div.settingspane .main + p {
   border-top: 0;
 }
 
@@ -868,6 +896,9 @@ div.gridable {
   width: 48%;
 }
 
+/*
+ * Used for the about/help blocks
+ */
 div.pane {
   background: rgba(255, 255, 255, 1);
   border: 2px solid rgba(0, 0, 0, 0.8);
@@ -931,7 +962,7 @@ div.mainbar + br {
 
 /* plots */
 
-#plot {
+.plotpane {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid gray;
   cursor: move;
@@ -945,13 +976,6 @@ div.mainbar + br {
   /* right: 2em; */
   top: 3em;
   z-index: 250;
-}
-
-/* not sure how many of these settings are still needed */
-div#plot #main {
-  background: rgba(255, 255, 255, 1.0);
-  clear: both;
-  padding: 0.5em 1em;
 }
 
 div#plotchoice {
