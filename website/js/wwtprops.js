@@ -72,15 +72,20 @@ const wwtprops = (function () {
 
   // Add a link to NED searching on this name
   //
-  function addNEDNameLink(parent, name) {
+  function addNEDNameLink(parent, name, active) {
+    if (typeof active === 'undefined') { active = true; }
 
     const url = 'https://ned.ipac.caltech.edu/?q=byname&objname=' +
 	  cleanQueryValue(name);
 
     const a = document.createElement('a');
     a.setAttribute('class', 'namelink');
-    a.setAttribute('target', '_blank');
-    a.setAttribute('href', url);
+    if (active) {
+      a.setAttribute('target', '_blank');
+      a.setAttribute('href', url);
+    } else {
+      a.setAttribute('href', '#');
+    }
     addText(a, 'NED');
 
     parent.appendChild(a);
@@ -107,15 +112,20 @@ const wwtprops = (function () {
 
   // Add a link to SIMBAD searching on this name
   //
-  function addSIMBADNameLink(parent, name) {
+  function addSIMBADNameLink(parent, name, active) {
+    if (typeof active === 'undefined') { active = true; }
 
     const url = 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident=' +
 	  cleanQueryValue(name);
 
     const a = document.createElement('a');
     a.setAttribute('class', 'namelink');
-    a.setAttribute('target', '_blank');
-    a.setAttribute('href', url);
+    if (active) {
+      a.setAttribute('target', '_blank');
+      a.setAttribute('href', url);
+    } else {
+      a.setAttribute('href', '#');
+    }
     addText(a, 'SIMBAD');
 
     parent.appendChild(a);
@@ -195,6 +205,8 @@ const wwtprops = (function () {
   // Add a span item with the given class name which is a link
   // element with link text and the given call back when clicked.
   //
+  // If callback is null then no event listener is added.
+  //
   function addSpanLink(parent, className, text, callback) {
 
     const span = document.createElement('span');
@@ -202,7 +214,9 @@ const wwtprops = (function () {
 
     const a = document.createElement('a');
     a.setAttribute('href', '#');
-    a.addEventListener('click', () => callback());
+    if (callback !== null) {
+      a.addEventListener('click', () => callback());
+    }
 
     a.appendChild(document.createTextNode(text));
     span.appendChild(a);
@@ -212,7 +226,9 @@ const wwtprops = (function () {
 
   // Add the location to the parent.
   //
-  function addLocation(ra, dec) {
+  function addLocation(ra, dec, active) {
+    if (typeof active === 'undefined') { active = true; }
+
     const div = mkDiv('coords');
     const raToks = raToTokens(ra);
     addText(div, 'α: ' + raToks.hours);
@@ -229,7 +245,9 @@ const wwtprops = (function () {
     img.setAttribute('class', 'clipboard');
     img.setAttribute('src', 'wwtimg/fa/cut.svg');
     const pos = ra + ' ' + dec;
-    img.addEventListener('click', () => wwt.copyToClipboard(pos));
+    if (active) {
+      img.addEventListener('click', () => wwt.copyToClipboard(pos));
+    }
     div.appendChild(img);
 
     // TODO: add tooltip handler, although complicated since
@@ -240,51 +258,60 @@ const wwtprops = (function () {
 
   // Sent the div for the main contents and the title sections
   //
-  function addHideShowButton(parent, titleBar) {
+  function addHideShowButton(parent, titleBar, active) {
+    if (typeof active === 'undefined') { active = true; }
+
     const el = document.createElement('span');
     el.classList.add('switchable');
     el.classList.add('hideable');
-    el.addEventListener('click', () => {
-      if (el.classList.contains('hideable')) {
-	parent.style.display = 'none';
-	el.classList.remove('hideable');
-	el.classList.add('showable');
-	titleBar.classList.remove('controlElementsShown');
-      } else {
-	parent.style.display = 'block';
-	el.classList.remove('showable');
-	el.classList.add('hideable');
-	titleBar.classList.add('controlElementsShown');
-      }
-    });
+    if (active) {
+      el.addEventListener('click', () => {
+	if (el.classList.contains('hideable')) {
+	  parent.style.display = 'none';
+	  el.classList.remove('hideable');
+	  el.classList.add('showable');
+	  titleBar.classList.remove('controlElementsShown');
+	} else {
+	  parent.style.display = 'block';
+	  el.classList.remove('showable');
+	  el.classList.add('hideable');
+	  titleBar.classList.add('controlElementsShown');
+	}
+      });
+    }
     return el;
   }
 
   // Add a button that closes the stack (this logic is handled by the
   // close callback).
   //
-  function addCloseButton(close) {
+  function addCloseButton(close, active) {
+    if (typeof active === 'undefined') { active = true; }
+
     const el = document.createElement('span');
     el.setAttribute('class', 'closable');
-    el.addEventListener('click', close);
+    if (active) {
+      el.addEventListener('click', close);
+    }
     return el;
   }
 
   // Create a "pop-up" window with details on the given stack.
+  // This fills in the parent structure and determines whether this
+  // is an "operational" or "inactive" version (for use or for display
+  // in the help panel).
   //
   // TODO: can I give the number of sources IN THIS STACK?
   //       not really a good answer to this, as have number of
   //       detections, but not sources.
   //
-
-  function addStackInfo(stack, stackEventVersions) {
-
-    const bcol = stack.status ? 'gold' : 'grey';
-    const parent = document.querySelector('#stackinfo');
-    if (parent === null) {
-      console.log('Internal error: no #stackinfo found');
-      return;
-    }
+  // parent - the div into which the contents should be placed;
+  //          expected to be empty and have a class of stackinfopane
+  // stack - object, stack details
+  // stackVersion - null or the stack version
+  // active - boolean, if true then links and handlers are used
+  //
+  function addStackInfoContents(parent, stack, stackVersion, active) {
 
     const controlElements = document.createElement('div');
     controlElements.classList.add('controlElements');
@@ -299,8 +326,8 @@ const wwtprops = (function () {
 
     const mainDiv = mkDiv('main');
 
-    controlElements.appendChild(addCloseButton(wwt.clearNearestStack));
-    controlElements.appendChild(addHideShowButton(mainDiv, controlElements));
+    controlElements.appendChild(addCloseButton(wwt.clearNearestStack, active));
+    controlElements.appendChild(addHideShowButton(mainDiv, controlElements, active));
 
     parent.appendChild(mainDiv);
 
@@ -309,9 +336,9 @@ const wwtprops = (function () {
 
     addSpanLink(binfoDiv, 'clipboard',
 		'Copy stack name to clipboard',
-		() => wwt.copyToClipboard(stack.stackid));
+		active ? () => wwt.copyToClipboard(stack.stackid) : null);
     addSpanLink(binfoDiv, 'zoomto', 'Zoom to stack',
-		() => wwt.zoomToStack(stack.stackid));
+		active ? () => wwt.zoomToStack(stack.stackid) : null);
 
     mainDiv.appendChild(document.createElement('br'));
 
@@ -320,15 +347,11 @@ const wwtprops = (function () {
 
     // Location of stack
     //
-    nDiv.appendChild(addLocation(stack.pos[0], stack.pos[1]));
+    nDiv.appendChild(addLocation(stack.pos[0], stack.pos[1], active));
 
     // TEST SAMP: send stack event file
     //
-    if ((stackEventVersions !== null) &&
-	(stack.stackid in stackEventVersions.versions)) {
-      const stackVer = stackEventVersions.versions[stack.stackid];
-      console.log('FOUND STACK VERSION: [' + stackVer.toString() + ']');
-
+    if (stackVersion !== null) {
       const sampDiv = mkDiv('samp');
       nDiv.appendChild(sampDiv);
 
@@ -339,7 +362,7 @@ const wwtprops = (function () {
       sampImg.id = 'export-samp-stkevt3';
       sampImg.addEventListener('click',
 			       () => wwtsamp.sendStackEvt3(stack.stackid,
-							   stackVer));
+							   stackVersion));
       sampDiv.appendChild(sampImg);
 
       // TODO: tool-tip handling of this doesn't seem to work
@@ -365,9 +388,9 @@ const wwtprops = (function () {
 
       if (names.length === 1) {
 	addText(tgtDiv, 'Target name: ' + names[0] + ' ');
-	addNEDNameLink(tgtDiv, names[0]);
+	addNEDNameLink(tgtDiv, names[0], active);
 	addText(tgtDiv, ' ');
-	addSIMBADNameLink(tgtDiv, names[0]);
+	addSIMBADNameLink(tgtDiv, names[0], active);
       } else {
 	addText(tgtDiv, 'Target names: ');
 	let i;
@@ -376,9 +399,9 @@ const wwtprops = (function () {
 	    addText(tgtDiv, ', ');
 	  }
 	  addText(tgtDiv, names[i] + ' ');
-	  addNEDNameLink(tgtDiv, names[i]);
+	  addNEDNameLink(tgtDiv, names[i], active);
 	  addText(tgtDiv, ' ');
-	  addSIMBADNameLink(tgtDiv, names[i]);
+	  addSIMBADNameLink(tgtDiv, names[i], active);
 	}
       }
     }
@@ -467,8 +490,12 @@ const wwtprops = (function () {
 	      'startViewer.do?menuItem=details&obsid=' + obsid;
 
 	const a = document.createElement('a');
-	a.setAttribute('target', '_blank');
-	a.setAttribute('href', url);
+	if (active) {
+	  a.setAttribute('target', '_blank');
+	  a.setAttribute('href', url);
+	} else {
+	  a.setAttribute('href', '#');
+	}
 	addText(a, obsid.toString());
 	seenDiv.appendChild(a);
 
@@ -479,8 +506,44 @@ const wwtprops = (function () {
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
     //
+    const bcol = stack.status ? 'gold' : 'grey';
     parent.style.borderColor = bcol;
     parent.style.display = 'block';
+  }
+
+  // Add the info for this stack to the main screen.
+  //
+  function addStackInfo(stack, stackEventVersions) {
+
+    const parent = document.querySelector('#stackinfo');
+    if (parent === null) {
+      console.log('Internal error: no #stackinfo found');
+      return;
+    }
+
+    let stackVersion = null;
+    if ((stackEventVersions !== null) &&
+	(stack.stackid in stackEventVersions.versions)) {
+      stackVersion = stackEventVersions.versions[stack.stackid];
+    } else {
+      console.log('WARNING: No version found for stack=[' +
+		  stack.stackid + ']');
+    }
+
+    addStackInfoContents(parent, stack, stackVersion, true);
+  }
+
+  // Add the info for this stack to the help pane; this is an
+  // inactive pane.
+  //
+  function addStackInfoHelp(stack) {
+    const parent = document.querySelector('#stackinfoexample');
+    if (parent === null) {
+      console.log('Internal error: no #stackinfo found');
+      return;
+    }
+
+    addStackInfoContents(parent, stack, null, false);
   }
 
   // Hide the element, remove its children, and return it.
@@ -1078,6 +1141,7 @@ const wwtprops = (function () {
   }
 
   return { addStackInfo: addStackInfo,
+	   addStackInfoHelp: addStackInfoHelp,
 	   clearStackInfo: clearStackInfo,
 
 	   addSourceInfo: addSourceInfo,

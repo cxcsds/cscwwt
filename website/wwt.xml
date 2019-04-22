@@ -611,9 +611,10 @@ main#content div.wrap {
           at the <cxclink href="/cda/">Chandra Data Archive</cxclink>.
 	</p>
 
-	<img src="wwtimg/wwt-stack-info.png"
-	     alt="A window displays basic information about the selected stack, such as target names, number of Chandra observations in the stack, and links to the individual observations."
-	     />
+	<div class="infocontainer">
+	  <div id="stackinfoexample" class="stackinfopane">
+	  </div>
+	</div>
 
 	<h3>Selecting a source</h3>
 

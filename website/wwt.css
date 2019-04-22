@@ -163,10 +163,13 @@ output#dec_s { width: 2.5em; }
 div.stackinfopane , div.sourceinfopane {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid white;
+  padding: 0;
+}
+
+div#stackinfo , div#sourceinfo {
   cursor: move;
   display: none;
   overflow: auto;  /* scroll bar looks ugly when shown */
-  padding: 0;
   position: absolute;
   right: 2em;
   top: 3em;
@@ -186,6 +189,21 @@ div.sourceinfopane {
   max-height: 700px;
   max-width: 700px;
 }
+
+/*
+ * "Emulate" the WWT backgtound for the example stack/source info
+ * panes on the help page.
+ */
+div.infocontainer {
+  background: black;
+  /*
+   * at the moment the min max-width of source/stackinfopane + 2*2
+   * from the internal padding
+   */
+  max-width: 654px;
+  padding: 4px;
+}
+
 
 /* based on .stackinfopane/.sourceinfopane */
 /* Would like this centered, but bottom-left is okay to start with */
@@ -345,6 +363,14 @@ span.title {
 /* need to add extra vertical space in several cases */
 #about .closable , #credits .closable {
   margin-top: 1em;
+}
+
+/*
+ * need to ensure this doesn't happen to the close buttons
+ * for the "help" versions of the stack/source info panes
+ */
+#stackinfoexample .closable , #sourceinfoexample .closable {
+  margin-top: 0;
 }
 
 /* hideable and showable are assumed to be attached to this */

@@ -2472,6 +2472,22 @@ var wwt = (function () {
     delete tooltipTimers[name];
   }
 
+  /*
+   * Set up the help section: create the "panes" for the stack
+   * and source info examples. This relies on "fake" data
+   * structures (we could use inputStackData but would need to do
+   * this after the status field has been added or hack that), but
+   * this is not possible with the source info with the current
+   * architecture, since it will not have been read in. So use
+   * hand-built versions.
+   */
+  const stackExample =
+    { stackid: 'acisfJ0618409m705956_001',
+      nobs: 4,
+      pos: decodeStackName('acisfJ0618409m705956_001'),
+      description: 'The stack contains 4 ACIS observations',
+      status: true};
+
   // Call on page load, when WWT is to be initialized.
   //
   var resizeState = true;
@@ -2504,6 +2520,9 @@ var wwt = (function () {
     trace('recoded positions');
 
     inputStackData = obsdata;
+
+    // Add in the example stack and source panes to the help page
+    wwtprops.addStackInfoHelp(stackExample);
 
     // TODO: should this check that the name is not blank/empty?
     const tfind = host.querySelector('#targetFind');
