@@ -745,7 +745,7 @@ div.basicinfo + br {
 }
 
 /* this is for testing only */
-#chspane {
+#chs {
   background: rgba(255, 255, 255, 0.8);
   border: 2px solid white;
   display: none;

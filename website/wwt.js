@@ -1151,7 +1151,7 @@ var wwt = (function () {
     } else {
       hideCHS();
       removeAnnotationClicked();
-      const pane = document.querySelector('#chspane');
+      const pane = document.querySelector('#chs');
       pane.style.display = 'none';
     }
   }
@@ -1644,7 +1644,7 @@ var wwt = (function () {
     wwt.add_annotationClicked((obj, eventArgs) => {
       const id = eventArgs.get_id();
 
-      const pane = document.querySelector('#chspane');
+      const pane = document.querySelector('#chs');
       pane.innerHTML = 'CHS: ' + id;
       pane.style.display = 'inline-block';
 

@@ -383,7 +383,7 @@ main#content div.wrap {
       <div id="targetFailure"></div>
 
       <!-- HACK for CHS work; depends on what we want to show -->
-      <div id="chspane"></div>
+      <div id="chs"></div>
 
       <!-- <div class="pane" id="welcome"> -->
       <div id="welcome">
