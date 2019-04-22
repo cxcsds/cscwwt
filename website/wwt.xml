@@ -363,16 +363,16 @@ main#content div.wrap {
 
       </div>
       
-      <div id="stackinfo">
+      <div id="stackinfo" class="stackinfopane">
       </div>
 
-      <div id="sourceinfo">
+      <div id="sourceinfo" class="sourceinfopane">
       </div>
 
       <!-- used to identify "nearby" objects; an experiment -->
-      <div id="neareststackinfo">
+      <div id="neareststackinfo" class="neareststackinfopane">
       </div>
-      <div id="nearestsourceinfo">
+      <div id="nearestsourceinfo" class="nearestsourceinfopane">
       </div>
       
       <!-- Inform the user when the stack status has been updated -->
@@ -737,7 +737,7 @@ main#content div.wrap {
 	</p>
       </div>
 
-      <div id="settings">
+      <div id="settings" class="settingspane">
 	<div class="controlElements controlElementsShown">
           <span class="title">Settings:</span>
 	  <span class="closable" onclick="wwt.hideSettings();">
@@ -806,7 +806,7 @@ main#content div.wrap {
 	</div> <!-- .main -->
       </div> <!-- #settings -->
 
-      <div id="preselected">
+      <div id="preselected" class="preselectedpane">
 
 	<div class="controlElements controlElementsShown">
           <span class="title">Move to:</span>
@@ -1065,7 +1065,7 @@ main#content div.wrap {
       </div>
 
       <!-- plot areas -->
-      <div id="plot">
+      <div id="plot" class="plotpane">
 	<div class="controlElements controlElementsShown">
           <span class="title">Overview of the selected CSC 2.0 sources</span>
 	  <span class="closable" onclick="wwt.hideElement('plot');">
