@@ -532,12 +532,19 @@ const wwtprops = (function () {
     }
 
     let stackVersion = null;
-    if ((stackEventVersions !== null) &&
-	(stack.stackid in stackEventVersions.versions)) {
-      stackVersion = stackEventVersions.versions[stack.stackid];
-    } else {
-      console.log('WARNING: No version found for stack=[' +
-		  stack.stackid + ']');
+    if (stackEventVersions !== null) {
+      if (stack.stackid in stackEventVersions.versions) {
+	stackVersion = stackEventVersions.versions[stack.stackid];
+      } else {
+	stackVersion = stackEventVersions.default_version;
+      }
+      /* This should not happen, unless the code hasn't picked up the
+       * new JSON file, so there is no default_version field.
+       */
+      if (typeof stackVersion === 'undefined') {
+	console.log(`WARNING: stackVersion is undefined for ${stack.stackid}`);
+	stackVersion = null;
+      }
     }
 
     addStackInfoContents(parent, stack, stackVersion, true);
