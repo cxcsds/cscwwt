@@ -1291,15 +1291,17 @@ var wwt = (function () {
   }
 
   function toggleStacks() {
-    var func, label;
+    let func, label, selMode;
     if (stacksShown) {
       func = wwt.removeAnnotation;
       label = 'Show Stack Outlines';
       stacksShown = false;
+      selMode = 'nothing'; /* pick nothing as the best choice here */
     } else {
       func = wwt.addAnnotation;
       label = 'Hide Stack Outlines';
       stacksShown = true;
+      selMode = 'stack';
     }
 
     for (var stack in stackAnnotations) {
@@ -1314,6 +1316,24 @@ var wwt = (function () {
 
     // Only needed on 'hide stack' but do for both.
     clearNearestStack();
+
+    const sel = document.querySelector('#selectionmode');
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if (opt.value === 'stack') {
+	opt.disabled = !stacksShown;
+      }
+      if (opt.value === selMode) {
+	opt.selected = true;
+      }
+    }
+
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      console.log('INTERNAL ERROR: unable to change selection mode: ' + e);
+    }
   }
 
   // Note: this *can* be called before the sources are loaded
@@ -1330,9 +1350,6 @@ var wwt = (function () {
         'Show CSC2.0 Sources';
     }
 
-    document.querySelector('#selectionmode').innerHTML =
-      'Select nearest stack';
-
     const sampEl = document.querySelector('#export-samp');
     sampEl.classList.remove('requires-samp');
     sampEl.style.display = 'none';
@@ -1343,7 +1360,27 @@ var wwt = (function () {
     // wwtprops.clearSourceInfo();
     clearNearestSource();
 
-    clickMode = processStackSelection;
+    // What is the best option to switch to here:
+    // stack or nothing?
+    //
+    const switchTo = stacksShown ? 'stack' : 'nothing';
+
+    const sel = document.querySelector('#selectionmode');
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if (opt.value === 'source') {
+	opt.disabled = true;
+      } else if (opt.value === switchTo) {
+	opt.selected = true;
+      }
+    }
+
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      console.log('INTERNAL ERROR: unable to change selection mode: ' + e);
+    }
 
   }
 
@@ -1377,8 +1414,6 @@ var wwt = (function () {
     // could cache these
     document.querySelector('#togglesources').innerHTML =
       'Hide CSC2.0 Sources';
-    document.querySelector('#selectionmode').innerHTML =
-      'Select nearest source';
 
     // Let the "is SAMP enabled" check sort out the display of this
     document.querySelector('#export-samp')
@@ -1386,7 +1421,23 @@ var wwt = (function () {
 
     showBlockElement('plot-properties');
 
-    clickMode = processSourceSelection;
+    const sel = document.querySelector('#selectionmode');
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if (opt.value === 'source') {
+	opt.disabled = false;
+	opt.selected = true;
+	break;
+      }
+    }
+
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      console.log('INTERNAL ERROR: unable to change selection mode: ' + e);
+    }
+
   }
 
   var sourceCircle = undefined;
@@ -1759,11 +1810,19 @@ var wwt = (function () {
       clickMode = processStackSelection;
     } else if (mode === 'source') {
       clickMode = processSourceSelection
-    } else if (mode === 'region') {
+    } else if (mode === 'polygon') {
       clickMode = processRegionSelection;
+    } else if (mode === 'nothing') {
+      clickMode = null;
     } else {
       console.log(`Unknown selection mode: [${mode}]`);
     }
+  }
+
+  // Value from user
+  function setSelectionMode(mode) {
+    // for now just pass to switchSelectionMode
+    switchSelectionMode(mode);
   }
 
   // Return the angular separation between the two points
@@ -3629,6 +3688,7 @@ var wwt = (function () {
     hideElement: hideElement,
 
     setImage: setImage,
+    setSelectionMode: setSelectionMode,
     setTargetName: setTargetName,
 
     zoom: zoom,

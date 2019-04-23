@@ -108,7 +108,7 @@ div#WorldWideTelescopeControlHost {
 /* Since this is not a selectable element, use a different style to
  * the buttons
  */
-#numbers, #selectionmode {
+#numbers {
   background-color: rgba(153, 204, 102, 0.8); /* #99CC66 made transparent */
   border: 1px solid rgb(115, 172, 57); /* from http://www.colorhexa.com/99cc66 */
   color: rgba(0, 0, 0, 0.8);
@@ -118,7 +118,7 @@ div#WorldWideTelescopeControlHost {
   padding: 0.5em;
   text-align: center;
   vertical-align: middle;
-  width: 15.8em; /* this seems to make it the same width as explanation */
+  width: 15.8em; /* TODO: review this */
 }
 
 #location {
@@ -490,6 +490,13 @@ div.basicinfo + br {
   background-color: rgba(217, 83, 79, 0.4);  /* red-ish */
   border: 1px solid rgb(212, 63, 58);
   cursor: pointer;
+}
+
+/* handle disabled items in an input button; the default is
+ * graytext but this is hard to read */
+
+option:disabled {
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .settingspane .button {

@@ -189,9 +189,14 @@ main#content div.wrap {
 	  </p>
         </span>
         <br/>
-	<span id="selectionmode">
-	  Select nearest stack
-	</span>
+
+	<select id="selectionmode" name="selectionmode" class="button"
+		onchange="wwt.setSelectionMode(event.target.value);">
+	  <option value="stack">Select nearest stack</option>
+	  <option value="source" disabled="true">Select nearest source</option>
+	  <option value="polygon" disabled="true">Select sources</option>
+	  <option value="nothing">Disable left click</option>
+	</select>
 	<br/>
 
         <div id="userSelection" class="with-tooltip-static">
@@ -406,10 +411,10 @@ main#content div.wrap {
 	  observations included in the catalog - or, if the
 	  CSC 2.0 sources are displayed, then the properties of the
 	  nearest source will be shown
-	  (<span class="example-button">Load CSC 2.0 Sources</span>
+	  (<span class="example-button">Load CSC2.0 Sources</span>
 	  is used to load the data, after which it will turn
 	  into
-	  <span class="example-button">Show CSC 2.0 Sources</span>).
+	  <span class="example-button">Show CSC2.0 Sources</span>).
 	  A set of summary visualizations of the selected
 	  sources can be displayed with the
 	  <img alt="Plot source properties"
@@ -636,7 +641,7 @@ main#content div.wrap {
 	<h3>Selecting a source</h3>
 
 	<p>
-	  When the "Show CSC 2.0 Sources" button has been selected, the
+	  When the "Show CSC2.0 Sources" button has been selected, the
 	  selction mode - which is displayed in the second row of the
 	  menu bar on the left of the page - changes to
 	  "<span class="term">Select nearest source</span>" - and
@@ -699,7 +704,7 @@ main#content div.wrap {
 	<p>
 	  Since the data files can take some time to load, the
 	  source catalogs must be loaded - using the
-	  "<span class="term">Load CSC 2.0 Sources</span>"
+	  "<span class="term">Load CSC2.0 Sources</span>"
 	  or 
 	  "<span class="term">Load 3XMM-DR8 Sources</span>"
 	  buttons - before they can be shown. Once the data
@@ -708,14 +713,14 @@ main#content div.wrap {
 
 	<p>
 	  Selecting the
-	  "<span class="term">Show CSC 2.0 Sources</span>"
+	  "<span class="term">Show CSC2.0 Sources</span>"
 	  or 
 	  "<span class="term">Show 3XMM-DR8 Sources</span>"
 	  button will add circles, indicating the sources, close
 	  to the location on the screen (the full catalogs are
 	  <em>not</em> drawn as this would result in the display
 	  being unusable!). An orange circle is drawn to show the
-	  maximum radius used for sources (only for the CSC 2 sources).
+	  maximum radius used for sources (only for the CSC 2.0 sources).
 	</p>
 
 	<p>
@@ -725,7 +730,8 @@ main#content div.wrap {
 	  generally <em>significantly larger</em> than the positional
 	  error on the location; instead the values were chosen to
 	  make sure that the sources are visible!
-	  The Chandra locations are either from the CSC 2 catalog or -
+	  <!-- XXX TODO update the following sentence XXX -->
+	  The Chandra locations are either from the CSC 2.0 catalog or -
 	  for sources which have not been fully processed - from the
           <cxclink href="pre1/">November 2017 pre-release list</cxclink>.
 	  The values should therefore be taken as preliminary.
