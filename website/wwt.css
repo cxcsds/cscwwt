@@ -159,8 +159,14 @@ output#dec_d { width: 2em; }
 output#ra_s { width: 3.5em; }
 output#dec_s { width: 2.5em; }
 
-/* Should differentiate stack and source boxes */
-div.stackinfopane , div.sourceinfopane {
+/* Since the stack and source info boxes appear in the help area,
+ * do not apply all settings in this section, as some are left for
+ * div#xxxinfo or later rules. Examples include the cursor and
+ * position settings
+ */
+div.stackinfopane , div.sourceinfopane ,
+div.neareststackinfopane , div.nearestsourceinfopane ,
+div.polygoninfopane {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid white;
   padding: 0;
@@ -208,20 +214,28 @@ div.infocontainer {
 /* based on .stackinfopane/.sourceinfopane */
 /* Would like this centered, but bottom-left is okay to start with */
 div.neareststackinfopane , div.nearestsourceinfopane {
-  background: rgba(255, 255, 255, 0.6);
-  border: 2px solid white;
   bottom: 0.5em;
   cursor: move;
   display: none;
   left: 0.5em;
   overflow: auto;  /* scroll bar looks ugly when shown */
-  padding: 0;
+  position: absolute;
+  z-index: 200;
+}
+
+div.polygoninfopane {
+  bottom: 0.5em;
+  cursor: move;
+  display: none;
+  right: 0.5em;
+  overflow: auto;
   position: absolute;
   z-index: 200;
 }
 
 div.stackinfopane div.main , div.sourceinfopane div.main ,
-div.neareststackinfopane div.main , div.nearestsourceinfopane div.main {
+div.neareststackinfopane div.main , div.nearestsourceinfopane div.main ,
+div.polygoninfopane div.main {
   background: rgba(255, 255, 255, 1);
 }
 
@@ -305,6 +319,7 @@ img.close {
   margin-top: 0.5em;
 }
 
+/* TODO: review how many of these are still needed */
 .preselectedpane > img.close , .stackinfopane > img.close ,
 .settingspane > img.close , .sourceinfopane > img.close ,
 .neareststackinfopane > img.close , .nearestsourceinfopane > img.close ,

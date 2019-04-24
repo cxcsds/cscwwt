@@ -194,8 +194,8 @@ main#content div.wrap {
 		onchange="wwt.setSelectionMode(event.target.value);">
 	  <option value="stack">Select nearest stack</option>
 	  <option value="source" disabled="true">Select nearest source</option>
-	  <option value="polygon" disabled="true">Select sources</option>
-	  <option value="nothing">Disable left click</option>
+	  <option value="polygon" disabled="true">Lasso sources</option>
+	  <option value="nothing">No selection</option>
 	</select>
 	<br/>
 

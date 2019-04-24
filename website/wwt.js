@@ -1368,7 +1368,7 @@ var wwt = (function () {
     const sel = document.querySelector('#selectionmode');
     for (var idx = 0; idx < sel.options.length; idx++) {
       const opt = sel.options[idx];
-      if (opt.value === 'source') {
+      if ((opt.value === 'source') || (opt.value === 'polygon')) {
 	opt.disabled = true;
       } else if (opt.value === switchTo) {
 	opt.selected = true;
@@ -1427,7 +1427,8 @@ var wwt = (function () {
       if (opt.value === 'source') {
 	opt.disabled = false;
 	opt.selected = true;
-	break;
+      } else if (opt.value === 'polygon') {
+	opt.disabled = false;
       }
     }
 
@@ -1786,24 +1787,19 @@ var wwt = (function () {
   function handleUserClick(parent, pos) {
     if (clickMode === null) { return; }
 
+    // It is not obvious to me how to determine "how" the user
+    // initiated the click (e.g. was another key also pressed).
+    //
+
     // Unlike the WWT position, this returns degrees (not hours)
     let ra = pos.get_RA();
     if (ra < 0) { ra += 360.0; }
     const dec = pos.get_dec();
 
-    /***
-        console.log('User selected ' + ra.toString() + ' ' +
-        dec.toString());
-    ***/
-
     clickMode(ra, dec);
   }
 
   // Very experimental. Maybe even Extremely Experimental.
-  //
-  // This does *not* update the UI to recognize the new
-  // mode, nor does it add any checks (e.g. switch to source
-  // mode when no sources are displayed).
   //
   function switchSelectionMode(mode) {
     if (mode === 'stack') {
@@ -1812,6 +1808,10 @@ var wwt = (function () {
       clickMode = processSourceSelection
     } else if (mode === 'polygon') {
       clickMode = processRegionSelection;
+      const host = getHost();
+      if (host !== null) {
+	wwtprops.addPolygonPane(host);
+      }
     } else if (mode === 'nothing') {
       clickMode = null;
     } else {
@@ -1819,7 +1819,9 @@ var wwt = (function () {
     }
   }
 
-  // Value from user
+  // Value from user; it's not clear whether we need this *and*
+  // switchSelectionMode.
+  //
   function setSelectionMode(mode) {
     // for now just pass to switchSelectionMode
     switchSelectionMode(mode);
@@ -1981,26 +1983,75 @@ var wwt = (function () {
   // Can we lasso a region?
   //
   // TODO:
-  //   - how do we cancel a selection
-  //   - how do we end a selection
   //   - at each new point, remove any points within the polygon
   //     (i.e. any point that leads to an intersecting polygon)
-  //   - store the coordinates of the points
-  //   - add a marker at each vertex (help to see where the edges are)?
+  //   - could we "delete" a point?
   //
-  var regionPolygon = undefined;
+  var regionPolygon = null;
+  var regionMarker = null;
+  var regionCoords = [];
   function processRegionSelection(ra0, dec0) {
-    if (typeof regionPolygon === 'undefined') {
+    if (regionPolygon === null) {
       regionPolygon = wwt.createPolygon(true);
       regionPolygon.set_lineColor('white');
       regionPolygon.set_opacity(0.2);
 
       // This seems to work, even with no points
       wwt.addAnnotation(regionPolygon);
+
+      regionCoords = [];
     }
-    // wwt.removeAnnotation(regionPolygon);
+
     regionPolygon.addPoint(ra0, dec0);
-    // wwt.addAnnotation(regionPolygon);
+    regionCoords.push([ra0, dec0]);
+
+    // Add a marker indicating the start location; this could be
+    // deleted after the user adds a second point, but let's see
+    // how this works (as it also works to help the user see
+    // where there next point will be connected to).
+    //
+    if (regionCoords.length === 1) {
+      regionMarker = makeCircle(ra0, dec0, 5.0/3600, 1, 'white',
+				'white', true, 1);
+      wwt.addAnnotation(regionMarker);
+    }
+
+    // npts should be > 0 here
+    const npts = regionCoords.length;
+    const p = document.querySelector('#number-of-polygon-points');
+    if (p !== null) {
+      removeChildren(p);
+      let cts = 'You have selected ';
+      if (npts === 1) {
+	cts += 'one point.';
+      } else if (npts === 2) {
+	cts += 'two points.';
+      } else {
+	cts += npts.toString() + ' points.';
+      }
+      p.appendChild(document.createTextNode(cts));
+    }
+
+    // Can we disable the "finished" button?
+    if (npts > 2) {
+      const btn = document.querySelector('#finished-polygon');
+      if (btn !== null) {
+	btn.disabled = false;
+      }
+    }
+  }
+
+  function clearRegionSelection() {
+    regionCoords = [];
+    if (regionPolygon !== null) {
+      wwt.removeAnnotation(regionPolygon);
+      regionPolygon = null;
+    }
+
+    if (regionMarker !== null) {
+      wwt.removeAnnotation(regionMarker);
+      regionMarker = null;
+    }
   }
 
   // Highlight the selected source.
@@ -3645,6 +3696,7 @@ var wwt = (function () {
 
     clearNearestSource: clearNearestSource,
     clearNearestStack: clearNearestStack,
+    clearRegionSelection: clearRegionSelection,
 
     copyToClipboard: copyToClipboard,
 
@@ -3714,6 +3766,7 @@ var wwt = (function () {
     unclick: removeAnnotationClicked,
 
     switchSelectionMode: switchSelectionMode
+
   };
 
 })();
