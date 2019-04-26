@@ -1195,6 +1195,100 @@ const wwtprops = (function () {
     clearElement('#nearestsourceinfo');
   }
 
+  // What can we do for polygon source selection?
+  //
+  function addPolygonPane(host) {
+    let parent = host.querySelector('#polygoninfo');
+    if (parent === null) {
+      parent = mkDiv('polygoninfopane');
+      parent.id = 'polygoninfo';
+      host.appendChild(parent);
+    } else {
+      removeChildren(parent);
+    }
+
+    const controlElements = document.createElement('div');
+    controlElements.classList.add('controlElements');
+    controlElements.classList.add('controlElementsShown');
+
+    parent.appendChild(controlElements);
+
+    const name = document.createElement('span');
+    name.setAttribute('class', 'title');
+    addText(name, 'Source selection');
+    controlElements.appendChild(name);
+
+    const mainDiv = mkDiv('main');
+
+    const active = true;
+    controlElements.appendChild(addCloseButton(closePolygonPane, active));
+    controlElements.appendChild(addHideShowButton(mainDiv, controlElements, active));
+
+    parent.appendChild(mainDiv);
+
+    const pwarn = document.createElement('p');
+    addText(pwarn, '*** NOT FULLY FUNCTIONAL YET ***');
+    mainDiv.appendChild(pwarn);
+
+    const p = document.createElement('p');
+    addText(p, 'Add edges of a polygon by left-clicking.');
+    mainDiv.appendChild(p);
+
+    const pinfo = document.createElement('p');
+    pinfo.id = 'number-of-polygon-points';
+    addText(pinfo, 'No points selected!');
+    mainDiv.appendChild(pinfo);
+
+    const buttonDiv = mkDiv('button-container');
+    mainDiv.appendChild(buttonDiv);
+
+    const btn1 = document.createElement('button');
+    btn1.id = 'finished-polygon';
+    btn1.setAttribute('class', 'button');
+    btn1.setAttribute('type', 'button');
+    addText(btn1, 'End selection');
+    btn1.disabled = true;
+    btn1.addEventListener('click',
+			  () => alert('Not sure what to do yet'));
+    buttonDiv.appendChild(btn1);
+
+    const btn2 = document.createElement('button');
+    btn2.setAttribute('class', 'button');
+    btn2.setAttribute('type', 'button');
+    addText(btn2, 'Cancel');
+    btn2.addEventListener('click', closePolygonPane);
+    buttonDiv.appendChild(btn2);
+
+    parent.style.display = 'block';
+  }
+
+  // Note: this switches back to source selection; not 100% convinced
+  //       about this
+  function closePolygonPane() {
+    wwt.clearRegionSelection();
+
+    const el = document.querySelector('#polygoninfo');
+    if (el !== null) {
+      el.style.display = 'none';
+    }
+
+    const sel = document.querySelector('#selectionmode');
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if (opt.value === 'source') {
+	opt.selected = true;
+      }
+    }
+
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      console.log('INTERNAL ERROR: unable to change selection mode: ' + e);
+    }
+
+  }
+
   return { addStackInfo: addStackInfo,
 	   addStackInfoHelp: addStackInfoHelp,
 	   clearStackInfo: clearStackInfo,
@@ -1207,6 +1301,9 @@ const wwtprops = (function () {
 	   addNearestSourceTable: addNearestSourceTable,
 	   clearNearestStackTable: clearNearestStackTable,
 	   clearNearestSourceTable: clearNearestSourceTable,
+
+	   addPolygonPane: addPolygonPane,
+	   closePolygonPane: closePolygonPane,
 
 	   raToTokens: raToTokens,
 	   decToTokens: decToTokens,
