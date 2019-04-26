@@ -202,7 +202,6 @@ main#content div.wrap {
 	  <button type="submit"
                   id="targetFind"
                   disabled="true">
-	    <img src="wwtimg/glyphicons-28-search.png" alt="Search"/>
 	  </button>
 	  <p class="tooltip" id="targetName-tooltip">
 	    A name can be given (e.g.
@@ -920,7 +919,7 @@ main#content div.wrap {
           <extlink href="http://www.skymap.com/milkyway_cat.htm">Milky Way
             Outline Catalogs data</extlink>
           by Jose R. Vieira.
-          The configuration, plot, resize, reshare, search, and zoom
+          The configuration, plot, resize, reshare, and zoom
 	  icons are from the
 	  free version of the
           <extlink href="http://glyphicons.com/">GLYPHICONS.com</extlink>
