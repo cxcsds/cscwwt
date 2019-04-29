@@ -90,12 +90,12 @@ main#content div.wrap {
 
 	<div class="usercontrolpanel">
           <div id="resizeusercontrol">
-            <img width="18" height="18" id="smallify" alt="Hide"
-		 class="usercontrol"
-		 src="wwtimg/glyphicons-215-resize-small.png"/>
-            <img width="18" height="18" id="bigify" alt="Show"
-		 class="usercontrol"
-		 src="wwtimg/glyphicons-216-resize-full.png"/>
+            <img id="smallify" alt="Hide"
+		 class="usercontrol resize"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img id="bigify" alt="Show"
+		 class="usercontrol resize"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
 	    <p class="tooltip" id="smallify-tooltip">
 	      Hide this control panel.
 	    </p>
@@ -105,58 +105,55 @@ main#content div.wrap {
           </div>
 
 	  <div class="with-tooltip-static">
-            <img width="18" height="18" id="register-samp"
-		 class="usercontrol requires-samp"
+            <img id="register-samp"
+		 class="usercontrol requires-samp samp"
 		 alt="Register with a SAMP Hub"
 		 onclick="wwtsamp.register()"
-		 src="wwtimg/glyphicons-33-wifi-alt.png"/>
+		 src="wwtimg/fa/broadcast-tower.svg"/>
 	    <p class="tooltip" id="register-samp-tooltip">
 	      Register the WWT display with a SAMP Hub.
 	    </p>
 	  </div>
 
 
-	  <!-- currently unused
-               <img width="18" height="18" id="refreshify" alt="Refresh"
-               src="wwtimg/glyphicons-82-refresh.png"/>
-	  -->
-
 	  <!-- since floating right, order so that it reads
 	       zoom 0, zoom in, zoom out from left-to-right -->
 	  <div class="with-tooltip">
-            <img width="18" height="18" id="zoomout" alt="Zoom Out"
-		 class="usercontrol" src="wwtimg/glyphicons-238-zoom-out.png"/>
+            <img id="zoomout" alt="Zoom Out"
+		 class="usercontrol zoom" src="wwtimg/fa/minus-circle.svg"/>
 	    <p class="tooltip" id="zoomout-tooltip">
 	      Zoom out slightly.
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
-            <img width="18" height="18" id="zoomin" alt="Zoom In"
-		 class="usercontrol" src="wwtimg/glyphicons-237-zoom-in.png"/>
+            <img id="zoomin" alt="Zoom In"
+		 class="usercontrol zoom" src="wwtimg/fa/plus-circle.svg"/>
 	    <p class="tooltip" id="zoomin-tooltip">
 	      Zoom in slightly.
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
-            <img width="18" height="18" id="zoom0" alt="Zoom fully out"
-		 class="usercontrol" src="wwtimg/glyphicons-350-fullscreen.png"/>
+            <img id="zoom0" alt="Zoom fully out"
+		 class="usercontrol resize"
+		 src="wwtimg/fa/expand-arrows-alt.svg"/>
 	    <p class="tooltip" id="zoom0-tooltip">
 	      Zoom the display out as far as it will go!
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
             <img width="18" height="18" id="export-samp" alt="Send via SAMP"
-		 class="usercontrol"
-		 src="wwtimg/glyphicons-223-share.png"/>
+		 class="usercontrol share"
+		 src="wwtimg/fa/share.svg"/>
 	    <p class="tooltip" id="export-samp-tooltip">
 	      Send summary properties of shown CSC sources
 	      to virtual-observatory applications.
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
-            <img width="18" height="18" id="plot-properties"
+            <img id="plot-properties"
 		 alt="Plot source properties"
-		 class="usercontrol" src="wwtimg/glyphicons-42-charts.png"/>
+		 class="usercontrol plots"
+		 src="wwtimg/fa/chart-area.svg"/>
 	    <p class="tooltip" id="plot-properties-tooltip">
 	      Display summary plots of the properties of the
 	      shown CSC sources.
@@ -207,6 +204,9 @@ main#content div.wrap {
 	  <button type="submit"
                   id="targetFind"
                   disabled="true">
+	    <img src="wwtimg/fa/search.svg"
+		 alt="Magnifying glass"
+		 class="search"/>
 	  </button>
 	  <p class="tooltip" id="targetName-tooltip">
 	    A name can be given (e.g.
@@ -270,7 +270,7 @@ main#content div.wrap {
           </button>
 	  <button type="button" id="togglesourceprops"
 		  onclick="wwt.toggleFlexById('sourceprops')">
-	    <img src="wwtimg/glyphicons-140-adjust-alt.png"
+	    <img src="wwtimg/fa/cog.svg" class="config"
 		 alt="Change Properties"
 		 />
 	  </button>
@@ -296,7 +296,7 @@ main#content div.wrap {
 	  <!--
 	  <button type="button" id="togglesourceprops"
 		  onclick="wwt.toggleFlexById('sourceprops')">
-	    <img src="wwtimg/glyphicons-140-adjust-alt.png"
+	    <img src="wwtimg/fa/cog.svg" class="config"
 		 alt="Change Properties"
 		 />
 	  </button>
@@ -312,7 +312,7 @@ main#content div.wrap {
           </button>
 	  <button type="button" id="togglesource11props"
 		  onclick="wwt.toggleFlexById('source11props')">
-	    <img src="wwtimg/glyphicons-140-adjust-alt.png"
+	    <img src="wwtimg/fa/cog.svg" class="config"
 		 alt="Change Properties"
 		 />
 	  </button>
@@ -336,7 +336,7 @@ main#content div.wrap {
           </button>
 	  <button type="button" id="togglexmmsourceprops"
 		  onclick="wwt.toggleFlexById('xmmsourceprops')">
-	    <img src="wwtimg/glyphicons-140-adjust-alt.png"
+	    <img src="wwtimg/fa/cog.svg" class="config"
 		 alt="Change Properties"/>
 	  </button>
 	</div>
@@ -392,6 +392,8 @@ main#content div.wrap {
       <!-- <div class="pane" id="welcome"> -->
       <div id="welcome">
 	<span class="closable" onclick="wwt.hideElement('welcome');">
+          <img alt="Close icon (circle with times symbol in it)"
+	       class="close" src="wwtimg/fa/times-circle.svg"/>
 	</span>
 
         <h2>Please explore the Chandra Source Catalog</h2>
@@ -418,7 +420,8 @@ main#content div.wrap {
 	  A set of summary visualizations of the selected
 	  sources can be displayed with the
 	  <img alt="Plot source properties"
-	       class="example-icons" src="wwtimg/glyphicons-42-charts.png"/>
+	       class="example-icons plots"
+	       src="wwtimg/fa/chart-area.svg"/>
 	  icon, or their properties 
 	  sent to
 	  <extlink target="_blank"
@@ -428,7 +431,7 @@ main#content div.wrap {
 		   href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
 	  - with the
           <img alt="Send via SAMP"
-	       class="example-icons" src="wwtimg/glyphicons-223-share.png"/>
+	       class="example-icons" src="wwtimg/fa/share.svg"/>
 	  icon (if a
 	  <extlink target="_blank"
 		   href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
@@ -450,6 +453,8 @@ main#content div.wrap {
       
       <div class="pane" id="about">
 	<span class="closable" onclick="wwt.hideElement('about');">
+          <img alt="Close icon (circle with times symbol in it)"
+	       class="close" src="wwtimg/fa/times-circle.svg"/>
 	</span>
 
         <h2>About this page</h2>
@@ -516,10 +521,10 @@ main#content div.wrap {
 	<dl>
 	  <dt>
 	    <div class="iconarea">
-              <img width="18" height="18" alt="Hide"
-		   src="wwtimg/glyphicons-215-resize-small.png"/>
-              <img width="18" height="18" alt="Show"
-		   src="wwtimg/glyphicons-216-resize-full.png"/>
+              <img class="resize" alt="Hide"
+		   src="wwtimg/fa/chevron-circle-down.svg"/>
+              <img class="resize" alt="Show"
+		   src="wwtimg/fa/chevron-circle-up.svg"/>
 	    </div>
 	  </dt>
 
@@ -532,12 +537,12 @@ main#content div.wrap {
 
 	  <dt>
 	    <div class="iconarea">
-              <img width="18" height="18" alt="Zoom fully out"
-		   src="wwtimg/glyphicons-350-fullscreen.png"/>
-              <img width="18" height="18" alt="Zoom In"
-		   src="wwtimg/glyphicons-237-zoom-in.png"/>
-              <img width="18" height="18" alt="Zoom Out"
-		   src="wwtimg/glyphicons-238-zoom-out.png"/>
+              <img alt="Zoom fully out" class="resize"
+		   src="wwtimg/fa/expand-arrows-alt.svg"/>
+              <img alt="Zoom In" class="zoom"
+		   src="wwtimg/fa/plus-circle.svg"/>
+              <img alt="Zoom Out" class="zoom"
+		   src="wwtimg/fa/minus-circle.svg"/>
 	    </div>
 	  </dt>
 
@@ -552,9 +557,9 @@ main#content div.wrap {
 
 	  <dt>
 	    <div class="iconarea">
-              <img width="18" height="18"
+              <img class="plots"
 		   alt="Plot source properties"
-		   src="wwtimg/glyphicons-42-charts.png"/>
+		   src="wwtimg/fa/chart-area.svg"/>
 	    </div>
 	  </dt>
 
@@ -568,11 +573,11 @@ main#content div.wrap {
 
 	  <dt>
 	    <div class="iconarea">
-              <img width="18" height="18"
+              <img class="samp"
 		   alt="Register with a SAMP Hub"
-		   src="wwtimg/glyphicons-33-wifi-alt.png"/>
-              <img width="18" height="18" alt="Send via SAMP"
-		   src="wwtimg/glyphicons-223-share.png"/>
+		   src="wwtimg/fa/broadcast-tower.svg"/>
+              <img class="share" alt="Send via SAMP"
+		   src="wwtimg/fa/share.svg"/>
 	    </div>
 	  </dt>
 
@@ -766,8 +771,14 @@ main#content div.wrap {
 	<div class="controlElements controlElementsShown">
           <span class="title">Settings:</span>
 	  <span class="closable" onclick="wwt.hideSettings();">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="close" src="wwtimg/fa/times-circle.svg"/>
 	  </span>
 	  <span class="switchable hideable">
+            <img alt="Hide" class="resize"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img alt="Show" class="resize" style="display: none;"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
 	  </span>
 	</div>
 
@@ -836,6 +847,8 @@ main#content div.wrap {
 	<div class="controlElements controlElementsShown">
           <span class="title">Move to:</span>
 	  <span class="closable" onclick="wwt.hidePreSelected();">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="close" src="wwtimg/fa/times-circle.svg"/>
 	  </span>
 	  <!-- does not work well at the moment when re-displaying the pane
 	  <span class="switchable hideable">
@@ -903,6 +916,8 @@ main#content div.wrap {
       <div class="pane" id="credits">
 
 	<span class="closable" onclick="wwt.hideElement('credits');">
+          <img alt="Close icon (circle with times symbol in it)"
+	       class="close" src="wwtimg/fa/times-circle.svg"/>
 	</span>
 
         <h2>Credits</h2>
@@ -925,16 +940,12 @@ main#content div.wrap {
           <extlink href="http://www.skymap.com/milkyway_cat.htm">Milky Way
             Outline Catalogs data</extlink>
           by Jose R. Vieira.
-          The configuration, plot, resize, reshare, and zoom
-	  icons are from the
-	  free version of the
-          <extlink href="http://glyphicons.com/">GLYPHICONS.com</extlink>
-          library, made available (at the time they were downloaded) under the
-          <extlink href="http://creativecommons.org/licenses/by/3.0/">Creative
-          Commons Attribution 3.0 Unported (CC BY 3.0)</extlink> license.
-	  The "scissors" icon is from the
+	  The configuration, broadcast, close, plot, reshare, resize,
+	  scissors, search, and zoom icons are from the
 	  <extlink href="https://fontawesome.com/support#fa-opensource">free
-	  version of Font Awesome</extlink>.
+	  version of Font Awesome</extlink> (released under the
+	  <extlink href="https://creativecommons.org/licenses/by/4.0/">CC
+	  BY 4.0 License</extlink>).
 	  The animated "spinner" - seen when loading the source catalogs or
           looking up a name - is taken from the 
 	  <extlink href="http://tobiasahlin.com/spinkit/">SpinKit package</extlink>
@@ -1094,8 +1105,14 @@ main#content div.wrap {
 	<div class="controlElements controlElementsShown">
           <span class="title">Overview of the selected CSC 2.0 sources</span>
 	  <span class="closable" onclick="wwt.hideElement('plot');">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="close" src="wwtimg/fa/times-circle.svg"/>
 	  </span>
 	  <span class="switchable hideable">
+            <img alt="Hide" class="resize"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img alt="Show" class="resize" style="display: none;"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
 	  </span>
 	</div>
 

@@ -172,11 +172,13 @@ const wwtprops = (function () {
     return div;
   }
 
+  // width and height can be null
+  // className can contain spaces (i.e. multiple classes)
   function mkImg(alt, src, width, height, className) {
     const img = document.createElement('img');
     img.setAttribute('alt', alt);
-    img.setAttribute('width', width);
-    img.setAttribute('height', height);
+    if (width !== null) { img.setAttribute('width', width); }
+    if (height !== null) { img.setAttribute('height', height); }
     img.setAttribute('src', src);
     img.setAttribute('class', className);
     return img;
@@ -271,25 +273,41 @@ const wwtprops = (function () {
   function addHideShowButton(parent, titleBar, active) {
     if (typeof active === 'undefined') { active = true; }
 
-    const el = document.createElement('span');
-    el.classList.add('switchable');
-    el.classList.add('hideable');
+    const span = document.createElement('span');
+    span.classList.add('switchable');
+    span.classList.add('hideable');
+
+    const hideImg = mkImg('Hide', 'wwtimg/fa/chevron-circle-down.svg',
+			  null, null, 'resize');
+    const showImg = mkImg('Show', 'wwtimg/fa/chevron-circle-up.svg',
+			  null, null, 'resize');
+    showImg.style.display = 'none';
+    span.appendChild(hideImg);
+    span.appendChild(showImg);
+
     if (active) {
-      el.addEventListener('click', () => {
-	if (el.classList.contains('hideable')) {
+      span.addEventListener('click', () => {
+	if (span.classList.contains('hideable')) {
 	  parent.style.display = 'none';
-	  el.classList.remove('hideable');
-	  el.classList.add('showable');
+	  span.classList.remove('hideable');
+	  span.classList.add('showable');
 	  titleBar.classList.remove('controlElementsShown');
+
+	  hideImg.style.display = 'none';
+	  showImg.style.display = 'block';
 	} else {
 	  parent.style.display = 'block';
-	  el.classList.remove('showable');
-	  el.classList.add('hideable');
+	  span.classList.remove('showable');
+	  span.classList.add('hideable');
 	  titleBar.classList.add('controlElementsShown');
+
+	  hideImg.style.display = 'block';
+	  showImg.style.display = 'none';
 	}
       });
     }
-    return el;
+
+    return span;
   }
 
   // Add a button that closes the stack (this logic is handled by the
@@ -303,6 +321,12 @@ const wwtprops = (function () {
     if (active) {
       el.addEventListener('click', close);
     }
+
+    const img = mkImg('Close icon (circle with a times symbol in it)',
+		      'wwtimg/fa/times-circle.svg',
+		      null, null,
+		      'close');
+    el.appendChild(img);
     return el;
   }
 
@@ -366,9 +390,9 @@ const wwtprops = (function () {
       nDiv.appendChild(sampDiv);
 
       const sampImg = mkImg('Send via SAMP',
-			    'wwtimg/glyphicons-223-share.png',
-			    18, 18,
-			    'usercontrol requires-samp');
+			    'wwtimg/fa/share.svg',
+			    null, null,
+			    'usercontrol share requires-samp');
       sampImg.id = 'export-samp-stkevt3';
       sampImg.addEventListener('click',
 			       () => wwtsamp.sendStackEvt3(stack.stackid,
@@ -857,9 +881,9 @@ const wwtprops = (function () {
       nDiv.appendChild(sampDiv);
 
       const sampImg = mkImg('Send via SAMP',
-			    'wwtimg/glyphicons-223-share.png',
-			    18, 18,
-			    'usercontrol requires-samp');
+			    'wwtimg/fa/share.svg',
+			    null, null,
+			    'usercontrol share requires-samp');
       sampImg.id = 'export-samp-source';
       sampImg.addEventListener('click',
 			       () => wwtsamp.sendSourcePropertiesName(src.name));

@@ -2294,24 +2294,39 @@ var wwt = (function () {
 
     // Assume we can take the first one, since we have not given the
     // element an id.
+    //
+    // Assume that the resize images are in hide/show order.
+    //
     const control = find('div.controlElements');
     const main = find('div.main');
-    const el = find('span.switchable');
-    if ((control === null) || (main === null) || (el === null)) {
+    const span = find('span.switchable');
+    const imgs = span.querySelectorAll('img');
+    if ((control === null) || (main === null) || (span === null) ||
+        (imgs.length !== 2)) {
       return;
     }
 
-    el.addEventListener('click', () => {
-      if (el.classList.contains('hideable')) {
+    // We add hideable/showable classes to the span to indicate
+    // what the state is (rather than keep knowledge of the state
+    // in a javascript variable).
+    //
+    span.addEventListener('click', () => {
+      if (span.classList.contains('hideable')) {
 	main.style.display = 'none';
-	el.classList.remove('hideable');
-	el.classList.add('showable');
+	span.classList.remove('hideable');
+	span.classList.add('showable');
 	control.classList.remove('controlElementsShown');
+
+	imgs[0].style.display = 'none';
+	imgs[1].style.display = 'block';
       } else {
 	main.style.display = 'block';
-	el.classList.remove('showable');
-	el.classList.add('hideable');
+	span.classList.remove('showable');
+	span.classList.add('hideable');
 	control.classList.add('controlElementsShown');
+
+	imgs[1].style.display = 'none';
+	imgs[0].style.display = 'block';
       }
     });
   }
