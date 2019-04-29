@@ -15,7 +15,7 @@
 
     <metalist>
       <meta name="keywords" content="chandra, axaf, x-ray, astronomy, astrophysics, catalog, csc, wwt, visualization, samp, ivoa, virtual observatory"/>
-      <meta name="description" content="Explore the Chandra X-ray Observatory Source Catalog (CSC version 2) using the World Wide Telescope (WWT), to see sky coverage and source properties."/>
+      <meta name="description" content="Explore the Chandra X-ray Observatory Source Catalog (CSC version 2.0) using the World Wide Telescope (WWT), to see sky coverage and source properties."/>
     </metalist>
 
     <htmlscripts>
