@@ -134,8 +134,7 @@ span#coordinate {
 }
 
 /* should have a common class for these */
-img.clipboard , img.search , img.share , img.zoom , img.close , img.resize ,
-img.plots , img.samp , img.config {
+img.icon {
   cursor: pointer;
   height: 1em;
   width: 1em;
@@ -144,7 +143,7 @@ img.plots , img.samp , img.config {
 /* need to override image for sourcinfo block; do not need for stackinfo
  * but lets us add the padding rule to both
  */
-div.sourceinfopane div.main img.clipboard , div.stackinfopane div.main img.clipboard {
+div.sourceinfopane div.main img.icon , div.stackinfopane div.main img.icon {
   display: inline;
   padding-left: 0.5em;
 }
@@ -304,31 +303,6 @@ div.name {
   vertical-align: middle;
 }
 
-button.close {
-  float: right;
-  /* font-size: x-small; */
-  /* position: fixed; */
-  /* vertical-align: middle; */
-}
-
-img.close {
-  cursor: pointer;
-  float: right;
-}
-
-#about > img.close , #credits > img.close {
-  margin-top: 0.5em;
-}
-
-/* TODO: review how many of these are still needed */
-.preselectedpane > img.close , .stackinfopane > img.close ,
-.settingspane > img.close , .sourceinfopane > img.close ,
-.neareststackinfopane > img.close , .nearestsourceinfopane > img.close ,
-.plotpane > img.close {
-  margin-right: 0.4em;
-  margin-top: 0.4em;
-}
-
 /* location of window-UI-like elements */
 
 div.controlElements {
@@ -366,14 +340,7 @@ span.title {
 }
 
 .closable {
-/***
-  background: black;
-  border-radius: 50%;
-  cursor: pointer;
   float: right;
-  height: 1em;
-  width: 1em;
-***/
 }
 
 /* need to add extra vertical space in several cases */
@@ -407,14 +374,9 @@ tr.selected {
 }
 
 div.iconarea {
-  /* background-color: rgba(255, 255, 255, 0.6); */
   background-color: rgba(0, 0, 0, 0.3); /* adjusted to look like panel background */
   border: 1px solid #D9D9D9;
   border-radius: 0.5em;
-  /*** remove the float/clear behavior for now
-  clear: both;
-  float: left;
-  ***/
   margin-bottom: 0.5em;
   margin-right: 0.5em;
   padding: 0.3em;
@@ -1029,9 +991,4 @@ span.example-button {
   color: white;
   padding: 0 0.3em;
   font-size: smaller;
-}
-
-/* Try and fit the icons into text : this may not be needed anymore */
-img.example-icons {
-  height: 1em;
 }

@@ -91,10 +91,10 @@ main#content div.wrap {
 	<div class="usercontrolpanel">
           <div id="resizeusercontrol">
             <img id="smallify" alt="Hide"
-		 class="usercontrol resize"
+		 class="usercontrol icon"
 		 src="wwtimg/fa/chevron-circle-down.svg"/>
             <img id="bigify" alt="Show"
-		 class="usercontrol resize"
+		 class="usercontrol icon"
 		 src="wwtimg/fa/chevron-circle-up.svg"/>
 	    <p class="tooltip" id="smallify-tooltip">
 	      Hide this control panel.
@@ -106,7 +106,7 @@ main#content div.wrap {
 
 	  <div class="with-tooltip-static">
             <img id="register-samp"
-		 class="usercontrol requires-samp samp"
+		 class="usercontrol requires-samp icon"
 		 alt="Register with a SAMP Hub"
 		 onclick="wwtsamp.register()"
 		 src="wwtimg/fa/broadcast-tower.svg"/>
@@ -120,29 +120,29 @@ main#content div.wrap {
 	       zoom 0, zoom in, zoom out from left-to-right -->
 	  <div class="with-tooltip">
             <img id="zoomout" alt="Zoom Out"
-		 class="usercontrol zoom" src="wwtimg/fa/minus-circle.svg"/>
+		 class="usercontrol icon" src="wwtimg/fa/minus-circle.svg"/>
 	    <p class="tooltip" id="zoomout-tooltip">
 	      Zoom out slightly.
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
             <img id="zoomin" alt="Zoom In"
-		 class="usercontrol zoom" src="wwtimg/fa/plus-circle.svg"/>
+		 class="usercontrol icon" src="wwtimg/fa/plus-circle.svg"/>
 	    <p class="tooltip" id="zoomin-tooltip">
 	      Zoom in slightly.
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
             <img id="zoom0" alt="Zoom fully out"
-		 class="usercontrol resize"
+		 class="usercontrol icon"
 		 src="wwtimg/fa/expand-arrows-alt.svg"/>
 	    <p class="tooltip" id="zoom0-tooltip">
 	      Zoom the display out as far as it will go!
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
-            <img width="18" height="18" id="export-samp" alt="Send via SAMP"
-		 class="usercontrol share"
+            <img id="export-samp" alt="Send via SAMP"
+		 class="usercontrol icon"
 		 src="wwtimg/fa/share.svg"/>
 	    <p class="tooltip" id="export-samp-tooltip">
 	      Send summary properties of shown CSC sources
@@ -152,7 +152,7 @@ main#content div.wrap {
 	  <div class="with-tooltip">
             <img id="plot-properties"
 		 alt="Plot source properties"
-		 class="usercontrol plots"
+		 class="usercontrol icon"
 		 src="wwtimg/fa/chart-area.svg"/>
 	    <p class="tooltip" id="plot-properties-tooltip">
 	      Display summary plots of the properties of the
@@ -180,7 +180,7 @@ main#content div.wrap {
             id="dec_s">&nbsp;</output>"</span>
 	  <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
 	       alt="Scissors (cut to clipboard)"
-	       class="clipboard"/>
+	       class="icon"/>
 	  <p class="tooltip" id="coordinate-clip-tooltip">
 	    Copy RA and Dec to the clipboard, as decimal degrees.
 	  </p>
@@ -206,7 +206,7 @@ main#content div.wrap {
                   disabled="true">
 	    <img src="wwtimg/fa/search.svg"
 		 alt="Magnifying glass"
-		 class="search"/>
+		 class="icon"/>
 	  </button>
 	  <p class="tooltip" id="targetName-tooltip">
 	    A name can be given (e.g.
@@ -270,7 +270,7 @@ main#content div.wrap {
           </button>
 	  <button type="button" id="togglesourceprops"
 		  onclick="wwt.toggleFlexById('sourceprops')">
-	    <img src="wwtimg/fa/cog.svg" class="config"
+	    <img src="wwtimg/fa/cog.svg" class="icon"
 		 alt="Change Properties"
 		 />
 	  </button>
@@ -296,7 +296,7 @@ main#content div.wrap {
 	  <!--
 	  <button type="button" id="togglesourceprops"
 		  onclick="wwt.toggleFlexById('sourceprops')">
-	    <img src="wwtimg/fa/cog.svg" class="config"
+	    <img src="wwtimg/fa/cog.svg" class="icon"
 		 alt="Change Properties"
 		 />
 	  </button>
@@ -312,7 +312,7 @@ main#content div.wrap {
           </button>
 	  <button type="button" id="togglesource11props"
 		  onclick="wwt.toggleFlexById('source11props')">
-	    <img src="wwtimg/fa/cog.svg" class="config"
+	    <img src="wwtimg/fa/cog.svg" class="icon"
 		 alt="Change Properties"
 		 />
 	  </button>
@@ -336,7 +336,7 @@ main#content div.wrap {
           </button>
 	  <button type="button" id="togglexmmsourceprops"
 		  onclick="wwt.toggleFlexById('xmmsourceprops')">
-	    <img src="wwtimg/fa/cog.svg" class="config"
+	    <img src="wwtimg/fa/cog.svg" class="icon"
 		 alt="Change Properties"/>
 	  </button>
 	</div>
@@ -393,7 +393,7 @@ main#content div.wrap {
       <div id="welcome">
 	<span class="closable" onclick="wwt.hideElement('welcome');">
           <img alt="Close icon (circle with times symbol in it)"
-	       class="close" src="wwtimg/fa/times-circle.svg"/>
+	       class="icon" src="wwtimg/fa/times-circle.svg"/>
 	</span>
 
         <h2>Please explore the Chandra Source Catalog</h2>
@@ -420,7 +420,7 @@ main#content div.wrap {
 	  A set of summary visualizations of the selected
 	  sources can be displayed with the
 	  <img alt="Plot source properties"
-	       class="example-icons plots"
+	       class="example-icons icon"
 	       src="wwtimg/fa/chart-area.svg"/>
 	  icon, or their properties 
 	  sent to
@@ -431,7 +431,7 @@ main#content div.wrap {
 		   href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
 	  - with the
           <img alt="Send via SAMP"
-	       class="example-icons" src="wwtimg/fa/share.svg"/>
+	       class="example-icons icon" src="wwtimg/fa/share.svg"/>
 	  icon (if a
 	  <extlink target="_blank"
 		   href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
@@ -454,7 +454,7 @@ main#content div.wrap {
       <div class="pane" id="about">
 	<span class="closable" onclick="wwt.hideElement('about');">
           <img alt="Close icon (circle with times symbol in it)"
-	       class="close" src="wwtimg/fa/times-circle.svg"/>
+	       class="icon" src="wwtimg/fa/times-circle.svg"/>
 	</span>
 
         <h2>About this page</h2>
@@ -521,9 +521,9 @@ main#content div.wrap {
 	<dl>
 	  <dt>
 	    <div class="iconarea">
-              <img class="resize" alt="Hide"
+              <img class="icon" alt="Hide"
 		   src="wwtimg/fa/chevron-circle-down.svg"/>
-              <img class="resize" alt="Show"
+              <img class="icon" alt="Show"
 		   src="wwtimg/fa/chevron-circle-up.svg"/>
 	    </div>
 	  </dt>
@@ -537,11 +537,11 @@ main#content div.wrap {
 
 	  <dt>
 	    <div class="iconarea">
-              <img alt="Zoom fully out" class="resize"
+              <img alt="Zoom fully out" class="icon"
 		   src="wwtimg/fa/expand-arrows-alt.svg"/>
-              <img alt="Zoom In" class="zoom"
+              <img alt="Zoom In" class="icon"
 		   src="wwtimg/fa/plus-circle.svg"/>
-              <img alt="Zoom Out" class="zoom"
+              <img alt="Zoom Out" class="icon"
 		   src="wwtimg/fa/minus-circle.svg"/>
 	    </div>
 	  </dt>
@@ -557,7 +557,7 @@ main#content div.wrap {
 
 	  <dt>
 	    <div class="iconarea">
-              <img class="plots"
+              <img class="icon"
 		   alt="Plot source properties"
 		   src="wwtimg/fa/chart-area.svg"/>
 	    </div>
@@ -573,10 +573,10 @@ main#content div.wrap {
 
 	  <dt>
 	    <div class="iconarea">
-              <img class="samp"
+              <img class="icon"
 		   alt="Register with a SAMP Hub"
 		   src="wwtimg/fa/broadcast-tower.svg"/>
-              <img class="share" alt="Send via SAMP"
+              <img class="icon" alt="Send via SAMP"
 		   src="wwtimg/fa/share.svg"/>
 	    </div>
 	  </dt>
@@ -772,12 +772,12 @@ main#content div.wrap {
           <span class="title">Settings:</span>
 	  <span class="closable" onclick="wwt.hideSettings();">
             <img alt="Close icon (circle with times symbol in it)"
-		 class="close" src="wwtimg/fa/times-circle.svg"/>
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
 	  </span>
 	  <span class="switchable hideable">
-            <img alt="Hide" class="resize"
+            <img alt="Hide" class="icon"
 		 src="wwtimg/fa/chevron-circle-down.svg"/>
-            <img alt="Show" class="resize" style="display: none;"
+            <img alt="Show" class="icon" style="display: none;"
 		 src="wwtimg/fa/chevron-circle-up.svg"/>
 	  </span>
 	</div>
@@ -848,7 +848,7 @@ main#content div.wrap {
           <span class="title">Move to:</span>
 	  <span class="closable" onclick="wwt.hidePreSelected();">
             <img alt="Close icon (circle with times symbol in it)"
-		 class="close" src="wwtimg/fa/times-circle.svg"/>
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
 	  </span>
 	  <!-- does not work well at the moment when re-displaying the pane
 	  <span class="switchable hideable">
@@ -917,7 +917,7 @@ main#content div.wrap {
 
 	<span class="closable" onclick="wwt.hideElement('credits');">
           <img alt="Close icon (circle with times symbol in it)"
-	       class="close" src="wwtimg/fa/times-circle.svg"/>
+	       class="icon" src="wwtimg/fa/times-circle.svg"/>
 	</span>
 
         <h2>Credits</h2>
@@ -1106,12 +1106,12 @@ main#content div.wrap {
           <span class="title">Overview of the selected CSC 2.0 sources</span>
 	  <span class="closable" onclick="wwt.hideElement('plot');">
             <img alt="Close icon (circle with times symbol in it)"
-		 class="close" src="wwtimg/fa/times-circle.svg"/>
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
 	  </span>
 	  <span class="switchable hideable">
-            <img alt="Hide" class="resize"
+            <img alt="Hide" class="icon"
 		 src="wwtimg/fa/chevron-circle-down.svg"/>
-            <img alt="Show" class="resize" style="display: none;"
+            <img alt="Show" class="icon" style="display: none;"
 		 src="wwtimg/fa/chevron-circle-up.svg"/>
 	  </span>
 	</div>

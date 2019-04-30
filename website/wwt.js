@@ -3186,6 +3186,8 @@ var wwt = (function () {
     hideElement('targetFailure');
 
     const pane = document.querySelector('#targetSuccess');
+    removeChildren(pane);
+
     pane.innerHTML = msg;
     pane.style.display = 'inline-block';
 
@@ -3210,15 +3212,20 @@ var wwt = (function () {
 
     removeChildren(pane);
 
-    const button = document.createElement('button');
-    button.setAttribute('class', 'close');
-    button.addEventListener('click', () => {
+    const span = document.createElement('span');
+    span.setAttribute('class', 'closable');
+    span.addEventListener('click', () => {
       hideElement('targetFailure');
       setTargetName('');
     });
 
-    button.innerText = 'X';
-    pane.appendChild(button);
+    const img = document.createElement('img');
+    img.setAttribute('class', 'icon');
+    img.setAttribute('alt', 'Close icon (circle with a times symbol in it)');
+    img.setAttribute('src', 'wwtimg/fa/times-circle.svg');
+    span.appendChild(img);
+
+    pane.appendChild(span);
 
     const div = document.createElement('div');
     div.innerHTML = msg;

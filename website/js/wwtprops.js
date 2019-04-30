@@ -252,10 +252,10 @@ const wwtprops = (function () {
     addText(div, ' δ: ' + decToHTML(dec) + ' (ICRS)');
 
     // clipboard
-    const img = document.createElement('img');
-    img.setAttribute('alt', 'Scissors (cut to clipboard)');
-    img.setAttribute('class', 'clipboard');
-    img.setAttribute('src', 'wwtimg/fa/cut.svg');
+    const img = mkImg('Scissors (cut to clipboard)',
+		      'wwtimg/fa/cut.svg',
+		      null, null,
+		      'icon');
     const pos = ra + ' ' + dec;
     if (active) {
       img.addEventListener('click', () => wwt.copyToClipboard(pos));
@@ -278,9 +278,9 @@ const wwtprops = (function () {
     span.classList.add('hideable');
 
     const hideImg = mkImg('Hide', 'wwtimg/fa/chevron-circle-down.svg',
-			  null, null, 'resize');
+			  null, null, 'icon');
     const showImg = mkImg('Show', 'wwtimg/fa/chevron-circle-up.svg',
-			  null, null, 'resize');
+			  null, null, 'icon');
     showImg.style.display = 'none';
     span.appendChild(hideImg);
     span.appendChild(showImg);
@@ -325,7 +325,7 @@ const wwtprops = (function () {
     const img = mkImg('Close icon (circle with a times symbol in it)',
 		      'wwtimg/fa/times-circle.svg',
 		      null, null,
-		      'close');
+		      'icon');
     el.appendChild(img);
     return el;
   }
@@ -392,7 +392,7 @@ const wwtprops = (function () {
       const sampImg = mkImg('Send via SAMP',
 			    'wwtimg/fa/share.svg',
 			    null, null,
-			    'usercontrol share requires-samp');
+			    'usercontrol icon requires-samp');
       sampImg.id = 'export-samp-stkevt3';
       sampImg.addEventListener('click',
 			       () => wwtsamp.sendStackEvt3(stack.stackid,
@@ -883,7 +883,7 @@ const wwtprops = (function () {
       const sampImg = mkImg('Send via SAMP',
 			    'wwtimg/fa/share.svg',
 			    null, null,
-			    'usercontrol share requires-samp');
+			    'usercontrol icon requires-samp');
       sampImg.id = 'export-samp-source';
       sampImg.addEventListener('click',
 			       () => wwtsamp.sendSourcePropertiesName(src.name));
