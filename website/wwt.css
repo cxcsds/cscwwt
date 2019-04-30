@@ -606,7 +606,6 @@ option:disabled {
 
 #resizeusercontrol {
   cursor: pointer;
-  margin-right: 0.5em;
   position: relative;
 }
 
@@ -693,14 +692,7 @@ option:disabled {
   top: 1.5em;
 }
 
-#refreshify {
-  cursor: pointer;
-  display: none; /* not quite ready for prime time */
-  float: right;
-}
-
 #smallify {
-  /* margin-bottom: 0.4em; */
 }
 
 #bigify {

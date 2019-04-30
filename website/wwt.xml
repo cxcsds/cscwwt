@@ -141,15 +141,6 @@ main#content div.wrap {
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
-            <img id="export-samp" alt="Send via SAMP"
-		 class="usercontrol icon"
-		 src="wwtimg/fa/share.svg"/>
-	    <p class="tooltip" id="export-samp-tooltip">
-	      Send summary properties of shown CSC sources
-	      to virtual-observatory applications.
-	    </p>
-	  </div>
-	  <div class="with-tooltip">
             <img id="plot-properties"
 		 alt="Plot source properties"
 		 class="usercontrol icon"
@@ -159,8 +150,18 @@ main#content div.wrap {
 	      shown CSC sources.
 	    </p>
 	  </div>
+	  <div class="with-tooltip">
+            <img id="export-samp" alt="Send via SAMP"
+		 class="usercontrol icon"
+		 src="wwtimg/fa/share.svg"/>
+	    <p class="tooltip" id="export-samp-tooltip">
+	      Send summary properties of shown CSC sources
+	      to virtual-observatory applications.
+	    </p>
+	  </div>
 	</div>
 
+	<!-- the id name is not ideal here -->
         <div id="wwtuserbuttons">
 
 	<p class='title'>
