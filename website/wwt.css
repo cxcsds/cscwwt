@@ -239,16 +239,6 @@ div.polygoninfopane div.main {
   background: rgba(255, 255, 255, 1);
 }
 
-div.sourceinfopane div.main img {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-div.sourceinfopane div.main img#export-samp-source {
-  display: none;
-}
-
 .namelink {
   font-size: small;
   font-family: monospace;
@@ -266,7 +256,11 @@ div.coords {
   flex: auto;
 }
 
-.requires-samp {
+/* due to rule specificity, need some explicit matches and not just rely
+ * on .requires-samp.
+ */
+.requires-samp ,
+img#export-samp-source , img#export-samp-stkevt3 {
   display: none;
 }
 
