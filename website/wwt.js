@@ -2747,9 +2747,13 @@ var wwt = (function () {
       .addEventListener('click', resizeUserControl(host));
 
     // Zoom buttons
+    // - QUS: what should the "zoom in as much you can" go to
+    //        a source or a stack?
     //
     host.querySelector('#zoom0')
       .addEventListener('click', () => { zoom(60); });
+    host.querySelector('#zoomn')
+      .addEventListener('click', () => { zoom(0.2); });  // 0.6 is okay too
     host.querySelector('#zoomin')
       .addEventListener('click', () => { zoomIn(); });
     host.querySelector('#zoomout')
@@ -2771,6 +2775,7 @@ var wwt = (function () {
       .addEventListener('click', () => { wwtplots.plotSources(sourcePlotData); });
 
     addToolTipHandler('zoom0');
+    addToolTipHandler('zoomn');
     addToolTipHandler('zoomin');
     addToolTipHandler('zoomout');
     addToolTipHandler('export-samp');

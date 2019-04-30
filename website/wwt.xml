@@ -133,6 +133,15 @@ main#content div.wrap {
 	    </p>
 	  </div>
 	  <div class="with-tooltip">
+            <img id="zoomn" alt="Zoom fully in"
+		 class="usercontrol icon"
+		 src="wwtimg/fa/compress-arrows-alt.svg"/>
+	    <p class="tooltip" id="zoomn-tooltip">
+	      Zoom the display to a level appropriate for
+	      individual CSC sources.
+	    </p>
+	  </div>
+	  <div class="with-tooltip">
             <img id="zoom0" alt="Zoom fully out"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/expand-arrows-alt.svg"/>

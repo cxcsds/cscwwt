@@ -611,7 +611,7 @@ option:disabled {
   float: left;
 }
 
-#zoom0, #zoomin, #zoomout, #export-samp {
+#zoomn, #zoom0, #zoomin, #zoomout, #export-samp {
 }
 
 .usercontrol {
@@ -665,7 +665,7 @@ option:disabled {
   width: 8em;
 }
 
-#zoom0-tooltip {
+#zoom0-tooltip , #zoomn-tooltip {
   width: 18em;
 }
 
