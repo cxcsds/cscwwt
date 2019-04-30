@@ -133,17 +133,17 @@ div#WorldWideTelescopeControlHost {
 span#coordinate {
 }
 
-/* the images I've used are 18px so could use that, but leave as 1em for now*/
-img.clipboard {
-	cursor: pointer;
-	height: 1em;
-	width: 1em;
+/* should have a common class for these */
+img.icon {
+  cursor: pointer;
+  height: 1em;
+  width: 1em;
 }
 
 /* need to override image for sourcinfo block; do not need for stackinfo
  * but lets us add the padding rule to both
  */
-div.sourceinfopane div.main img.clipboard , div.stackinfopane div.main img.clipboard {
+div.sourceinfopane div.main img.icon , div.stackinfopane div.main img.icon {
   display: inline;
   padding-left: 0.5em;
 }
@@ -239,16 +239,6 @@ div.polygoninfopane div.main {
   background: rgba(255, 255, 255, 1);
 }
 
-div.sourceinfopane div.main img {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-div.sourceinfopane div.main img#export-samp-source {
-  display: none;
-}
-
 .namelink {
   font-size: small;
   font-family: monospace;
@@ -266,7 +256,11 @@ div.coords {
   flex: auto;
 }
 
-.requires-samp {
+/* due to rule specificity, need some explicit matches and not just rely
+ * on .requires-samp.
+ */
+.requires-samp ,
+img#export-samp-source , img#export-samp-stkevt3 {
   display: none;
 }
 
@@ -301,31 +295,6 @@ div.name {
   padding-right: 0.5em;
   padding-top: 0.2em;
   vertical-align: middle;
-}
-
-button.close {
-  float: right;
-  /* font-size: x-small; */
-  /* position: fixed; */
-  /* vertical-align: middle; */
-}
-
-img.close {
-  cursor: pointer;
-  float: right;
-}
-
-#about > img.close , #credits > img.close {
-  margin-top: 0.5em;
-}
-
-/* TODO: review how many of these are still needed */
-.preselectedpane > img.close , .stackinfopane > img.close ,
-.settingspane > img.close , .sourceinfopane > img.close ,
-.neareststackinfopane > img.close , .nearestsourceinfopane > img.close ,
-.plotpane > img.close {
-  margin-right: 0.4em;
-  margin-top: 0.4em;
 }
 
 /* location of window-UI-like elements */
@@ -364,15 +333,8 @@ span.title {
   padding-top: 0.2em;
 }
 
-/* CSS window "widgets" */
-
 .closable {
-    background: black;
-    border-radius: 50%;
-    cursor: pointer;
-    float: right;
-    height: 1em;
-    width: 1em;
+  float: right;
 }
 
 /* need to add extra vertical space in several cases */
@@ -388,28 +350,16 @@ span.title {
   margin-top: 0;
 }
 
-/* hideable and showable are assumed to be attached to this */
 .switchable {
-    cursor: pointer;
-    float: right;
-    height: 0;
-    margin-left: 0.5em;
-    margin-right: 0.2em;
-    width: 0;
+  float: right;
+  margin-left: 0.5em;
+  margin-right: 0.2em;
 }
 
-/* down-pointing triangle */
 .hideable {
-    border-left: 0.5em solid transparent;
-    border-right: 0.5em solid transparent;
-    border-top: 1em solid black;
 }
 
-/* up-pointing triangle */
 .showable {
-    border-bottom: 1em solid black;
-    border-left: 0.5em solid transparent;
-    border-right: 0.5em solid transparent;
 }
 
 
@@ -418,14 +368,9 @@ tr.selected {
 }
 
 div.iconarea {
-  /* background-color: rgba(255, 255, 255, 0.6); */
   background-color: rgba(0, 0, 0, 0.3); /* adjusted to look like panel background */
   border: 1px solid #D9D9D9;
   border-radius: 0.5em;
-  /*** remove the float/clear behavior for now
-  clear: both;
-  float: left;
-  ***/
   margin-bottom: 0.5em;
   margin-right: 0.5em;
   padding: 0.3em;
@@ -655,7 +600,6 @@ option:disabled {
 
 #resizeusercontrol {
   cursor: pointer;
-  margin-right: 0.5em;
   position: relative;
 }
 
@@ -667,7 +611,7 @@ option:disabled {
   float: left;
 }
 
-#zoom0, #zoomin, #zoomout, #export-samp {
+#zoomn, #zoom0, #zoomin, #zoomout, #export-samp {
 }
 
 .usercontrol {
@@ -721,7 +665,7 @@ option:disabled {
   width: 8em;
 }
 
-#zoom0-tooltip {
+#zoom0-tooltip , #zoomn-tooltip {
   width: 18em;
 }
 
@@ -742,14 +686,7 @@ option:disabled {
   top: 1.5em;
 }
 
-#refreshify {
-  cursor: pointer;
-  display: none; /* not quite ready for prime time */
-  float: right;
-}
-
 #smallify {
-  /* margin-bottom: 0.4em; */
 }
 
 #bigify {
@@ -771,47 +708,6 @@ option:disabled {
 #targetName {
   margin-top: 0.4em;
   width: 14em;
-}
-
-/*
- * replace image by CSS
- * taken from https://css-tricks.com/the-shapes-of-css/
- *
- * do we need rules for when it is disabled?
- */
-#targetFind {
-  font-size: 1.5em;
-  display: inline-block;
-  /* width: 0.4em; */
-  box-sizing: content-box;
-  height: 0.4em;
-  border: 0.1em solid rgba(0, 0, 0, 1);
-  position: relative;
-  border-radius: 0.35em;
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
-#targetFind::before {
-  content: "";
-  display: inline-block;
-  position: absolute;
-  right: -0.25em;
-  bottom: -0.1em;
-  border-width: 0;
-  background: rgba(0, 0, 0, 1);
-  width: 0.35em;
-  height: 0.08em;
-  transform: rotate(45deg);
-}
-
-#targetFind:disabled {
-  background-color: rgba(255, 255, 255, 0.5);
-  border-color: rgba(0, 0, 0, 0.5);
-}
-
-/* can I target the :before rule for when :disabled is added ? */
-#targetFind:disabled::before {
-  background: rgba(0, 0, 0, 0.5);
 }
 
 /* temporary information panes */
@@ -1081,9 +977,4 @@ span.example-button {
   color: white;
   padding: 0 0.3em;
   font-size: smaller;
-}
-
-/* Try and fit the glyphicons into text */
-img.example-icons {
-  height: 1em;
 }

@@ -2294,24 +2294,39 @@ var wwt = (function () {
 
     // Assume we can take the first one, since we have not given the
     // element an id.
+    //
+    // Assume that the resize images are in hide/show order.
+    //
     const control = find('div.controlElements');
     const main = find('div.main');
-    const el = find('span.switchable');
-    if ((control === null) || (main === null) || (el === null)) {
+    const span = find('span.switchable');
+    const imgs = span.querySelectorAll('img');
+    if ((control === null) || (main === null) || (span === null) ||
+        (imgs.length !== 2)) {
       return;
     }
 
-    el.addEventListener('click', () => {
-      if (el.classList.contains('hideable')) {
+    // We add hideable/showable classes to the span to indicate
+    // what the state is (rather than keep knowledge of the state
+    // in a javascript variable).
+    //
+    span.addEventListener('click', () => {
+      if (span.classList.contains('hideable')) {
 	main.style.display = 'none';
-	el.classList.remove('hideable');
-	el.classList.add('showable');
+	span.classList.remove('hideable');
+	span.classList.add('showable');
 	control.classList.remove('controlElementsShown');
+
+	imgs[0].style.display = 'none';
+	imgs[1].style.display = 'block';
       } else {
 	main.style.display = 'block';
-	el.classList.remove('showable');
-	el.classList.add('hideable');
+	span.classList.remove('showable');
+	span.classList.add('hideable');
 	control.classList.add('controlElementsShown');
+
+	imgs[1].style.display = 'none';
+	imgs[0].style.display = 'block';
       }
     });
   }
@@ -2624,9 +2639,53 @@ var wwt = (function () {
      -0.4716,
      0.203];
 
-  // Call on page load, when WWT is to be initialized.
+  // Returns the handler function used to hide or show the
+  // resizeusercontrol area.
   //
-  var resizeState = true;
+
+  function resizeUserControl(host) {
+    var resizeState = true;
+
+    return () => {
+      const user = host.querySelector('#wwtusercontrol');
+      const panel = user.querySelector('div.usercontrolpanel');
+
+      const smallify = panel.querySelector('#smallify');
+      const bigify = panel.querySelector('#bigify');
+
+      // I had placed the space on #wwtuserbuttons
+      // but this seemed to get "lost" on redisplay,
+      // so go with this awful approach of adding
+      // or removing it from the img as needed.
+      //
+      var state;
+      if (resizeState) {
+        smallify.style.display = 'none';
+        bigify.style.display = 'block';
+        state = 'none';
+        // smallify.style.marginBottom = '0em';
+      } else {
+        smallify.style.display = 'block';
+        bigify.style.display = 'none';
+        state = 'block';
+        // smallify.style.marginBottom = '0.4em';
+      }
+
+      // Do we hide or display the main content?
+      user.querySelector('#wwtuserbuttons').style.display = state;
+
+      // What about the other control icons: I had originally kept
+      // them displayed, but I now want to hide them if the main
+      // content is hidden.
+      //
+      const sel = 'div.with-tooltip , div.with-tooltip-static';
+      panel.querySelectorAll(sel).forEach(div => {
+	div.style.display = state;
+      });
+
+      resizeState = !resizeState;
+    };
+  }
 
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
@@ -2685,37 +2744,16 @@ var wwt = (function () {
 
     // resize the user-control area
     host.querySelector('#resizeusercontrol')
-      .addEventListener('click',
-                        function() {
-                          const smallify = host.querySelector('#smallify');
-                          const bigify = host.querySelector('#bigify');
-
-                          // I had placed the space on #wwtuserbuttons
-                          // but this seemed to get "lost" on redisplay,
-                          // so go with this awful approach of adding
-                          // or removing it from the img as needed.
-                          //
-                          var state;
-                          if (resizeState) {
-                            smallify.style.display = 'none';
-                            bigify.style.display = 'block';
-                            state = 'none';
-                            smallify.style.marginBottom = '0em';
-                          } else {
-                            smallify.style.display = 'block';
-                            bigify.style.display = 'none';
-                            state = 'block';
-                            smallify.style.marginBottom = '0.4em';
-                          }
-
-                          host.querySelector('#wwtuserbuttons').style.display = state;
-                          resizeState = !resizeState;
-                        });
+      .addEventListener('click', resizeUserControl(host));
 
     // Zoom buttons
+    // - QUS: what should the "zoom in as much you can" go to
+    //        a source or a stack?
     //
     host.querySelector('#zoom0')
       .addEventListener('click', () => { zoom(60); });
+    host.querySelector('#zoomn')
+      .addEventListener('click', () => { zoom(0.2); });  // 0.6 is okay too
     host.querySelector('#zoomin')
       .addEventListener('click', () => { zoomIn(); });
     host.querySelector('#zoomout')
@@ -2737,6 +2775,7 @@ var wwt = (function () {
       .addEventListener('click', () => { wwtplots.plotSources(sourcePlotData); });
 
     addToolTipHandler('zoom0');
+    addToolTipHandler('zoomn');
     addToolTipHandler('zoomin');
     addToolTipHandler('zoomout');
     addToolTipHandler('export-samp');
@@ -3171,6 +3210,8 @@ var wwt = (function () {
     hideElement('targetFailure');
 
     const pane = document.querySelector('#targetSuccess');
+    removeChildren(pane);
+
     pane.innerHTML = msg;
     pane.style.display = 'inline-block';
 
@@ -3195,15 +3236,20 @@ var wwt = (function () {
 
     removeChildren(pane);
 
-    const button = document.createElement('button');
-    button.setAttribute('class', 'close');
-    button.addEventListener('click', () => {
+    const span = document.createElement('span');
+    span.setAttribute('class', 'closable');
+    span.addEventListener('click', () => {
       hideElement('targetFailure');
       setTargetName('');
     });
 
-    button.innerText = 'X';
-    pane.appendChild(button);
+    const img = document.createElement('img');
+    img.setAttribute('class', 'icon');
+    img.setAttribute('alt', 'Close icon (circle with a times symbol in it)');
+    img.setAttribute('src', 'wwtimg/fa/times-circle.svg');
+    span.appendChild(img);
+
+    pane.appendChild(span);
 
     const div = document.createElement('div');
     div.innerHTML = msg;
