@@ -1124,18 +1124,25 @@ const wwtprops = (function () {
     trow.appendChild(mkElem('th', 'Source'));
     trow.appendChild(mkElem('th', 'Separation'));
     trow.appendChild(mkElem('th', 'Significance'));
+
+    trow.appendChild(mkElem('th', 'NACIS, NHRC'));
+
     trow.appendChild(mkElem('th', 'Variable'));
     trow.appendChild(mkElem('th', 'flux band'));
     trow.appendChild(mkElem('th', 'flux'));
+    trow.appendChild(mkElem('th', 'nH'));  // use subscript?
 
     const tbody = document.createElement('tbody');
     tbl.appendChild(tbody);
 
     const nameIdx = indexes.name;
     const sigIdx = indexes.significance;
+    const nacisIdx = indexes.nacis;
+    const nhrcIdx = indexes.nhrc;
     const varIdx = indexes.variability;
     const bandIdx = indexes.fluxband;
     const fluxIdx = indexes.flux;
+    const nhIdx = indexes.nh;
 
     const mkSrcLink = (src, ra, dec, ann, origColor) => {
       const name = src[nameIdx];
@@ -1201,10 +1208,14 @@ const wwtprops = (function () {
       trow.appendChild(mkElem('td', mkSep(sep)));
       trow.appendChild(mkElem('td', src[sigIdx]));
 
+      trow.appendChild(mkElem('td',
+			      src[nacisIdx] + "," + src[nhrcIdx]));
+
       trow.appendChild(mkButton(src[varIdx]));
 
       trow.appendChild(mkElem('td', src[bandIdx]));
       trow.appendChild(mkElem('td', src[fluxIdx]));
+      trow.appendChild(mkElem('td', src[nhIdx]));
     });
 
     pane.style.display = 'block';

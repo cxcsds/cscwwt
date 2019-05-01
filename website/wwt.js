@@ -2134,7 +2134,10 @@ var wwt = (function () {
       significance: getCSCColIdx('significance'),
       variability: getCSCColIdx('var_flag'),
       fluxband: getCSCColIdx('fluxband'),
-      flux: getCSCColIdx('flux')
+      flux: getCSCColIdx('flux'),
+      nacis: getCSCColIdx('acis_num'),
+      nhrc: getCSCColIdx('hrc_num'),
+      nh: getCSCColIdx('nh_gal'),
     };
 
     wwtprops.addNearestSourceTable(indexes, neighbors);
