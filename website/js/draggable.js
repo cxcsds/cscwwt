@@ -24,6 +24,10 @@ const draggable = (function () {
 
   // Initialize the drag, storing the start location.
   //
+  // Note that if the user starts the drag on an icon then they
+  // can try to drag that. We could identify the parent element
+  // but instead cancel the drag.
+  //
   function startDrag(event) {
 
     // If this comes from any range sliders then cancel the panel
@@ -39,6 +43,13 @@ const draggable = (function () {
     ***/
 
     const toMove = event.target.id;
+    if ((typeof toMove === 'undefined') || (toMove === null) ||
+	(toMove === '')) {
+      console.log('WARNING: startDrag unable to identify ' +
+		  `target=${toMove}`);
+      event.preventDefault();
+      return false;
+    }
 
     // Store the current location of the event, so we can find out
     // how much we have shifted by.
@@ -50,8 +61,7 @@ const draggable = (function () {
     // The id is not supposed to contain a space, and we don't, so
     // it's okay to separate with spaces.
     //
-    const store = evpos.x.toString() + ' ' + evpos.y.toString() +
-      ' ' + toMove;
+    const store = `${evpos.x} ${evpos.y} ${toMove}`;
     event.dataTransfer.setData('text/plain', store);
 
     // All we want to do is change the position of the div,
@@ -85,7 +95,7 @@ const draggable = (function () {
       const store = event.dataTransfer.getData('text/plain');
       const tags = store.split(' ');
       if (tags.length !== 3) {
-        console.log('Invalid store data from drop: [' + store + ']');
+        console.log(`Invalid store data from drop: [${store}]`);
         event.preventDefault();  // is this sensible here?
         return;
       }
@@ -98,6 +108,15 @@ const draggable = (function () {
       x0 = obj.x;
       y0 = obj.y;
       toMove = obj.id;
+    }
+
+    // I have seen toMove be empty, so trap this case (assume it is
+    // something it is safe to just drop out of).
+    //
+    if ((typeof toMove === 'undefined') || (toMove === null) ||
+	(toMove === '')) {
+      console.log(`NOTE: in stopDrag found toMove=${toMove}`);
+      return;
     }
 
     const evpos = getEventPos(event);
