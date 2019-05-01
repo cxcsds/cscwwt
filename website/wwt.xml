@@ -200,6 +200,7 @@ main#content div.wrap {
 	<select id="selectionmode" name="selectionmode" class="button"
 		onchange="wwt.setSelectionMode(event.target.value);">
 	  <option value="stack">Select nearest stack</option>
+	  <option value="point">Move to point</option>
 	  <option value="source" disabled="true">Select nearest source</option>
 	  <option value="polygon" disabled="true">Lasso sources</option>
 	  <option value="nothing">No selection</option>

@@ -1775,6 +1775,7 @@ var wwt = (function () {
 
   // A user click can mean
   //   - do nothing
+  //   - move to point
   //   - find the nearest stack / polygon
   //       processStackSelection
   //   - find the nearest source / circle
@@ -1812,6 +1813,8 @@ var wwt = (function () {
       if (host !== null) {
 	wwtprops.addPolygonPane(host);
       }
+    } else if (mode === 'point') {
+      clickMode = processPointSelection;
     } else if (mode === 'nothing') {
       clickMode = null;
     } else {
@@ -1825,6 +1828,13 @@ var wwt = (function () {
   function setSelectionMode(mode) {
     // for now just pass to switchSelectionMode
     switchSelectionMode(mode);
+  }
+
+  // Move to ra,dec with the current zoom
+  //
+  function processPointSelection(ra, dec) {
+    const fov = wwt.get_fov();
+    wwt.gotoRaDecZoom(ra, dec, fov, false);
   }
 
   // Return the angular separation between the two points
