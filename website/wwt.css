@@ -121,7 +121,7 @@ div#WorldWideTelescopeControlHost {
   width: 15.8em; /* TODO: review this */
 }
 
-#location {
+.userinfo {
   background-color: rgba(153, 204, 102, 0.8); /* #99CC66 made transparent */
   border: 1px solid rgb(115, 172, 57); /* from http://www.colorhexa.com/99cc66 */
   color: rgba(0, 0, 0, 0.8);
@@ -130,7 +130,9 @@ div#WorldWideTelescopeControlHost {
   vertical-align: middle;
 }
 
-span#coordinate {
+.userinfo p {
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 /* should have a common class for these */

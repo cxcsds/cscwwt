@@ -126,7 +126,7 @@ var wwt = (function () {
   //
   // It is expected that this is called periodically.
   //
-  // This also updates the #coordinate display.
+  // This also updates the #coordinate and #fov displays.
   //
   function storeDisplayState() {
     const ra = 15.0 * wwt.getRA();
@@ -161,6 +161,24 @@ var wwt = (function () {
     coord.querySelector('#dec_d').innerText = dms.sign + i2(dms.degrees);
     coord.querySelector('#dec_m').innerText = i2(dms.minutes);
     coord.querySelector('#dec_s').innerText = f2(dms.seconds, 1);
+
+    const fovspan = document.querySelector('#fov');
+    if (fovspan === null) {
+      console.log('ERROR: unable to find #fov');
+      return;
+    }
+    removeChildren(fovspan);
+
+    let fovtxt = '';
+    if (fov >= 1.0) {
+      fovtxt = fov.toFixed(1) + ' degrees';
+    } else if (fov >= (1.0 / 60.0)) {
+      fovtxt = (fov * 60.0).toFixed(1) + ' arcminutes';
+    } else {
+      fovtxt = (fov * 3600.0).toFixed(1) + ' arcseconds';
+    }
+    fovspan.appendChild(document.createTextNode(fovtxt));
+
   }
 
   // integer to "xx" format string, 0-padded to the left.
@@ -2236,7 +2254,7 @@ var wwt = (function () {
   // This will go to the user's last-selected position or, if not set,
   // a default value given by ra0, dec0.
   //
-  // The chois of last-selected position currently is based on an
+  // The choice of last-selected position currently is based on an
   // explicit move by the UI (that is, user has selected a stack or
   // source and said "go there", or given a name/location). It
   // does *not* include random scrolling (this could be done but

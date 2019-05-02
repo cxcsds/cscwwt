@@ -96,12 +96,12 @@ main#content div.wrap {
             <img id="bigify" alt="Show"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/chevron-circle-up.svg"/>
-	    <p class="tooltip" id="smallify-tooltip">
+	    <div class="tooltip" id="smallify-tooltip">
 	      Hide this control panel.
-	    </p>
-	    <p class="tooltip" id="bigify-tooltip">
+	    </div>
+	    <div class="tooltip" id="bigify-tooltip">
 	      Display the control panel.
-	    </p>
+	    </div>
           </div>
 
 	  <div class="with-tooltip-static">
@@ -110,9 +110,9 @@ main#content div.wrap {
 		 alt="Register with a SAMP Hub"
 		 onclick="wwtsamp.register()"
 		 src="wwtimg/fa/broadcast-tower.svg"/>
-	    <p class="tooltip" id="register-samp-tooltip">
+	    <div class="tooltip" id="register-samp-tooltip">
 	      Register the WWT display with a SAMP Hub.
-	    </p>
+	    </div>
 	  </div>
 
 
@@ -121,52 +121,52 @@ main#content div.wrap {
 	  <div class="with-tooltip">
             <img id="zoomout" alt="Zoom Out"
 		 class="usercontrol icon" src="wwtimg/fa/minus-circle.svg"/>
-	    <p class="tooltip" id="zoomout-tooltip">
+	    <div class="tooltip" id="zoomout-tooltip">
 	      Zoom out slightly.
-	    </p>
+	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="zoomin" alt="Zoom In"
 		 class="usercontrol icon" src="wwtimg/fa/plus-circle.svg"/>
-	    <p class="tooltip" id="zoomin-tooltip">
+	    <div class="tooltip" id="zoomin-tooltip">
 	      Zoom in slightly.
-	    </p>
+	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="zoomn" alt="Zoom fully in"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/compress-arrows-alt.svg"/>
-	    <p class="tooltip" id="zoomn-tooltip">
+	    <div class="tooltip" id="zoomn-tooltip">
 	      Zoom the display to a level appropriate for
 	      individual CSC sources.
-	    </p>
+	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="zoom0" alt="Zoom fully out"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/expand-arrows-alt.svg"/>
-	    <p class="tooltip" id="zoom0-tooltip">
+	    <div class="tooltip" id="zoom0-tooltip">
 	      Zoom the display out as far as it will go!
-	    </p>
+	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="plot-properties"
 		 alt="Plot source properties"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/chart-area.svg"/>
-	    <p class="tooltip" id="plot-properties-tooltip">
+	    <div class="tooltip" id="plot-properties-tooltip">
 	      Display summary plots of the properties of the
 	      shown CSC sources.
-	    </p>
+	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="export-samp" alt="Send via SAMP"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/share.svg"/>
-	    <p class="tooltip" id="export-samp-tooltip">
+	    <div class="tooltip" id="export-samp-tooltip">
 	      Send summary properties of shown CSC sources
 	      to virtual-observatory applications.
-	    </p>
+	    </div>
 	  </div>
 	</div>
 
@@ -180,32 +180,23 @@ main#content div.wrap {
 	<img src="imgs/csc_logo_navbar.gif" width="120" height="55"
 	     id="csclogo" alt="The CSC logo"/>
 
-        <span id="location">
-          <span id="coordinate"><output class="pos"
+        <div class="userinfo" id="location">
+          <p id="coordinate"><output class="pos"
             id="ra_h">&nbsp;</output><sup>h</sup><output class="pos"
             id="ra_m">&nbsp;</output><sup>m</sup><output class="pos"
             id="ra_s">&nbsp;</output><sup>s</sup><output class="pos"
             id="dec_d">&nbsp;</output>°<output class="pos"
             id="dec_m">&nbsp;</output>'<output class="pos"
-            id="dec_s">&nbsp;</output>"</span>
+            id="dec_s">&nbsp;</output>"
 	  <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
 	       alt="Scissors (cut to clipboard)"
 	       class="icon"/>
-	  <p class="tooltip" id="coordinate-clip-tooltip">
-	    Copy RA and Dec to the clipboard, as decimal degrees.
 	  </p>
-        </span>
-        <br/>
-
-	<select id="selectionmode" name="selectionmode" class="button"
-		onchange="wwt.setSelectionMode(event.target.value);">
-	  <option value="stack">Select nearest stack</option>
-	  <option value="point">Move to point</option>
-	  <option value="source" disabled="true">Select nearest source</option>
-	  <option value="polygon" disabled="true">Lasso sources</option>
-	  <option value="nothing">No selection</option>
-	</select>
-	<br/>
+	  <div class="tooltip" id="coordinate-clip-tooltip">
+	    Copy RA and Dec to the clipboard, as decimal degrees.
+	  </div>
+	  <p>FOV: <span id="fov"></span></p>
+	</div>
 
         <div id="userSelection" class="with-tooltip-static">
           <label for="targetName">
@@ -219,7 +210,7 @@ main#content div.wrap {
 		 alt="Magnifying glass"
 		 class="icon"/>
 	  </button>
-	  <p class="tooltip" id="targetName-tooltip">
+	  <div class="tooltip" id="targetName-tooltip">
 	    A name can be given (e.g.
 	    <span class="term">Orion cluster</span>
 	    or
@@ -235,11 +226,23 @@ main#content div.wrap {
 	    <span class="term">13h 43m 22s, -14d 50m 12s</span>;
 	    and
 	    <span class="term">13h 43m 22s, -14d 50' 12"</span>.
-	  </p>
-	  <p class="tooltip" id="targetFind-tooltip">
+	  </div>
+	  <div class="tooltip" id="targetFind-tooltip">
 	    Find and move to the given location.
-	  </p>
+	  </div>
         </div>
+
+	<select id="selectionmode" name="selectionmode" class="button"
+		onchange="wwt.setSelectionMode(event.target.value);">
+	  <option value="stack">Select nearest stack</option>
+	  <option value="point">Move to point</option>
+	  <option value="source" disabled="true">Select nearest source</option>
+	  <option value="polygon" disabled="true">Lasso sources</option>
+	  <option value="nothing">No selection</option>
+	</select>
+
+	<br/> <!-- eek is this needed to to get sizes right? -->
+
         <select id="imagechoice" name="imagechoice" class="button"
                 onchange="wwt.setImage(event.target.value);">
           <option value="planck-cmb">CMB (Planck)</option>
@@ -252,14 +255,19 @@ main#content div.wrap {
           <option value="rass">X-ray (RASS)</option>
           <option value="fermi3">Gamma (Fermi)</option>
         </select>
+
+
+	<!-- looks like the current design requires at least one
+	     button to be surrounded by br's to ensure
+	     buttons aren't too wide; accidental complexity -->
 	<br/>
-	
         <button class="button"
                 type="button" id="togglepreselected"
                 onclick="wwt.togglePreSelected(event);">
           Show Popular Places
         </button>
-	<br/> <!-- QUS: do we need this br? -->
+
+	<br/>
 
         <button class="button"
                 type="button" id="togglesettings"
