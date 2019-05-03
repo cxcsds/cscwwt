@@ -22,15 +22,19 @@ var wwt = (function () {
   //     - CHS sources
   //     - CSC 1.1 sources
   //     - "select sources with a polygon"
-  //     - show nearest stacks  [toggle is currently unimplemented]
-  //     - show nearest sources [toggle is currently unimplemented]
+  //     - show nearest stacks
+  //     - show nearest sources
   //
   // const displayCHS = false;
   // const displayCSC11 = false;
   // const displayPolygonSelect = false;
+  // const displayNearestStacks = false;
+  // const displayNearestSources = false;
   const displayCHS = true;
   const displayCSC11 = true;
   const displayPolygonSelect = true;
+  const displayNearestStacks = true;
+  const displayNearestSources = true;
 
   var wwt;
 
@@ -1989,6 +1993,8 @@ var wwt = (function () {
 
     if (seps.length === 0) { return; }
 
+    if (!displayNearestStacks) { return; }
+
     // Apply a tolerance to identify if we have "close" stacks. This
     // is a heuristic. Note that we are actually interested in stacks
     // close to each other, so we repeart the nearest search but
@@ -2147,6 +2153,8 @@ var wwt = (function () {
     //
     selectSource(ann0.ann);
     wwtprops.addSourceInfo(getCSCObject(src0));
+
+    if (!displayNearestSources) { return; }
 
     // Need to repeat the search since we now want the separations
     // relative to the selected source. We could loop over shown
