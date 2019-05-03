@@ -170,222 +170,227 @@ main#content div.wrap {
 	  </div>
 	</div>
 
+	<div>
+	  <p class='title'>
+	    <cxclink href="/csc2/">Chandra Source Catalog 2.0</cxclink>
+	  </p>
+
+	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
+	       id="csclogo" alt="The CSC logo"/>
+	</div>
+
 	<!-- the id name is not ideal here -->
         <div id="wwtuserbuttons">
 
-	<p class='title'>
-	  <cxclink href="/csc2/">Chandra Source Catalog 2.0</cxclink>
-	</p>
-
-	<img src="imgs/csc_logo_navbar.gif" width="120" height="55"
-	     id="csclogo" alt="The CSC logo"/>
-
-        <div class="userinfo" id="location">
-          <p id="coordinate"><output class="pos"
-            id="ra_h">&nbsp;</output><sup>h</sup><output class="pos"
-            id="ra_m">&nbsp;</output><sup>m</sup><output class="pos"
-            id="ra_s">&nbsp;</output><sup>s</sup><output class="pos"
-            id="dec_d">&nbsp;</output>°<output class="pos"
-            id="dec_m">&nbsp;</output>'<output class="pos"
-            id="dec_s">&nbsp;</output>"
-	  <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
-	       alt="Scissors (cut to clipboard)"
-	       class="icon"/>
-	  </p>
-	  <div class="tooltip" id="coordinate-clip-tooltip">
-	    Copy RA and Dec to the clipboard, as decimal degrees.
-	  </div>
-	  <p>FOV: <span id="fov"></span></p>
-	</div>
-
-        <div id="userSelection" class="with-tooltip-static">
-          <label for="targetName">
-	    <input type="text" id="targetName"
-                   placeholder="Enter Name or Position..."/>
-	  </label>
-	  <button type="submit"
-                  id="targetFind"
-                  disabled="true">
-	    <img src="wwtimg/fa/search.svg"
-		 alt="Magnifying glass"
+          <div class="userinfo" id="location">
+            <p id="coordinate"><output class="pos"
+				       id="ra_h">&nbsp;</output><sup>h</sup><output class="pos"
+				       id="ra_m">&nbsp;</output><sup>m</sup><output class="pos"
+				       id="ra_s">&nbsp;</output><sup>s</sup><output class="pos"
+				       id="dec_d">&nbsp;</output>°<output class="pos"
+				       id="dec_m">&nbsp;</output>'<output class="pos"
+				       id="dec_s">&nbsp;</output>"
+	    <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
+		 alt="Scissors (cut to clipboard)"
 		 class="icon"/>
-	  </button>
-	  <div class="tooltip" id="targetName-tooltip">
-	    A name can be given (e.g.
-	    <span class="term">Orion cluster</span>
-	    or
-	    <span class="term">M31</span>), which is passed to the
-	    LookUp service, or a location can be given using a comma
-	    to separate the Right Ascension from the Declination.
-	    In this latter case
-	    a limited variety of coordinate formats are supported,
-	    including 
-	    <span class="term">205.842, -14.8367</span>;
-	    <span class="term">13 43 22, -14 50 12</span>;
-	    <span class="term">13:43:22, -14:50:12</span>;
-	    <span class="term">13h 43m 22s, -14d 50m 12s</span>;
-	    and
-	    <span class="term">13h 43m 22s, -14d 50' 12"</span>.
+	    </p>
+	    <div class="tooltip" id="coordinate-clip-tooltip">
+	      Copy RA and Dec to the clipboard, as decimal degrees.
+	    </div>
+	    <p>FOV: <span id="fov"></span></p>
 	  </div>
-	  <div class="tooltip" id="targetFind-tooltip">
-	    Find and move to the given location.
+
+          <div id="userSelection" class="with-tooltip-static">
+            <label for="targetName">
+	      <input type="text" id="targetName"
+                     placeholder="Enter Name or Position..."/>
+	    </label>
+	    <button type="submit"
+                    id="targetFind"
+                    disabled="true">
+	      <img src="wwtimg/fa/search.svg"
+		   alt="Magnifying glass"
+		   class="icon"/>
+	    </button>
+	    <div class="tooltip" id="targetName-tooltip">
+	      A name can be given (e.g.
+	      <span class="term">Orion cluster</span>
+	      or
+	      <span class="term">M31</span>), which is passed to the
+	      LookUp service, or a location can be given using a comma
+	      to separate the Right Ascension from the Declination.
+	      In this latter case
+	      a limited variety of coordinate formats are supported,
+	      including 
+	      <span class="term">205.842, -14.8367</span>;
+	      <span class="term">13 43 22, -14 50 12</span>;
+	      <span class="term">13:43:22, -14:50:12</span>;
+	      <span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	      and
+	      <span class="term">13h 43m 22s, -14d 50' 12"</span>.
+	    </div>
+	    <div class="tooltip" id="targetFind-tooltip">
+	      Find and move to the given location.
+	    </div>
+          </div>
+
+	  <div>
+	    <select id="selectionmode" name="selectionmode" class="button"
+		    onchange="wwt.setSelectionMode(event.target.value);">
+	      <option value="stack">Select nearest stack</option>
+	      <option value="point">Move to point</option>
+	      <option value="source" disabled="true">Select nearest source</option>
+	      <option value="polygon" disabled="true">Lasso sources</option>
+	      <option value="nothing">No selection</option>
+	    </select>
 	  </div>
-        </div>
 
-	<select id="selectionmode" name="selectionmode" class="button"
-		onchange="wwt.setSelectionMode(event.target.value);">
-	  <option value="stack">Select nearest stack</option>
-	  <option value="point">Move to point</option>
-	  <option value="source" disabled="true">Select nearest source</option>
-	  <option value="polygon" disabled="true">Lasso sources</option>
-	  <option value="nothing">No selection</option>
-	</select>
+	  <div>
+            <select id="imagechoice" name="imagechoice" class="button"
+                    onchange="wwt.setImage(event.target.value);">
+              <option value="planck-cmb">CMB (Planck)</option>
+              <option value="planck-dust-gas">Dust and Gas (Planck)</option>
+              <option value="vlss">Radio (VLSS; δ≳-40°)</option>
+              <option value="wise">IR (WISE)</option>
+              <option value="2mass-image">IR (2MASS)</option>
+              <option value="dss" selected="1">Optical (DSS)</option>
+              <option value="halpha">Optical (Hα)</option>
+              <option value="rass">X-ray (RASS)</option>
+              <option value="fermi3">Gamma (Fermi)</option>
+            </select>
+	  </div>
 
-	<br/> <!-- eek is this needed to to get sizes right? -->
+	  <div>
+            <button class="button"
+                    type="button" id="togglepreselected"
+                    onclick="wwt.togglePreSelected(event);">
+              Show Popular Places
+            </button>
+	  </div>
 
-        <select id="imagechoice" name="imagechoice" class="button"
-                onchange="wwt.setImage(event.target.value);">
-          <option value="planck-cmb">CMB (Planck)</option>
-          <option value="planck-dust-gas">Dust and Gas (Planck)</option>
-          <option value="vlss">Radio (VLSS; δ≳-40°)</option>
-          <option value="wise">IR (WISE)</option>
-          <option value="2mass-image">IR (2MASS)</option>
-          <option value="dss" selected="1">Optical (DSS)</option>
-          <option value="halpha">Optical (Hα)</option>
-          <option value="rass">X-ray (RASS)</option>
-          <option value="fermi3">Gamma (Fermi)</option>
-        </select>
+	  <div>
+            <button class="button"
+                    type="button" id="togglesettings"
+                    onclick="wwt.toggleSettings(event);">
+              Show Settings
+            </button>
+	  </div>
 
+	  <div>
+            <button class="button"
+                    type="button" id="togglestacks"
+                    onclick="wwt.toggleStacks()">
+              Hide Stack Outlines
+            </button>
+	  </div>
 
-	<!-- looks like the current design requires at least one
-	     button to be surrounded by br's to ensure
-	     buttons aren't too wide; accidental complexity -->
-	<br/>
-        <button class="button"
-                type="button" id="togglepreselected"
-                onclick="wwt.togglePreSelected(event);">
-          Show Popular Places
-        </button>
+	  <div id="sourcebar">
+            <button class="button"
+                    type="button" id="togglesources"
+                    onclick="wwt.toggleSources()">
+              Load CSC2.0 Sources
+            </button>
+	    <button type="button" id="togglesourceprops"
+		    onclick="wwt.toggleFlexById('sourceprops')">
+	      <img src="wwtimg/fa/cog.svg" class="icon"
+		   alt="Change Properties"
+		   />
+	    </button>
+	  </div>
 
-	<br/>
+	  <div id="sourceprops">
+	    <button class="jscolor" id="sourcecolor"
+		    data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
+		    />
+	    <input type="range" id="sourcesize" min="1" max="30"
+		   value="5" class="sourcesize"
+		   onchange="wwt.changeSourceSize(this.valueAsNumber)"
+		   />
+	  </div>
 
-        <button class="button"
-                type="button" id="togglesettings"
-                onclick="wwt.toggleSettings(event);">
-          Show Settings
-        </button>
-	
-        <button class="button"
-                type="button" id="togglestacks"
-                onclick="wwt.toggleStacks()">
-          Hide Stack Outlines
-        </button>
+	  <!-- how to style CHS -->
+	  <div id="chsbar">
+            <button class="button"
+                    type="button" id="togglechs"
+                    onclick="wwt.toggleCHS()">
+              Load CHS Sources
+            </button>
+	    <!--
+		<button type="button" id="togglesourceprops"
+		onclick="wwt.toggleFlexById('sourceprops')">
+		<img src="wwtimg/fa/cog.svg" class="icon"
+		alt="Change Properties"
+		/>
+		</button>
+	    -->
+	  </div>
 
-	<div id="sourcebar">
-          <button class="button"
-                  type="button" id="togglesources"
-                  onclick="wwt.toggleSources()">
-            Load CSC2.0 Sources
-          </button>
-	  <button type="button" id="togglesourceprops"
-		  onclick="wwt.toggleFlexById('sourceprops')">
-	    <img src="wwtimg/fa/cog.svg" class="icon"
-		 alt="Change Properties"
-		 />
-	  </button>
-	</div>
+	  <div id="source11bar">
+            <button class="button"
+                    type="button" id="togglesources11"
+                    onclick="wwt.toggleSources11()">
+              Load CSC1.1 Sources
+            </button>
+	    <button type="button" id="togglesource11props"
+		    onclick="wwt.toggleFlexById('source11props')">
+	      <img src="wwtimg/fa/cog.svg" class="icon"
+		   alt="Change Properties"
+		   />
+	    </button>
+	  </div>
 
-	<div id="sourceprops">
-	  <button class="jscolor" id="sourcecolor"
-		  data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
-		  />
-	  <input type="range" id="sourcesize" min="1" max="30"
-		 value="5" class="sourcesize"
-		 onchange="wwt.changeSourceSize(this.valueAsNumber)"
-		 />
-	</div>
+	  <div id="source11props">
+	    <button class="jscolor" id="source11color"
+		    data-jscolor="{onFineChange:'wwt.colorUpdate11(this)',valueElement:null,closable:true,value:'ffa500'}"
+		    />
+	    <input type="range" id="source11size" min="1" max="30"
+		   value="7" class="source11size"
+		   onchange="wwt.changeSource11Size(this.valueAsNumber)"
+		   />
+	  </div>
 
-	<!-- how to style CHS -->
-	<div id="chsbar">
-          <button class="button"
-                  type="button" id="togglechs"
-                  onclick="wwt.toggleCHS()">
-            Load CHS Sources
-          </button>
-	  <!--
-	  <button type="button" id="togglesourceprops"
-		  onclick="wwt.toggleFlexById('sourceprops')">
-	    <img src="wwtimg/fa/cog.svg" class="icon"
-		 alt="Change Properties"
-		 />
-	  </button>
-	  -->
-	</div>
+	  <div id="xmmsourcebar">
+            <button class="button"
+                    type="button" id="toggleXMMsources"
+                    onclick="wwt.toggleXMMSources()">
+              Load XMM Sources
+            </button>
+	    <button type="button" id="togglexmmsourceprops"
+		    onclick="wwt.toggleFlexById('xmmsourceprops')">
+	      <img src="wwtimg/fa/cog.svg" class="icon"
+		   alt="Change Properties"/>
+	    </button>
+	  </div>
 
+	  <div id="xmmsourceprops">
+	    <button class="jscolor" id="xmmsourcecolor"
+		    data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
+		    />
+	    <input type="range" id="xmmsourcesize" min="1" max="30"
+		   value="10" class="sourcesize"
+		   onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
+		   />
+	  </div>
 
-	<div id="source11bar">
-          <button class="button"
-                  type="button" id="togglesources11"
-                  onclick="wwt.toggleSources11()">
-            Load CSC1.1 Sources
-          </button>
-	  <button type="button" id="togglesource11props"
-		  onclick="wwt.toggleFlexById('source11props')">
-	    <img src="wwtimg/fa/cog.svg" class="icon"
-		 alt="Change Properties"
-		 />
-	  </button>
-	</div>
+	  <div>
+	    <!-- only visible if the browser supports the option -->
+            <button class="button"
+                    type="button" id="togglefullscreen">
+              Full screen
+            </button>
+	  </div>
 
-	<div id="source11props">
-	  <button class="jscolor" id="source11color"
-		  data-jscolor="{onFineChange:'wwt.colorUpdate11(this)',valueElement:null,closable:true,value:'ffa500'}"
-		  />
-	  <input type="range" id="source11size" min="1" max="30"
-		 value="7" class="source11size"
-		 onchange="wwt.changeSource11Size(this.valueAsNumber)"
-		 />
-	</div>
+	  <div>
+            <button class="button"
+                    type="button" id="showabout"
+                    onclick="wwt.showBlockElement('about')">Help</button>
+            <button class="button"
+                    type="button" id="showcredits"
+                    onclick="wwt.showBlockElement('credits')">Credits</button>
+	  </div>
+	</div> <!-- id=wwtuserbuttons -->
+      </div> <!-- id=wwtusercontrol -->
 
-	<div id="xmmsourcebar">
-          <button class="button"
-                  type="button" id="toggleXMMsources"
-                  onclick="wwt.toggleXMMSources()">
-            Load XMM Sources
-          </button>
-	  <button type="button" id="togglexmmsourceprops"
-		  onclick="wwt.toggleFlexById('xmmsourceprops')">
-	    <img src="wwtimg/fa/cog.svg" class="icon"
-		 alt="Change Properties"/>
-	  </button>
-	</div>
-
-	<div id="xmmsourceprops">
-	  <button class="jscolor" id="xmmsourcecolor"
-		  data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
-		  />
-	  <input type="range" id="xmmsourcesize" min="1" max="30"
-		 value="10" class="sourcesize"
-		 onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
-		 />
-	</div>
-
-	<!-- only visible if the browser supports the option -->
-        <button class="button"
-                type="button" id="togglefullscreen">
-          Full screen
-        </button>
-
-        <button class="button"
-                type="button" id="showabout"
-                onclick="wwt.showBlockElement('about')">Help</button>
-        <button class="button"
-                type="button" id="showcredits"
-                onclick="wwt.showBlockElement('credits')">Credits</button>
-        </div>
-
-      </div>
-      
       <div id="stackinfo" class="stackinfopane">
       </div>
 

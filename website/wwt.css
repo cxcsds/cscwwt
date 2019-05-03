@@ -597,7 +597,6 @@ option:disabled {
 }
 
 #userSelection {
-  /* width: 100%; */
 }
 
 #resizeusercontrol {
@@ -709,7 +708,7 @@ option:disabled {
 
 #targetName {
   margin-top: 0.4em;
-  width: 14em;
+  /* width: 14em; */
 }
 
 /* temporary information panes */
