@@ -18,11 +18,19 @@
 var wwt = (function () {
 
   // TWEAK WWT display for testing/development
+  //   - do we display the
+  //     - CHS sources
+  //     - CSC 1.1 sources
+  //     - "select sources with a polygon"
+  //     - show nearest stacks  [toggle is currently unimplemented]
+  //     - show nearest sources [toggle is currently unimplemented]
   //
   // const displayCHS = false;
   // const displayCSC11 = false;
+  // const displayPolygonSelect = false;
   const displayCHS = true;
   const displayCSC11 = true;
+  const displayPolygonSelect = true;
 
   var wwt;
 
@@ -2718,6 +2726,24 @@ var wwt = (function () {
     };
   }
 
+  // Tweak settings based on development mode.
+  //
+  function tweakDisplaySettings() {
+    if (displayCHS) {
+      setDisplay('chsbar', 'inline');
+    }
+
+    if (displayCSC11) {
+      setDisplay('source11bar', 'flex');
+    }
+
+    // Unlike the others, the default is to show this
+    if (!displayPolygonSelect) {
+      const el = document.querySelector('option[value=polygon]');
+      if (el !== null) { el.style.display = 'none'; }
+    }
+  }
+
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
@@ -2822,15 +2848,7 @@ var wwt = (function () {
     addToolTipHandler('targetName', 20);
     addToolTipHandler('targetFind');
 
-    // Tweak settings based on development mode.
-    //
-    if (displayCHS) {
-      setDisplay('chsbar', 'inline');
-    }
-
-    if (displayCSC11) {
-      setDisplay('source11bar', 'flex');
-    }
+    tweakDisplaySettings();
 
     // Do we show the 'show fullscreen' button?
     //
