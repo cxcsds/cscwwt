@@ -391,18 +391,6 @@ main#content div.wrap {
 	</div> <!-- id=wwtuserbuttons -->
       </div> <!-- id=wwtusercontrol -->
 
-      <div id="stackinfo" class="stackinfopane">
-      </div>
-
-      <div id="sourceinfo" class="sourceinfopane">
-      </div>
-
-      <!-- used to identify "nearby" objects; an experiment -->
-      <div id="neareststackinfo" class="neareststackinfopane">
-      </div>
-      <div id="nearestsourceinfo" class="nearestsourceinfopane">
-      </div>
-      
       <!-- Inform the user when the stack status has been updated -->
       <div id="stackUpdateStatus"></div>
       
@@ -413,7 +401,6 @@ main#content div.wrap {
       <!-- HACK for CHS work; depends on what we want to show -->
       <div id="chs"></div>
 
-      <!-- <div class="pane" id="welcome"> -->
       <div id="welcome">
 	<span class="closable" onclick="wwt.hideElement('welcome');">
           <img alt="Close icon (circle with times symbol in it)"
@@ -791,7 +778,7 @@ main#content div.wrap {
 	</p>
       </div>
 
-      <div id="settings" class="settingspane">
+      <div id="settings" class="settingspane pane-pos-left pane-pos-top">
 	<div class="controlElements controlElementsShown">
           <span class="title">Settings:</span>
 	  <span class="closable" onclick="wwt.hideSettings();">
@@ -866,7 +853,7 @@ main#content div.wrap {
 	</div> <!-- .main -->
       </div> <!-- #settings -->
 
-      <div id="preselected" class="preselectedpane">
+      <div id="preselected" class="preselectedpane pane-pos-left pane-pos-top">
 
 	<div class="controlElements controlElementsShown">
           <span class="title">Move to:</span>
@@ -874,10 +861,6 @@ main#content div.wrap {
             <img alt="Close icon (circle with times symbol in it)"
 		 class="icon" src="wwtimg/fa/times-circle.svg"/>
 	  </span>
-	  <!-- does not work well at the moment when re-displaying the pane
-	  <span class="switchable hideable">
-	  </span>
-	  -->
 	</div>
 
         <div class="main gridable">
@@ -1125,7 +1108,7 @@ main#content div.wrap {
       </div>
 
       <!-- plot areas -->
-      <div id="plot" class="plotpane">
+      <div id="plot" class="plotpane pane-pos-left pane-pos-top">
 	<div class="controlElements controlElementsShown">
           <span class="title">Overview of the selected CSC 2.0 sources</span>
 	  <span class="closable" onclick="wwt.hideElement('plot');">

@@ -2,6 +2,12 @@
 
 /*
  * Basic support for draggable "windows" (aka panes)
+ *
+ * Some assumptions/requirements:
+ *   - the draggable element has an id
+ *   - the draggable has one of each of these pair of classes set.
+ *         pane-pos-left pane-pos-right
+ *         pane-pos-top pane-pos-bottom
  */
 
 const draggable = (function () {
@@ -126,33 +132,69 @@ const draggable = (function () {
     // This is not expected to fail, so do not try to do much
     // if it does.
     //
-    const div = document.querySelector('#' + toMove);
-    if (div === null) {
-      console.log('INTERNAL ERROR: unable to find div being dragged!');
+    const pane = document.querySelector('#' + toMove);
+    if (pane === null) {
+      console.log('INTERNAL ERROR: unable to find item being dragged!');
       return;
     }
 
-    const stackbbox = div.getBoundingClientRect();
-    const parentbbox = div.parentElement.getBoundingClientRect();
+    const panebbox = pane.getBoundingClientRect();
+    const parentbbox = pane.parentElement.getBoundingClientRect();
 
-    var x1 = div.offsetLeft + dx;
-    var y1 = div.offsetTop + dy;
+    var x1 = pane.offsetLeft + dx;
+    var y1 = pane.offsetTop + dy;
 
     const xmin = 0;
     const ymin = 0;
-    const xmax = parentbbox.width - stackbbox.width;
-    const ymax = parentbbox.height - stackbbox.height;
+    const xmax = parentbbox.width - panebbox.width;
+    const ymax = parentbbox.height - panebbox.height;
     if (x1 < xmin) { x1 = xmin; } else if (x1 > xmax) { x1 = xmax; }
     if (y1 < ymin) { y1 = ymin; } else if (y1 > ymax) { y1 = ymax; }
 
-    // Since the div was originally placed with respect to top and left,
-    // retain that here.
+    // Is knowing the current values useful?
+    // const pstyles = window.getComputedStyle(pane);
+
+    // This is more complicated than I want, since the intention
+    // is to only change the two coordinates used to position
+    // the pane (left or right, top or bottom), but how do we know
+    // here how it was positioned? If the starting location is
+    // defined in the style sheet then the style.xxxx values
+    // will be empty. At present the pane is set with classes
+    //     pane-pos-<left|right|top|bottom>
+    // to define which coordinates to set here.
     //
-    div.style.left = x1.toString() + 'px';
-    div.style.top = y1.toString() + 'px';
+    // The intention of the above is to allow the width/height
+    // of the pane vary depending on the content (i.e. not to
+    // set all the top/bottom/left/right values).
+    //
+    let lr = 0;
+    let tb = 0;
+
+    const classes = pane.classList;
+    if (classes.contains('pane-pos-left')) {
+      pane.style.left = `${x1}px`;
+      lr += 1;
+    }
+    if (classes.contains('pane-pos-right')) {
+      pane.style.right = `${xmax - x1}px`;
+      lr += 1;
+    }
+    if (classes.contains('pane-pos-top')) {
+      pane.style.top = `${y1}px`;
+      tb += 1;
+    }
+    if (classes.contains('pane-pos-bottom')) {
+      pane.style.bottom = `${ymax - y1}px`;
+      tb += 1;
+    }
+
+    // Log any "unusual" panes but do not try to do anything more.
+    //
+    if ((lr !== 1) || (tb !== 1)) {
+      console.log(`WARNING-drag: id=${toMove} has left-right=${lr} top-bottom=${tb}`);
+    }
 
     event.preventDefault();
-
   }
 
   return {startDrag: startDrag,

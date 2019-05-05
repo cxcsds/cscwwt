@@ -179,8 +179,10 @@ div#stackinfo , div#sourceinfo {
   display: none;
   overflow: auto;  /* scroll bar looks ugly when shown */
   position: absolute;
+  /* positions applied as inline styles
   right: 2em;
   top: 3em;
+  */
 }
 
 /* appear to need a max height/width given my grab/move code for
@@ -214,22 +216,23 @@ div.infocontainer {
 
 
 /* based on .stackinfopane/.sourceinfopane */
-/* Would like this centered, but bottom-left is okay to start with */
+/* Would like this centered, but bottom-left is okay to start with
+ */
 div.neareststackinfopane , div.nearestsourceinfopane {
-  bottom: 0.5em;
+  /* bottom: 0.5em; */
   cursor: move;
   display: none;
-  left: 0.5em;
+  /* left: 0.5em; */
   overflow: auto;  /* scroll bar looks ugly when shown */
   position: absolute;
   z-index: 200;
 }
 
 div.polygoninfopane {
-  bottom: 0.5em;
+  /* bottom: 0.5em; */
   cursor: move;
   display: none;
-  right: 0.5em;
+  /* right: 0.5em; */
   overflow: auto;
   position: absolute;
   z-index: 200;
@@ -795,6 +798,8 @@ img#csclogo {
 #togglemw {
 }
 
+/* remember to update the pane-pos-xxxx styles if change
+   positioning to use different edges than top/left */
 div.preselectedpane , div.settingspane {
   background-color: rgba(255, 255, 255, 0.6);
   border: 2px solid #D9D9D9;
@@ -883,7 +888,7 @@ div.pane {
 #welcome h2 { text-align: center; }
 
 div#about , div#credits {
-  z-index: 150;
+  z-index: 250;
 }
 
 img.thumbnail {
@@ -914,6 +919,8 @@ div.mainbar + br {
 
 /* plots */
 
+/* remember to update the pane-pos-xxxx styles if change
+   positioning to use different edges than top/left */
 .plotpane {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid gray;

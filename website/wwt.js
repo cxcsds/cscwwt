@@ -980,11 +980,11 @@ var wwt = (function () {
 	trace(`-- downloaded: ${url}`);
 	processData(req.response);
 	stopSpinner();
-      });
+      }, false);
       req.addEventListener('error', () => {
 	trace(`-- error downloading: ${url}`);
 	stopSpinner();
-      });
+      }, false);
 
       req.open('GET', url);
       req.responseType = 'json';
@@ -1839,10 +1839,7 @@ var wwt = (function () {
       clickMode = processSourceSelection
     } else if (mode === 'polygon') {
       clickMode = processRegionSelection;
-      const host = getHost();
-      if (host !== null) {
-	wwtprops.addPolygonPane(host);
-      }
+      wwtprops.addPolygonPane();
     } else if (mode === 'point') {
       clickMode = processPointSelection;
     } else if (mode === 'nothing') {
@@ -2217,27 +2214,26 @@ var wwt = (function () {
      e.preventDefault();
      };
     */
-    canvas.addEventListener('mousewheel', function(e) {
+    canvas.addEventListener('mousewheel', (e) => {
       e.preventDefault();
-    });
-    canvas.addEventListener('DOMMouseScroll', function(e) {
+    }, false);
+    canvas.addEventListener('DOMMouseScroll', (e) => {
       e.preventDefault();
-    });
+    }, false);
 
     // Not sure what this is for, but ADS all-sky-survey do
     // it, so it must be good, right?
-    canvas.onmouseout = function(e) {
+    canvas.onmouseout = (e) => {
       wwtlib.WWTControl.singleton.onMouseUp(e);
     };
 
     // Set up the drag handlers
     //
     host.addEventListener('dragover',
-                          event => event.preventDefault());
-    host.addEventListener('drop', draggable.stopDrag);
+                          event => event.preventDefault(), false);
+    host.addEventListener('drop', draggable.stopDrag, false);
 
-    const panes = ['#stackinfo', '#sourceinfo', '#preselected',
-		   '#settings', '#plot'
+    const panes = ['#preselected', '#settings', '#plot'
 		   // , '#neareststackinfo', '#nearestsourceinfo'
 		   // for now not draggable
 		   // as need to sort out window size properly
@@ -2246,7 +2242,7 @@ var wwt = (function () {
       const pane = host.querySelector(n);
       if (pane !== null) {
         pane.draggable = true;
-        pane.addEventListener('dragstart', draggable.startDrag);
+        pane.addEventListener('dragstart', draggable.startDrag, false);
       } else {
         console.log(`INTERNAL error: unable to find "${n}"`);
       }
@@ -2375,7 +2371,7 @@ var wwt = (function () {
 	imgs[1].style.display = 'none';
 	imgs[0].style.display = 'block';
       }
-    });
+    }, false);
   }
 
   // This used to be sent in data, hence the function returning a function,
@@ -2626,11 +2622,11 @@ var wwt = (function () {
       }, 500);
       tooltipTimers[name] = timer;
 
-    });
+    }, false);
     el.addEventListener('mouseleave', () => {
       clearToolTipTimer(name);
       tt.style.display = 'none';
-    });
+    }, false);
 
     trace(`set up tooltips for ${name}`);
   }
@@ -2787,7 +2783,7 @@ var wwt = (function () {
 
     // TODO: should this check that the name is not blank/empty?
     const tfind = host.querySelector('#targetFind');
-    tfind.addEventListener('click', () => { findTargetName(); });
+    tfind.addEventListener('click', () => { findTargetName(); }, false);
 
     /* Allow the user to start the search by hitting enter in the
      * search text box. The search button is only active when
@@ -2795,7 +2791,7 @@ var wwt = (function () {
      */
     host.querySelector('#targetName')
       .addEventListener('keyup',
-                        function(e) {
+			(e) => {
                           const val = this.value.trim();
 
                           // Ensure the submit button is only enabled when there is
@@ -2805,39 +2801,41 @@ var wwt = (function () {
 
                           if (e.keyCode !== 13) { return; }
                           tfind.click();
-                        });
+                        }, false);
 
     // resize the user-control area
     host.querySelector('#resizeusercontrol')
-      .addEventListener('click', resizeUserControl(host));
+      .addEventListener('click', resizeUserControl(host), false);
 
     // Zoom buttons
     // - QUS: what should the "zoom in as much you can" go to
     //        a source or a stack?
     //
     host.querySelector('#zoom0')
-      .addEventListener('click', () => { zoom(60); });
+      .addEventListener('click', () => { zoom(60); }, false);
     host.querySelector('#zoomn')
-      .addEventListener('click', () => { zoom(0.2); });  // 0.6 is okay too
+      .addEventListener('click', () => { zoom(0.2); }, false);  // 0.6 is okay too
     host.querySelector('#zoomin')
-      .addEventListener('click', () => { zoomIn(); });
+      .addEventListener('click', () => { zoomIn(); }, false);
     host.querySelector('#zoomout')
-      .addEventListener('click', () => { zoomOut(); });
+      .addEventListener('click', () => { zoomOut(); }, false);
 
     // Copy to clipboard button(s)
     //
     host.querySelector('#coordinate-clip')
-      .addEventListener('click', () => { clipCoordinates(); });
+      .addEventListener('click', () => { clipCoordinates(); }, false);
 
     // SAMP button
     //
     host.querySelector('#export-samp')
       .addEventListener('click', () => {
         wwtsamp.sendSourcePropertiesNear(sourceRA, sourceDec, sourceFOV);
-      });
+      }, false);
 
     host.querySelector('#plot-properties')
-      .addEventListener('click', () => { wwtplots.plotSources(sourcePlotData); });
+      .addEventListener('click', () => {
+	wwtplots.plotSources(sourcePlotData);
+      }, false);
 
     addToolTipHandler('zoom0');
     addToolTipHandler('zoomn');
@@ -2864,7 +2862,7 @@ var wwt = (function () {
       trace('found full screen support');
       const el = host.querySelector('#togglefullscreen');
       el.style.display = 'inline-block';
-      el.addEventListener('click', () => wwtscreen.toggleFullScreen());
+      el.addEventListener('click', () => wwtscreen.toggleFullScreen(), false);
 
     } else {
       trace('no full screen support :-(');
@@ -2876,7 +2874,7 @@ var wwt = (function () {
     if (reset === null) {
       console.log('ERROR: unable to find #resetdefaults');
     } else {
-      reset.addEventListener('click', () => { resetSettings(); });
+      reset.addEventListener('click', () => { resetSettings(); }, false);
     }
 
     // Settings support (experimental)
@@ -2887,7 +2885,9 @@ var wwt = (function () {
 	console.log(`ERROR: unable to find toggle element ${o.sel}`);
 	return;
       }
-      el.addEventListener('click', ev => { o.change(ev.target.checked); });
+      el.addEventListener('click',
+			  ev => { o.change(ev.target.checked); },
+			  false);
     });
 
     // Start up the WWT initialization and then load in
@@ -2911,10 +2911,10 @@ var wwt = (function () {
       trace(' - updatedCompletionInfo');
       wwt.add_ready(wwtReadyFunc());
       trace(' - finished add_ready');
-    });
+    }, false);
     req.addEventListener('error', () => {
       alert('Unable to download the status of the CSC!');
-    });
+    }, false);
 
     // Do I need to add a cache-busting identifier?
     req.open('GET', 'wwtdata/wwt_status.json' + cacheBuster());
@@ -3298,7 +3298,7 @@ var wwt = (function () {
     span.addEventListener('click', () => {
       hideElement('targetFailure');
       setTargetName('');
-    });
+    }, false);
 
     const img = document.createElement('img');
     img.setAttribute('class', 'icon');
@@ -3796,6 +3796,8 @@ var wwt = (function () {
     reinitialize: wwtReadyFunc(),
     resize: resize,
     unload: unload,
+
+    getHost: getHost,
 
     clearNearestSource: clearNearestSource,
     clearNearestStack: clearNearestStack,
