@@ -44,18 +44,13 @@ const wwtprops = (function () {
   // Convert RA (degrees) to HTML
   function raToHTML(ra) {
     const toks = raToTokens(ra);
-    return toks.hours + '<sup>h</sup> ' +
-      toks.minutes + '<sup>m</sup> ' +
-      toks.seconds + '<sup>s</sup>';
+    return `${toks.hours}<sup>h</sup> ${toks.minutes}<sup>m</sup> ${toks.seconds}<sup>s</sup>`;
   }
 
   // Convert Dec (degrees) to HTML
   function decToHTML(dec) {
     const toks = decToTokens(dec);
-    return toks.sign +
-      toks.degrees + '° ' +
-      toks.minutes + "' " +
-      toks.seconds + '"';
+    return `${toks.sign}${toks.degrees}° ${toks.minutes}' ${toks.seconds}"`;
   }
 
   // This is used in several modules
@@ -243,20 +238,20 @@ const wwtprops = (function () {
 
     const div = mkDiv('coords');
     const raToks = raToTokens(ra);
-    addText(div, 'α: ' + raToks.hours);
+    addText(div, `α: ${raToks.hours}`);
     div.appendChild(mkSup('h'));
-    addText(div, ' ' + raToks.minutes);
+    addText(div, ` ${raToks.minutes}`);
     div.appendChild(mkSup('m'));
-    addText(div, ' ' + raToks.seconds);
+    addText(div, ` ${raToks.seconds}`);
     div.appendChild(mkSup('s'));
-    addText(div, ' δ: ' + decToHTML(dec) + ' (ICRS)');
+    addText(div, ` δ: ${decToHTML(dec)} (ICRS)`);
 
     // clipboard
     const img = mkImg('Scissors (cut to clipboard)',
 		      'wwtimg/fa/cut.svg',
 		      null, null,
 		      'icon');
-    const pos = ra + ' ' + dec;
+    const pos = `${ra} ${dec}`;
     if (active) {
       img.addEventListener('click', () => wwt.copyToClipboard(pos), false);
     }
@@ -355,7 +350,7 @@ const wwtprops = (function () {
 
     const name = document.createElement('span');
     name.setAttribute('class', 'title');
-    addText(name, 'Stack: ' + stack.stackid);
+    addText(name, `Stack: ${stack.stackid}`);
     controlElements.appendChild(name);
 
     const mainDiv = mkDiv('main');
@@ -422,7 +417,7 @@ const wwtprops = (function () {
       const names = stack_name_map[stack.stackid];
 
       if (names.length === 1) {
-	addText(tgtDiv, 'Target name: ' + names[0] + ' ');
+	addText(tgtDiv, `Target name: ${names[0]} `);
 	addNEDNameLink(tgtDiv, names[0], active);
 	addText(tgtDiv, ' ');
 	addSIMBADNameLink(tgtDiv, names[0], active);
@@ -655,7 +650,7 @@ const wwtprops = (function () {
   function clearElement(selector) {
     const el = document.querySelector(selector);
     if (el === null) {
-      console.log('INTERNAL ERROR: unable to find ' + selector);
+      console.log(`INTERNAL ERROR: unable to find ${selector}`);
       return null;
     }
     el.style.display = 'none';
@@ -665,10 +660,9 @@ const wwtprops = (function () {
 
   function clearStackInfo() {
     clearElement('#stackinfo');
-    // ignore the console warning from removing an unused handler
-    //
-    // FOR NOW remove this
-    // wwt.removeToolTipHandler('export-samp-stkevt3');
+    // This handler may not have been created, so do not report
+    // if it can't be found.
+    wwt.removeToolTipHandler('export-samp-stkevt3', false);
   }
 
   // How to display the given "measured" or "calculated"
@@ -808,9 +802,8 @@ const wwtprops = (function () {
     if (src.fluxband !== '') {
       addErrorRows(tbody,
 		   'columns/fluxes.html#apphotflux',
-		   'Aperture-corrected flux (' + src.fluxband +
-		   ' band)',
-		   src.flux + ' erg cm⁻² s⁻¹',
+		   `Aperture-corrected flux (${src.fluxband} band)`,
+		   `${src.flux} erg cm⁻² s⁻¹`,
 		   src.flux_lolim,
 		   src.flux_hilim,
 		   active);
@@ -896,7 +889,7 @@ const wwtprops = (function () {
 
     const name = document.createElement('span');
     name.setAttribute('class', 'title');
-    addText(name, 'Source: ' + src.name);
+    addText(name, `Source: ${src.name}`);
     controlElements.appendChild(name);
 
     const mainDiv = mkDiv('main');
@@ -1260,7 +1253,7 @@ const wwtprops = (function () {
       trow.appendChild(mkElem('td', src[sigIdx]));
 
       trow.appendChild(mkElem('td',
-			      src[nacisIdx] + "," + src[nhrcIdx]));
+			      `${src[nacisIdx]},${src[nhrcIdx]}`));
 
       trow.appendChild(mkButton(src[varIdx]));
 
@@ -1365,7 +1358,7 @@ const wwtprops = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log('INTERNAL ERROR: unable to change selection mode: ' + e);
+      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
     }
 
   }

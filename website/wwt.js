@@ -2596,16 +2596,14 @@ var wwt = (function () {
 
     const el = document.querySelector('#' + name);
     if (el === null) {
-      console.log('Internal error [tooltip]: no element called "' +
-                  name + '"');
+      console.log(`Internal error [tooltip]: no element called "${name}"`);
       return;
     }
 
     const tooltip = name + '-tooltip';
     const tt = document.querySelector('#' + tooltip);
     if (tt === null) {
-      console.log('Internal error [tooltip]: no element called "' +
-                  tooltip + '"');
+      console.log(`Internal error [tooltip]: no element called "${tooltip}"`);
       return;
     }
 
@@ -2631,12 +2629,13 @@ var wwt = (function () {
     trace(`set up tooltips for ${name}`);
   }
 
-  function removeToolTipHandler(name) {
-    if (!(name in tooltipTimers)) {
+  function removeToolTipHandler(name, repflag) {
+    if (typeof repflag === 'undefined') { repflag = true; }
+    if (repflag && !(name in tooltipTimers)) {
       console.log(`WARNING: removeToolTipHandler sent unknown ${name}`);
       return;
     }
-
+    clearToolTipTimer(name);
     delete tooltipTimers[name];
   }
 
