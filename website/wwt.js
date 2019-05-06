@@ -183,11 +183,11 @@ var wwt = (function () {
 
     let fovtxt = '';
     if (fov >= 1.0) {
-      fovtxt = fov.toFixed(1) + ' degrees';
+      fovtxt = fov.toFixed(1) + '°';
     } else if (fov >= (1.0 / 60.0)) {
-      fovtxt = (fov * 60.0).toFixed(1) + ' arcminutes';
+      fovtxt = (fov * 60.0).toFixed(1) + "'";
     } else {
-      fovtxt = (fov * 3600.0).toFixed(1) + ' arcseconds';
+      fovtxt = (fov * 3600.0).toFixed(1) + '"';
     }
     fovspan.appendChild(document.createTextNode(fovtxt));
 
