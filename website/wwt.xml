@@ -197,7 +197,7 @@ main#content div.wrap {
 	    <div class="tooltip" id="coordinate-clip-tooltip">
 	      Copy RA and Dec to the clipboard, as decimal degrees.
 	    </div>
-	    <p>FOV: <span id="fov"></span></p>
+	    <p class="centered">FOV: <span id="fov"></span></p>
 	  </div>
 
           <div id="userSelection" class="with-tooltip-static">

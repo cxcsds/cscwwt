@@ -2,6 +2,10 @@
   text-align: center;
 }
 
+.centered {
+  text-align: center;
+}
+
 h1 {
   margin-bottom: 0.3em;
 }
@@ -725,7 +729,7 @@ option:disabled {
   position: absolute;
   top: 3em;
   right: 1em;
-  z-index: 200;
+  z-index: 300;
 }
 
 /* this is for testing only */
@@ -738,7 +742,7 @@ option:disabled {
   position: absolute;
   top: 3em;
   left: 18em;
-  z-index: 500;
+  z-index: 400;
 }
 
 #targetFailure {
@@ -750,7 +754,7 @@ option:disabled {
   position: absolute;
   top: 3em;
   right: 1em;
-  z-index: 200;
+  z-index: 300;
 }
 
 #wwtusercontrol {
