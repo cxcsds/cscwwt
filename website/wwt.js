@@ -1652,7 +1652,7 @@ var wwt = (function () {
     stackdata.completed_start = lmodStart;
     stackdata.completed_end = lmodEnd;
 
-    // Update the "Help" page.
+    // Update the "Help" page (if still needed).
     const el = document.querySelector('#lastmod');
     if (el !== null) { el.innerHTML = status.lastupdate_db; }
   }

@@ -347,9 +347,20 @@ span.title {
   float: right;
 }
 
-/* need to add extra vertical space in several cases */
-#about .closable , #credits .closable {
-  margin-top: 1em;
+div.pane-header {
+  background-color: lightgray;
+  position: sticky;
+  top: 0;
+}
+
+div.pane-header > h2 {
+  padding-bottom: 0.25em;
+  padding-top: 0.25em;
+}
+
+div.pane-header .closable {
+  margin-right: 0.5em;
+  margin-top: 0.8em; /* depends on h2 height */
 }
 
 /*
@@ -381,6 +392,7 @@ div.iconarea {
   background-color: rgba(0, 0, 0, 0.3); /* adjusted to look like panel background */
   border: 1px solid #D9D9D9;
   border-radius: 0.5em;
+  display: inline;
   margin-bottom: 0.5em;
   margin-right: 0.5em;
   padding: 0.3em;

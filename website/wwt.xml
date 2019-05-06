@@ -97,7 +97,7 @@ main#content div.wrap {
 		 class="usercontrol icon"
 		 src="wwtimg/fa/chevron-circle-up.svg"/>
 	    <div class="tooltip" id="smallify-tooltip">
-	      Hide this control panel.
+	      Hide the control panel.
 	    </div>
 	    <div class="tooltip" id="bigify-tooltip">
 	      Display the control panel.
@@ -402,12 +402,15 @@ main#content div.wrap {
       <div id="chs"></div>
 
       <div id="welcome">
-	<span class="closable" onclick="wwt.hideElement('welcome');">
-          <img alt="Close icon (circle with times symbol in it)"
-	       class="icon" src="wwtimg/fa/times-circle.svg"/>
-	</span>
+	<div class="pane-header">
+	  <span class="closable" onclick="wwt.hideElement('welcome');">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
 
-        <h2>Please explore the Chandra Source Catalog</h2>
+          <h2>Please explore the Chandra Source Catalog</h2>
+	</div>
+
 	<p>
 	  This page uses the
 	  <extlink target="_blank"
@@ -419,15 +422,31 @@ main#content div.wrap {
 	  the Chandra Source Catalog</cxclink>.
 	</p>
 	<p>
-	  Selecting a point on the sky will highlight either the
-	  nearest polygon - representing a set of Chandra
-	  observations included in the catalog - or, if the
-	  CSC 2.0 sources are displayed, then the properties of the
-	  nearest source will be shown
-	  (<span class="example-button">Load CSC2.0 Sources</span>
-	  is used to load the data, after which it will turn
-	  into
-	  <span class="example-button">Show CSC2.0 Sources</span>).
+	  The "control panel" on the left of the screen
+	  provides information about the current view - the location
+	  and size of the area of sky being shown - and various
+	  options to control the appearance and behavior of the
+	  display.
+	  The display can be moved by dragging it, entering a
+	  location or place name in the search box, selecting one
+	  of the <span class="example-button">popular places</span>,
+	  or with a single click when the
+	  <span class="example-text">Move to point</span> option is selected.
+	  The background data covers a large range of wavelengths (from
+	  Microwave to Gamma ray), and defaults to the optical.
+	</p>
+	<p>
+	  Polygons indicate areas observed by Chandra that are included
+	  in CSC 2.0 ("stacks"), and the default behavior -
+	  <span class="example-text">Select nearest stack</span> - is
+	  that selecting an area of sky will highlight the nearest
+	  polygon and provide information on the observations that
+	  form the stack.
+	  The locations of sources in CSC 2.0 can be loaded
+	  (<span class="example-button">Load CSC2.0 Sources</span>),
+	  after which the button will change to
+	  <span class="example-button">Show CSC2.0 Sources</span>,
+	  which will show all sources close to the current location.
 	  A set of summary visualizations of the selected
 	  sources can be displayed with the
 	  <img alt="Plot source properties"
@@ -463,13 +482,14 @@ main#content div.wrap {
       </div>
       
       <div class="pane" id="about">
-	<span class="closable" onclick="wwt.hideElement('about');">
-          <img alt="Close icon (circle with times symbol in it)"
-	       class="icon" src="wwtimg/fa/times-circle.svg"/>
-	</span>
+	<div class="pane-header">
+	  <span class="closable" onclick="wwt.hideElement('about');">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+          <h2>About this page</h2>
+        </div>
 
-        <h2>About this page</h2>
-        
         <p>
 	  The
           Chandra Source Catalog
@@ -484,8 +504,10 @@ main#content div.wrap {
         
         <p>
           The 'Please explore the Chandra Source Catalog' page shows 
-	  the Chandra observations included in version 2.0 of the
-	  CSC as polygons on the sky. 
+	  the Chandra observations
+	  (<dictionary id="stack">stacks</dictionary>)
+	  included in version 2.0 of the
+	  CSC as polygons on the sky.
 	  The display - which is based on the
 	  <extlink href="https://aas.org/publications/aas-worldwide-telescope">American
 	  Astronomical Association's World Wide Telescope</extlink> -
@@ -498,24 +520,9 @@ main#content div.wrap {
 	  of the CSC source properties can be shown.
 	</p>
 	<p>
-          The last update to the data on this page
-          was <span id="lastmod"></span> and
-          the <cxclink href="processing_status.html">Processing Status</cxclink>
+	  The <cxclink href="processing_status.html">Processing Status</cxclink>
           page provides more information on the current status
-          of the catalog.
-          The processed <dictionary id="stack">stacks</dictionary> - that is,
-          those stacks for which the photometric properties of the sources
-          have been calculated - 
-          are drawn in gold, and the un-processed stacks in gray
-          (that is, those stacks for which the full source properties
-          pipeline has not been run).
-	  <!--
-	  Note that
-          stacks are arranged into groups that overlap
-          (an <dictionary id="ensemble">ensemble</dictionary>)
-          to be processed; that is, if a stack is processed then any
-          other stack in the same ensemble will also have been processed.
-	  -->
+          of version 2.0 of the Chandra Source Catalog.
 	</p>
 
 	<h3>What do all the icons mean?</h3>
@@ -689,9 +696,6 @@ main#content div.wrap {
 	  Astronomical Database</extlink>
 	  within 5 arcseconds of the source
 	  location, and to center-and-zoom the WWT display on the source.
-	</p>
-
-        <p>
 	  More-detailed access to the CSC 2.0 source and data properties -
 	  as well as to previous releases - is available
           either via the
@@ -703,11 +707,6 @@ main#content div.wrap {
             Catalog</cxclink>
           page.
         </p>
-
-	<p>
-	  Selecting "<span class="term">Hide sources</span>" will return
-	  the selection mode to "nearest stack".
-	</p>
 
 	<p>
 	  These windows - showing stack or source properties - can be
@@ -746,11 +745,6 @@ main#content div.wrap {
 	  generally <em>significantly larger</em> than the positional
 	  error on the location; instead the values were chosen to
 	  make sure that the sources are visible!
-	  <!-- XXX TODO update the following sentence XXX -->
-	  The Chandra locations are either from the CSC 2.0 catalog or -
-	  for sources which have not been fully processed - from the
-          <cxclink href="pre1/">November 2017 pre-release list</cxclink>.
-	  The values should therefore be taken as preliminary.
 	  The XMM source locations are taken from the DR8 list
 	  as described on the
 	  <cxclink href="#"
@@ -931,12 +925,15 @@ main#content div.wrap {
 
       <div class="pane" id="credits">
 
-	<span class="closable" onclick="wwt.hideElement('credits');">
-          <img alt="Close icon (circle with times symbol in it)"
-	       class="icon" src="wwtimg/fa/times-circle.svg"/>
-	</span>
+	<div class="pane-header">
+	  <span class="closable" onclick="wwt.hideElement('credits');">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
 
-        <h2>Credits</h2>
+          <h2>Credits</h2>
+	</div>
+
         <p>
           The display is provided by the
           <extlink href="http://www.worldwidetelescope.org/webclient/">WorldWide
