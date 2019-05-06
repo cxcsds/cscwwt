@@ -227,7 +227,7 @@ const wwtprops = (function () {
     const a = document.createElement('a');
     a.setAttribute('href', '#');
     if (callback !== null) {
-      a.addEventListener('click', () => callback());
+      a.addEventListener('click', () => callback(), false);
     }
 
     a.appendChild(document.createTextNode(text));
@@ -258,7 +258,7 @@ const wwtprops = (function () {
 		      'icon');
     const pos = ra + ' ' + dec;
     if (active) {
-      img.addEventListener('click', () => wwt.copyToClipboard(pos));
+      img.addEventListener('click', () => wwt.copyToClipboard(pos), false);
     }
     div.appendChild(img);
 
@@ -304,7 +304,7 @@ const wwtprops = (function () {
 	  hideImg.style.display = 'block';
 	  showImg.style.display = 'none';
 	}
-      });
+      }, false);
     }
 
     return span;
@@ -319,7 +319,7 @@ const wwtprops = (function () {
     const el = document.createElement('span');
     el.setAttribute('class', 'closable');
     if (active) {
-      el.addEventListener('click', close);
+      el.addEventListener('click', close, false);
     }
 
     const img = mkImg('Close icon (circle with a times symbol in it)',
@@ -396,7 +396,8 @@ const wwtprops = (function () {
       sampImg.id = 'export-samp-stkevt3';
       sampImg.addEventListener('click',
 			       () => wwtsamp.sendStackEvt3(stack.stackid,
-							   stackVersion));
+							   stackVersion),
+			       false);
       sampDiv.appendChild(sampImg);
 
       // TODO: tool-tip handling of this doesn't seem to work
@@ -545,15 +546,75 @@ const wwtprops = (function () {
     parent.style.display = 'block';
   }
 
+  // Returns the pane, creating it if necessary (name is
+  // the id of the element).
+  //
+  // It is assumed that the item has an id of <name> and
+  // a class of <name>pane.
+  //
+  // It took me longer than I care to admit to realise calling
+  // the third argument draggable was not a good idea, since
+  // I need to access draggable.startDrag here...
+  //
+  function findPane(name, loc, dragflag) {
+    const sel = `#${name}`;
+    let pane = document.querySelector(sel);
+    if (pane !== null) return pane;
+
+    const host = wwt.getHost();
+    if (host === null) { return null; }
+
+    pane = document.createElement('div');
+    host.appendChild(pane);
+
+    pane.id = name;
+    pane.setAttribute('class', `${name}pane`);
+
+    const classes = pane.classList;
+    if (loc !== null) {
+      const style = pane.style;
+      for (let attr in loc) {
+	style[attr] = loc[attr];
+	classes.add(`pane-pos-${attr}`);
+      }
+    }
+
+    if (dragflag) {
+      pane.draggable = true;
+      pane.addEventListener('dragstart', draggable.startDrag, false);
+    }
+
+    return pane;
+  }
+
+  function findSourceInfo() {
+    return findPane('sourceinfo', {right: '2em', top: '3em'}, true);
+  }
+
+  function findStackInfo() {
+    return findPane('stackinfo', {right: '2em', top: '3em'}, true);
+  }
+
+  function findNearestSourceInfo() {
+    return findPane('nearestsourceinfo',
+		    {left: '0.5em', bottom: '0.5em'}, true);
+  }
+
+  function findNearestStackInfo() {
+    return findPane('neareststackinfo',
+		    {left: '0.5em', bottom: '0.5em'}, true);
+  }
+
+  function findPolygonInfo() {
+    return findPane('polygoninfo',
+		    {right: '0.5em', bottom: '0.5em'}, true);
+  }
+
   // Add the info for this stack to the main screen.
   //
   function addStackInfo(stack, stackEventVersions) {
-
-    const parent = document.querySelector('#stackinfo');
-    if (parent === null) {
-      console.log('Internal error: no #stackinfo found');
-      return;
-    }
+    const parent = findStackInfo();
+    if (parent === null) { return; }
 
     let stackVersion = null;
     if (stackEventVersions !== null) {
@@ -886,7 +947,8 @@ const wwtprops = (function () {
 			    'usercontrol icon requires-samp');
       sampImg.id = 'export-samp-source';
       sampImg.addEventListener('click',
-			       () => wwtsamp.sendSourcePropertiesName(src.name));
+			       () => wwtsamp.sendSourcePropertiesName(src.name),
+			       false);
       sampDiv.appendChild(sampImg);
 
       // TODO: tool-tip handling of this doesn't seem to work
@@ -915,13 +977,8 @@ const wwtprops = (function () {
   // source properties or not. Should be a better way.
   //
   function addSourceInfo(src) {
-
-    const parent = document.querySelector('#sourceinfo');
-    if (parent === null) {
-      console.log('Internal error: missing #sourceinfo');
-      return;
-    }
-
+    const parent = findSourceInfo();
+    if (parent === null) { return; }
     addSourceInfoContents(parent, src, true);
   }
 
@@ -958,11 +1015,8 @@ const wwtprops = (function () {
     const n = neighbors.length;
     if (n === 0) { return; }
 
-    const pane = document.querySelector('#neareststackinfo');
-    if (pane === null) {
-      console.log('INTERNAL ERROR: no #neareststackinfo');
-      return;
-    }
+    const pane = findNearestStackInfo();
+    if (pane === null) { return; }
 
     const controlElements = document.createElement('div');
     controlElements.classList.add('controlElements');
@@ -1025,7 +1079,7 @@ const wwtprops = (function () {
       lnk.addEventListener('click', () => {
 	fovs.forEach(fov => fov.set_fill(false));
 	wwt.processStackSelectionByName(stkid);
-      });
+      }, false);
 
       const td = document.createElement('td');
       td.appendChild(lnk);
@@ -1051,12 +1105,12 @@ const wwtprops = (function () {
       trow.addEventListener('mouseenter', () => {
 	fovs.forEach(fov => fov.set_fill(true));
 	trow.classList.add('selected');
-      });
+      }, false);
 
       trow.addEventListener('mouseleave', () => {
 	fovs.forEach(fov => fov.set_fill(false));
 	trow.classList.remove('selected');
-      });
+      }, false);
 
       trow.appendChild(mkStack(stack.stackid, fovs));
       trow.appendChild(mkElem('td', mkSep(sep)));
@@ -1069,11 +1123,8 @@ const wwtprops = (function () {
     const n = neighbors.length;
     if (n === 0) { return; }
 
-    const pane = document.querySelector('#nearestsourceinfo');
-    if (pane === null) {
-      console.log('INTERNAL ERROR: no #nearestsourceinfo');
-      return;
-    }
+    const pane = findNearestSourceInfo();
+    if (pane === null) { return; }
 
     const controlElements = document.createElement('div');
     controlElements.classList.add('controlElements');
@@ -1156,7 +1207,7 @@ const wwtprops = (function () {
       lnk.addEventListener('click', () => {
 	ann.set_lineColor(origColor);
 	wwt.processSourceSelection(ra, dec);
-      });
+      }, false);
 
       const td = document.createElement('td');
       td.appendChild(lnk);
@@ -1197,12 +1248,12 @@ const wwtprops = (function () {
       trow.addEventListener('mouseenter', () => {
 	ann.set_lineColor('orange');
 	trow.classList.add('selected');
-      });
+      }, false);
 
       trow.addEventListener('mouseleave', () => {
 	ann.set_lineColor(origColor);
 	trow.classList.remove('selected');
-      });
+      }, false);
 
       trow.appendChild(mkSrcLink(src, ra, dec, ann, origColor));
       trow.appendChild(mkElem('td', mkSep(sep)));
@@ -1232,15 +1283,9 @@ const wwtprops = (function () {
 
   // What can we do for polygon source selection?
   //
-  function addPolygonPane(host) {
-    let parent = host.querySelector('#polygoninfo');
-    if (parent === null) {
-      parent = mkDiv('polygoninfopane');
-      parent.id = 'polygoninfo';
-      host.appendChild(parent);
-    } else {
-      removeChildren(parent);
-    }
+  function addPolygonPane() {
+    let parent = findPolygonInfo();
+    removeChildren(parent);
 
     const controlElements = document.createElement('div');
     controlElements.classList.add('controlElements');
@@ -1284,14 +1329,15 @@ const wwtprops = (function () {
     addText(btn1, 'End selection');
     btn1.disabled = true;
     btn1.addEventListener('click',
-			  () => alert('Not sure what to do yet'));
+			  () => alert('Not sure what to do yet'),
+			  false);
     buttonDiv.appendChild(btn1);
 
     const btn2 = document.createElement('button');
     btn2.setAttribute('class', 'button');
     btn2.setAttribute('type', 'button');
     addText(btn2, 'Cancel');
-    btn2.addEventListener('click', closePolygonPane);
+    btn2.addEventListener('click', closePolygonPane, false);
     buttonDiv.appendChild(btn2);
 
     parent.style.display = 'block';
