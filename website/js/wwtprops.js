@@ -665,10 +665,9 @@ const wwtprops = (function () {
 
   function clearStackInfo() {
     clearElement('#stackinfo');
-    // ignore the console warning from removing an unused handler
-    //
-    // FOR NOW remove this
-    // wwt.removeToolTipHandler('export-samp-stkevt3');
+    // This handler may not have been created, so do not report
+    // if it can't be found.
+    wwt.removeToolTipHandler('export-samp-stkevt3', false);
   }
 
   // How to display the given "measured" or "calculated"
