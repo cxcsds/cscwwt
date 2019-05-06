@@ -2317,20 +2317,27 @@ var wwt = (function () {
 
   }
 
-  // Set up the onclick handler for the given "pane". This should check
-  // that the handler hasn't already been added.
+  // Set up the onclick handler for the given "pane". A simple scheme
+  // is used to ensure that a handler is only added once.
   //
+  const seenShowHide = [];
+
   function setupShowHide(sel) {
+    if (seenShowHide.includes(sel)) {
+      trace(` - already added show/hide for ${sel}`);
+      return;
+    }
+
     const pane = document.querySelector(sel);
     if (pane === null) {
-      console.log(`INTERNAL ERROR: unable to find ${sel}`);
+      console.log(`INTERNAL ERROR (show/hide): unable to find ${sel}`);
       return;
     }
 
     const find = lbl => {
       const el = pane.querySelector(lbl);
       if (el === null) {
-	console.log(`INTERNAL ERROR: umable to find ${lbl} in ${sel}`);
+	console.log(`INTERNAL ERROR (show/hide): no ${lbl} in ${sel}`);
       }
       return el;
     };
@@ -2427,9 +2434,7 @@ var wwt = (function () {
 
       wwtsamp.setup(reportUpdateMessage, trace);
 
-      // The pane width is lost when re-selected which messes up the
-      // grid in the preselected pane.
-      // setupShowHide('#preselected');
+      // setupShowHide('#preselected'); // width changes if show/hide
       setupShowHide('#settings');
       setupShowHide('#plot');
 

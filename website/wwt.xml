@@ -861,6 +861,15 @@ main#content div.wrap {
             <img alt="Close icon (circle with times symbol in it)"
 		 class="icon" src="wwtimg/fa/times-circle.svg"/>
 	  </span>
+	  <!-- at the moment, hide/show loses the width of this pane,
+	       and I don't want to spend time tracking down why
+	  <span class="switchable hideable">
+            <img alt="Hide" class="icon"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img alt="Show" class="icon" style="display: none;"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
+	  </span>
+	  -->
 	</div>
 
         <div class="main gridable">
