@@ -348,7 +348,7 @@ span.title {
 }
 
 div.pane-header {
-  background-color: lightgray;
+  background-color: #99CC66; /* rgb(153, 204, 102); */
   position: sticky;
   top: 0;
 }
@@ -852,9 +852,7 @@ div.gridable {
   grid-template-columns: repeat(5, 8em);
 }
 
-/* should look at using a grid for the toggle/help/credits buttons */
-
-#togglefullscreen {
+#fullscreenoption {
   display: none;
 }
 

@@ -37,8 +37,10 @@ const wwtscreen = (function () {
     const el = document.body;
     for (var attr of startAttr) {
       if (attr in el) {
+	/***
 	document.querySelector('#togglefullscreen').innerHTML =
 	  'Normal screen';
+	  ***/
 	el[attr]();
 	return;
       }
@@ -50,30 +52,36 @@ const wwtscreen = (function () {
     const el = document;
     for (var attr of stopAttr) {
       if (attr in el) {
+	/***
 	document.querySelector('#togglefullscreen').innerHTML =
 	  'Full screen';
+	  ***/
 	el[attr]();
 	return; }
     }
     alert("Eek! Unable to cancel full screen.\nTry hitting Escape.");
   }
 
+  /* tracking the status of the full-screen flag is slightly
+     complicated, and is it really worth it (it is partly left
+     over from earlier versions of the code).
+   */
   var fullscreen = false;
   var enteringFullscreen = false;
-  function toggleFullScreen() {
+  function toggleFullScreen(flag) {
     let fn;
-    if (fullscreen) {
-      fn = stopFullScreen;
-    } else {
+    if (flag) {
       fn = startFullScreen;
       enteringFullscreen = true;
+    } else {
+      fn = stopFullScreen;
     }
 
     // Change fullscreen setting before calling the routine
     // since we use it in resize() to indicate the expected
     // mode.
     //
-    fullscreen = !fullscreen;
+    fullscreen = flag;
     fn();
   }
 

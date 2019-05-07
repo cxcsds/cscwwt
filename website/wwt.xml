@@ -177,10 +177,6 @@ main#content div.wrap {
 
 	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
 	       id="csclogo" alt="The CSC logo"/>
-	</div>
-
-	<!-- the id name is not ideal here -->
-        <div id="wwtuserbuttons">
 
           <div class="userinfo" id="location">
             <p id="coordinate"><output class="pos"
@@ -199,6 +195,11 @@ main#content div.wrap {
 	    </div>
 	    <p class="centered">FOV: <span id="fov"></span></p>
 	  </div>
+
+	</div>
+
+	<!-- the id name is not ideal here -->
+        <div id="wwtuserbuttons">
 
           <div id="userSelection" class="with-tooltip-static">
             <label for="targetName">
@@ -372,13 +373,14 @@ main#content div.wrap {
 		   />
 	  </div>
 
+	  <!-- moving into the settings
 	  <div>
-	    <!-- only visible if the browser supports the option -->
             <button class="button"
                     type="button" id="togglefullscreen">
               Full screen
             </button>
 	  </div>
+	  -->
 
 	  <div>
             <button class="button"
@@ -411,74 +413,76 @@ main#content div.wrap {
           <h2>Please explore the Chandra Source Catalog</h2>
 	</div>
 
-	<p>
-	  This page uses the
-	  <extlink target="_blank"
-		   href="https://aas.org/publications/aas-worldwide-telescope">American
-	  Astronomical Society's World Wide Telescope</extlink>
-	  interface to let you explore the
-	  sky coverage and source properties of
-	  <cxclink target="_blank" href="/csc2/">version 2.0 of
-	  the Chandra Source Catalog</cxclink>.
-	</p>
-	<p>
-	  The "control panel" on the left of the screen
-	  provides information about the current view - the location
-	  and size of the area of sky being shown - and various
-	  options to control the appearance and behavior of the
-	  display.
-	  The display can be moved by dragging it, entering a
-	  location or place name in the search box, selecting one
-	  of the <span class="example-button">popular places</span>,
-	  or with a single click when the
-	  <span class="example-text">Move to point</span> option is selected.
-	  The background data covers a large range of wavelengths (from
-	  Microwave to Gamma ray), and defaults to the optical.
-	</p>
-	<p>
-	  Polygons indicate areas observed by Chandra that are included
-	  in CSC 2.0 ("stacks"), and the default behavior -
-	  <span class="example-text">Select nearest stack</span> - is
-	  that selecting an area of sky will highlight the nearest
-	  polygon and provide information on the observations that
-	  form the stack.
-	  The locations of sources in CSC 2.0 can be loaded
-	  (<span class="example-button">Load CSC2.0 Sources</span>),
-	  after which the button will change to
-	  <span class="example-button">Show CSC2.0 Sources</span>,
-	  which will show all sources close to the current location.
-	  A set of summary visualizations of the selected
-	  sources can be displayed with the
-	  <img alt="Plot source properties"
-	       class="example-icons icon"
-	       src="wwtimg/fa/chart-area.svg"/>
-	  icon, or their properties 
-	  sent to
-	  <extlink target="_blank"
-		   href="http://www.ivoa.net/">Virtual Observatory</extlink>
-	  applications - such as
-	  <extlink target="_blank"
-		   href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
-	  - with the
-          <img alt="Send via SAMP"
-	       class="example-icons icon" src="wwtimg/fa/share.svg"/>
-	  icon (if a
-	  <extlink target="_blank"
-		   href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
-	  is running on
-	  the same machine as the web browser).
-	  The positions of detections from the latest
-	  <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
-	  source catalog</extlink>
-	  can also be displayed, as the two surveys are complementary.
-	</p>
-	<p>
-	  More details can be found using the
-	  <span class="example-button">Help</span>
-	  and
-	  <span class="example-button">Credits</span>
-	  buttons.
-	</p>
+	<div class="pane-body">
+	  <p>
+	    This page uses the
+	    <extlink target="_blank"
+		     href="https://aas.org/publications/aas-worldwide-telescope">American
+	    Astronomical Society's World Wide Telescope</extlink>
+	    interface to let you explore the
+	    sky coverage and source properties of
+	    <cxclink target="_blank" href="/csc2/">version 2.0 of
+	    the Chandra Source Catalog</cxclink>.
+	  </p>
+	  <p>
+	    The "control panel" on the left of the screen
+	    provides information about the current view - the location
+	    and size of the area of sky being shown - and various
+	    options to control the appearance and behavior of the
+	    display.
+	    The display can be moved by dragging it, entering a
+	    location or place name in the search box, selecting one
+	    of the <span class="example-button">popular places</span>,
+	    or with a single click when the
+	    <span class="example-text">Move to point</span> option is selected.
+	    The background data covers a large range of wavelengths (from
+	    Microwave to Gamma ray), and defaults to the optical.
+	  </p>
+	  <p>
+	    Polygons indicate areas observed by Chandra that are included
+	    in CSC 2.0 ("stacks"), and the default behavior -
+	    <span class="example-text">Select nearest stack</span> - is
+	    that selecting an area of sky will highlight the nearest
+	    polygon and provide information on the observations that
+	    form the stack.
+	    The locations of sources in CSC 2.0 can be loaded
+	    (<span class="example-button">Load CSC2.0 Sources</span>),
+	    after which the button will change to
+	    <span class="example-button">Show CSC2.0 Sources</span>,
+	    which will show all sources close to the current location.
+	    A set of summary visualizations of the selected
+	    sources can be displayed with the
+	    <img alt="Plot source properties"
+		 class="example-icons icon"
+		 src="wwtimg/fa/chart-area.svg"/>
+	    icon, or their properties 
+	    sent to
+	    <extlink target="_blank"
+		     href="http://www.ivoa.net/">Virtual Observatory</extlink>
+	    applications - such as
+	    <extlink target="_blank"
+		     href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
+	    - with the
+            <img alt="Send via SAMP"
+		 class="example-icons icon" src="wwtimg/fa/share.svg"/>
+	    icon (if a
+	    <extlink target="_blank"
+		     href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
+	    is running on
+	    the same machine as the web browser).
+	    The positions of detections from the latest
+	    <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
+	    source catalog</extlink>
+	    can also be displayed, as the two surveys are complementary.
+	  </p>
+	  <p>
+	    More details can be found using the
+	    <span class="example-button">Help</span>
+	    and
+	    <span class="example-button">Credits</span>
+	    buttons.
+	  </p>
+	</div>
       </div>
       
       <div class="pane" id="about">
@@ -489,287 +493,299 @@ main#content div.wrap {
 	  </span>
           <h2>About this page</h2>
         </div>
-
-        <p>
-	  The
-          Chandra Source Catalog
-          (<abbr title="Chandra Source Catalog">CSC</abbr>)
-	  is intended to be the definitive catalog of X-ray
-          sources detected by the
-          <cxclink href="/">Chandra X-ray Observatory</cxclink>, and is
-          described in more detail on the
-          <cxclink href="about.html">About the CSC</cxclink>
-          page.
-        </p>
+	<div class="pane-body">
+          <p>
+	    The
+            Chandra Source Catalog
+            (<abbr title="Chandra Source Catalog">CSC</abbr>)
+	    is intended to be the definitive catalog of X-ray
+            sources detected by the
+            <cxclink target="_blank" href="/">Chandra X-ray Observatory</cxclink>, and is
+            described in more detail on the
+            <cxclink target="_blank" href="about.html">About the CSC</cxclink>
+            page.
+          </p>
         
-        <p>
-          The 'Please explore the Chandra Source Catalog' page shows 
-	  the Chandra observations
-	  (<dictionary id="stack">stacks</dictionary>)
-	  included in version 2.0 of the
-	  CSC as polygons on the sky.
-	  The display - which is based on the
-	  <extlink href="https://aas.org/publications/aas-worldwide-telescope">American
-	  Astronomical Association's World Wide Telescope</extlink> -
-	  can be panned and zoomed into (or out of) to explore the
-	  whole sky, and the background data can also be changed,
-	  showing the sky in a range of wavelengths from
-	  the Cosmic Microwave Background to Gamma Rays.
-	  Positions of sources from the CSC and from the latest
-	  XMM-Newton source catalog can be displayed, and summary plots
-	  of the CSC source properties can be shown.
-	</p>
-	<p>
-	  The <cxclink href="processing_status.html">Processing Status</cxclink>
-          page provides more information on the current status
-          of version 2.0 of the Chandra Source Catalog.
-	</p>
+          <p>
+            The 'Please explore the Chandra Source Catalog' page shows 
+	    the Chandra observations
+	    (<dictionary id="stack">stacks</dictionary>)
+	    included in version 2.0 of the
+	    CSC as polygons on the sky.
+	    The display - which is based on the
+	    <extlink target="_blank" href="https://aas.org/publications/aas-worldwide-telescope">American
+	    Astronomical Association's World Wide Telescope</extlink> -
+	    can be panned and zoomed into (or out of) to explore the
+	    whole sky, and the background data can also be changed,
+	    showing the sky in a range of wavelengths from
+	    the Cosmic Microwave Background to Gamma Rays.
+	    Positions of sources from the CSC and from the latest
+	    XMM-Newton source catalog can be displayed, and summary plots
+	    of the CSC source properties can be shown.
+	  </p>
+	  <p>
+	    The <cxclink target="_blank"
+	    href="processing_status.html">Processing Status</cxclink>
+            page provides more information on the current status
+            of version 2.0 of the Chandra Source Catalog.
+	  </p>
 
-	<h3>What do all the icons mean?</h3>
+	  <h3>What do all the icons mean?</h3>
 
-	<p>
-	  The top of the control panel - above the "Chandra Source 2.0"
-	  title - contains several icons, which can be used to
-	  change the appearance or perform some action. Please note that
-	  the icons are
-	  not always shown, as they can depend on previous actions
-	  or other factors, as explained below.
-	</p>
+	  <p>
+	    The top of the control panel - above the "Chandra Source 2.0"
+	    title - contains several icons, which can be used to
+	    change the appearance or perform some action. Please note that
+	    the icons are
+	    not always shown, as they can depend on previous actions
+	    or other factors, as explained below.
+	  </p>
 
-	<dl>
-	  <dt>
-	    <div class="iconarea">
-              <img class="icon" alt="Hide"
-		   src="wwtimg/fa/chevron-circle-down.svg"/>
-              <img class="icon" alt="Show"
-		   src="wwtimg/fa/chevron-circle-up.svg"/>
+	  <dl>
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon" alt="Hide"
+		     src="wwtimg/fa/chevron-circle-down.svg"/>
+		<img class="icon" alt="Show"
+		     src="wwtimg/fa/chevron-circle-up.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		These two icons control whether the control panel is
+		hidden or displayed.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img alt="Zoom fully out" class="icon"
+		     src="wwtimg/fa/expand-arrows-alt.svg"/>
+		<img alt="Zoom In" class="icon"
+		     src="wwtimg/fa/plus-circle.svg"/>
+		<img alt="Zoom Out" class="icon"
+		     src="wwtimg/fa/minus-circle.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		The zoom level of the WWT display can be changed with these
+		three buttons. The three buttons allow you to zoom fully out
+		(or at least as far as the WWT allows), slightly in, or
+		slightly out.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon"
+		     alt="Plot source properties"
+		     src="wwtimg/fa/chart-area.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		This icon appears when CSC 2.0 sources are displayed.
+		Selecting the icon will display a set of summary plots of
+		the properties of the displayed sources.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon"
+		     alt="Register with a SAMP Hub"
+		     src="wwtimg/fa/broadcast-tower.svg"/>
+		<img class="icon" alt="Send via SAMP"
+		     src="wwtimg/fa/share.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		These two icons will only appear if a SAMP hub (one
+		that supports the
+		<extlink target="_blank"
+			 href="http://www.ivoa.net/documents/SAMP/20120411/REC-SAMP-1.3-20120411.html#tth_sEc5">SAMP Web Profile</extlink>)
+		is running on the same machine as the web browser,
+		such as the 
+		<extlink target="_blank"
+			 href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT
+		Virtual-Observatory table viewer</extlink>
+		and
+		<extlink target="_blank"
+			 href="http://ds9.si.edu/site/Home.html">SAOImageDS9</extlink>.
+		The first icon will register the WWT display with
+		the SAMP hub: this is an optional step but selecting it will
+		mean that the WWT interface will both send and respond to
+		<span class="term">coord.pointAt.sky</span> messages.
+		The second icon is displayed if a SAMP hub is available
+		and CSC 2.0 sources are shown: selecting the icon will send
+		the summary master source properties to any table viewer (such
+		as TOPCAT) to support more in-depth analysis.
+		Note that this icon can also be found in the
+		"source properties" window that is displayed when a CSC 2.0
+		source is selected. In this case the full set of master-source
+		properties for this source will be sent to any table viewer.
+	      </p>
+	    </dd>
+
+	  </dl>
+
+	  <h3>Searching for a name or position</h3>
+
+	  <p>
+	    The <tt>Enter a Name or Position</tt> box lets you quickly move
+	    around the sky. Positions are in Right Ascension and Declination
+	    (ICRS) and <strong>must be separated by a comma</strong>, otherwise
+	    the text is sent to the 
+	    <extlink target="_blank"
+		     href="http://www.strudel.org.uk/lookUP/about.html">LookUP
+	    service</extlink> to try and identify a location. The support
+	    for positions is limited to the following formats:
+	    <span class="term">205.842, -14.8367</span>;
+	    <span class="term">13 43 22, -14 50 12</span>;
+	    <span class="term">13:43:22, -14:50:12</span>;
+	    <span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	    or
+	    <span class="term">13h 43m 22s, -14d 50' 12"</span>.
+	  </p>
+
+	  <h3>Selecting a stack</h3>
+
+	  <p>
+	    The default behavior is for the nearest stack to the selected
+	    position to be highlighted (the outline changes to cyan),
+	    and a window is displayed containing basic information
+	    about the stack: the target names used for the observations
+            that form the stacks, and links to observation details
+            at the <cxclink target="_blank"
+	    href="/cda/">Chandra Data Archive</cxclink>.
+	  </p>
+
+	  <div class="infocontainer">
+	    <div id="stackinfoexample" class="stackinfopane">
 	    </div>
-	  </dt>
-
-	  <dd>
-	    <p>
-	      These two icons control whether the control panel is
-	      hidden or displayed.
-	    </p>
-	  </dd>
-
-	  <dt>
-	    <div class="iconarea">
-              <img alt="Zoom fully out" class="icon"
-		   src="wwtimg/fa/expand-arrows-alt.svg"/>
-              <img alt="Zoom In" class="icon"
-		   src="wwtimg/fa/plus-circle.svg"/>
-              <img alt="Zoom Out" class="icon"
-		   src="wwtimg/fa/minus-circle.svg"/>
-	    </div>
-	  </dt>
-
-	  <dd>
-	    <p>
-	      The zoom level of the WWT display can be changed with these
-	      three buttons. The three buttons allow you to zoom fully out
-	      (or at least as far as the WWT allows), slightly in, or
-	      slightly out.
-	    </p>
-	  </dd>
-
-	  <dt>
-	    <div class="iconarea">
-              <img class="icon"
-		   alt="Plot source properties"
-		   src="wwtimg/fa/chart-area.svg"/>
-	    </div>
-	  </dt>
-
-	  <dd>
-	    <p>
-	      This icon appears when CSC 2.0 sources are displayed.
-	      Selecting the icon will display a set of summary plots of
-	      the properties of the displayed sources.
-	    </p>
-	  </dd>
-
-	  <dt>
-	    <div class="iconarea">
-              <img class="icon"
-		   alt="Register with a SAMP Hub"
-		   src="wwtimg/fa/broadcast-tower.svg"/>
-              <img class="icon" alt="Send via SAMP"
-		   src="wwtimg/fa/share.svg"/>
-	    </div>
-	  </dt>
-
-	  <dd>
-	    <p>
-	      These two icons will only appear if a SAMP hub (one
-	      that supports the
-	      <extlink target="_blank"
-		       href="http://www.ivoa.net/documents/SAMP/20120411/REC-SAMP-1.3-20120411.html#tth_sEc5">SAMP Web Profile</extlink>)
-	      is running on the same machine as the web browser,
-	      such as the 
-	      <extlink target="_blank"
-		       href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT
-	      Virtual-Observatory table viewer</extlink>.
-	      The first icon will register the WWT display with
-	      the SAMP hub: this is an optional step but selecting it will
-	      mean that the WWT interface will both send and respond to
-	      <span class="term">coord.pointAt.sky</span> messages.
-	      The second icon is displayed if a SAMP hub is available
-	      and CSC 2.0 sources are shown: selecting the icon will send
-	      the summary master source properties to any table viewer (such
-	      as TOPCAT) to support more in-depth analysis.
-	      Note that this icon can also be found in the
-	      "source properties" window that is displayed when a CSC 2.0
-	      source is selected. In this case the full set of master-source
-	      properties for this source will be sent to any table viewer.
-	    </p>
-	  </dd>
-
-	</dl>
-
-	<h3>Searching for a name or position</h3>
-
-	<p>
-	  The <tt>Enter a Name or Position</tt> box lets you quickly move
-	  around the sky. Positions are in Right Ascension and Declination
-	  (ICRS) and <strong>must be separated by a comma</strong>, otherwise
-	  the text is sent to the 
-	  <extlink href="http://www.strudel.org.uk/lookUP/about.html">LookUP
-	  service</extlink> to try and identify a location. The support
-	  for positions is limited to the following formats:
-	  <span class="term">205.842, -14.8367</span>;
-	  <span class="term">13 43 22, -14 50 12</span>;
-	  <span class="term">13:43:22, -14:50:12</span>;
-	  <span class="term">13h 43m 22s, -14d 50m 12s</span>;
-	  or
-	  <span class="term">13h 43m 22s, -14d 50' 12"</span>.
-	</p>
-
-	<h3>Selecting a stack</h3>
-	
-	<p>
-	  The default behavior is for the nearest stack to the selected
-	  position to be highlighted (the outline changes to cyan),
-	  and a window is displayed containing basic information
-	  about the stack: the target names used for the observations
-          that form the stacks, and links to observation details
-          at the <cxclink href="/cda/">Chandra Data Archive</cxclink>.
-	</p>
-
-	<div class="infocontainer">
-	  <div id="stackinfoexample" class="stackinfopane">
 	  </div>
-	</div>
 
-	<h3>Selecting a source</h3>
+	  <h3>Selecting a source</h3>
 
-	<p>
-	  When the "Show CSC2.0 Sources" button has been selected, the
-	  selction mode - which is displayed in the second row of the
-	  menu bar on the left of the page - changes to
-	  "<span class="term">Select nearest source</span>" - and
-	  the nearest <em>displayed</em> source from CSC2 will be
-	  selected. A different window is created, this time containing
-	  summary details about the source from CSC v2.
-	</p>
+	  <p>
+	    When the "Show CSC2.0 Sources" button has been selected, the
+	    selction mode - which is displayed in the second row of the
+	    menu bar on the left of the page - changes to
+	    "<span class="term">Select nearest source</span>" - and
+	    the nearest <em>displayed</em> source from CSC2 will be
+	    selected. A different window is created, this time containing
+	    summary details about the source from CSC v2.
+	  </p>
 
-	<div class="infocontainer">
-	  <div id="sourceinfoexample" class="sourceinfopane">
+	  <div class="infocontainer">
+	    <div id="sourceinfoexample" class="sourceinfopane">
+	    </div>
 	  </div>
-	</div>
 
-        <p>
-	  The exact set of properties shown depend on the source, but
-	  the basics are the positional error, Galactic column Hydrogen
-	  density, the best estimate of the model-independent flux
-	  using an aperture correction, hardness-ratios, and several
-	  details about the data used for the source.
-	</p>
+          <p>
+	    The exact set of properties shown depend on the source, but
+	    the basics are the positional error, Galactic column Hydrogen
+	    density, the best estimate of the model-independent flux
+	    using an aperture correction, hardness-ratios, and several
+	    details about the data used for the source.
+	  </p>
 
-	<p>
-	  Above the properties are links to copy the search name to the
-	  clipboard, search in the
-	  <extlink href="http://ned.ipac.caltech.edu/">NASA/IPAC
-	  Extragalactic Database</extlink>
-	  or the
-	  <extlink href="http://simbad.u-strasbg.fr/simbad/">SIMBAD
-	  Astronomical Database</extlink>
-	  within 5 arcseconds of the source
-	  location, and to center-and-zoom the WWT display on the source.
-	  More-detailed access to the CSC 2.0 source and data properties -
-	  as well as to previous releases - is available
-          either via the
-          <extlink href="http://cda.cfa.harvard.edu/cscview/">CSCView
+	  <p>
+	    Above the properties are links to copy the search name to the
+	    clipboard, search in the
+	    <extlink target="_blank"
+		     href="http://ned.ipac.caltech.edu/">NASA/IPAC
+	    Extragalactic Database</extlink>
+	    or the
+	    <extlink target="_blank"
+		     href="http://simbad.u-strasbg.fr/simbad/">SIMBAD
+	    Astronomical Database</extlink>
+	    within 5 arcseconds of the source
+	    location, and to center-and-zoom the WWT display on the source.
+	    More-detailed access to the CSC 2.0 source and data properties -
+	    as well as to previous releases - is available
+            either via the
+            <extlink target="_blank"
+		     href="http://cda.cfa.harvard.edu/cscview/">CSCView
             application</extlink> or with direct
-          <abbr title="Astronomical Data Query Language">ADQL</abbr>
-          queries, as described on the
-          <cxclink href="download.html">How to access the Chandra Source
+            <abbr title="Astronomical Data Query Language">ADQL</abbr>
+            queries, as described on the
+            <cxclink target="_blank"
+		     href="download.html">How to access the Chandra Source
             Catalog</cxclink>
-          page.
-        </p>
+            page.
+          </p>
 
-	<p>
-	  These windows - showing stack or source properties - can be
-	  dragged around the display, in case they obscure the
-	  background.
-	</p>
+	  <p>
+	    These windows - showing stack or source properties - can be
+	    dragged around the display, in case they obscure the
+	    background.
+	  </p>
 
-	<h3>Chandra and XMM sources</h3>
+	  <h3>Chandra and XMM sources</h3>
 
-	<p>
-	  Since the data files can take some time to load, the
-	  source catalogs must be loaded - using the
-	  "<span class="term">Load CSC2.0 Sources</span>"
-	  or 
-	  "<span class="term">Load 3XMM-DR8 Sources</span>"
-	  buttons - before they can be shown. Once the data
-	  has loaded the button will change its label.
-	</p>
+	  <p>
+	    Since the data files can take some time to load, the
+	    source catalogs must be loaded - using the
+	    "<span class="term">Load CSC2.0 Sources</span>"
+	    or 
+	    "<span class="term">Load 3XMM-DR8 Sources</span>"
+	    buttons - before they can be shown. Once the data
+	    has loaded the button will change its label.
+	  </p>
 
-	<p>
-	  Selecting the
-	  "<span class="term">Show CSC2.0 Sources</span>"
-	  or 
-	  "<span class="term">Show 3XMM-DR8 Sources</span>"
-	  button will add circles, indicating the sources, close
-	  to the location on the screen (the full catalogs are
-	  <em>not</em> drawn as this would result in the display
-	  being unusable!). An orange circle is drawn to show the
-	  maximum radius used for sources (only for the CSC 2.0 sources).
-	</p>
+	  <p>
+	    Selecting the
+	    "<span class="term">Show CSC2.0 Sources</span>"
+	    or 
+	    "<span class="term">Show 3XMM-DR8 Sources</span>"
+	    button will add circles, indicating the sources, close
+	    to the location on the screen (the full catalogs are
+	    <em>not</em> drawn as this would result in the display
+	    being unusable!). An orange circle is drawn to show the
+	    maximum radius used for sources (only for the CSC 2.0 sources).
+	  </p>
 
-	<p>
-	  The CSC v2 sources are drawn as cyan circles with a radius
-	  of 5 arcseconds, the XMM sources are drawn as green
-	  circles with a radius of 10 arcseconds. These radii are
-	  generally <em>significantly larger</em> than the positional
-	  error on the location; instead the values were chosen to
-	  make sure that the sources are visible!
-	  The XMM source locations are taken from the DR8 list
-	  as described on the
-	  <cxclink href="#"
-	   onclick="wwt.showBlockElement('credits')"
-           >credits page</cxclink>.
-	</p>
+	  <p>
+	    The CSC v2 sources are drawn as cyan circles with a radius
+	    of 5 arcseconds, the XMM sources are drawn as green
+	    circles with a radius of 10 arcseconds. These radii are
+	    generally <em>significantly larger</em> than the positional
+	    error on the location; instead the values were chosen to
+	    make sure that the sources are visible!
+	    The XMM source locations are taken from the DR8 list
+	    as described on the
+	    <cxclink href="#"
+		     onclick="wwt.showBlockElement('credits')"
+		     >credits page</cxclink>.
+	  </p>
 	
-	<h3>Using the World Wide Telescope</h3>
+	  <h3>Using the World Wide Telescope</h3>
 
-        <p>
-          The display - provided by the
-          <extlink href="http://www.worldwidetelescope.org/webclient/">WorldWide
+          <p>
+            The display - provided by the
+            <extlink target="_blank"
+		     href="http://www.worldwidetelescope.org/webclient/">WorldWide
 	    Telescope</extlink> - can be panned, zoomed into (or
-          out of), and the background image changed using the list of
-          options below.
-	</p>
+            out of), and the background image changed using the list of
+            options below.
+	  </p>
 
-	<h3>Thanks</h3>
-	<p>
-	  Many thanks to the software and data providers mentioned
-	  on the <cxclink href="#"
-	          onclick="wwt.showBlockElement('credits')"
-                  >credits page</cxclink>.
-	  Without them, this interface to the CSC would not be possible!
-	</p>
+	  <h3>Thanks</h3>
+	  <p>
+	    Many thanks to the software and data providers mentioned
+	    on the <cxclink href="#"
+	    onclick="wwt.showBlockElement('credits')"
+            >credits page</cxclink>.
+	    Without them, this interface to the CSC would not be possible!
+	  </p>
+	</div>
       </div>
 
       <div id="settings" class="settingspane pane-pos-left pane-pos-top">
@@ -798,6 +814,13 @@ main#content div.wrap {
                   type="button" id="resetdefaults">
             Restore default settings
           </button>
+
+	  <p>
+	    If the "Remember position and settings" checkbox is set
+	    below, then these settings will be used when you next view
+	    this page with the same browser (this information is only
+	    saved on your machine).
+	  </p>
 
 	  <div class="checkboxes">
 	    <div class="checkbox">
@@ -836,14 +859,28 @@ main#content div.wrap {
 	      <label for="toggleboundaries">Show the boundary of the current constellation</label>
 	    </div>
 
-	    <!-- the banners behave differently (do not save this setting)
-		 so ideally want to style them differently -->
+	  </div> <!-- .checkboxes -->
+
+	  <p>
+	    The following settings are not saved:
+	  </p>
+
+	  <!-- the banners behave differently (do not save this setting)
+	       so ideally want to style them differently -->
+	  <div class="checkboxes">
 	    <div class="checkbox">
 	      <input id="togglebanners" name="togglebanners"
 		     type="checkbox" checked="true"/>
 	      <label for="togglebanners">Show banners</label>
 	    </div>
+
+	    <div class="checkbox" id="fullscreenoption">
+	      <input id="togglefullscreen" name="togglefullscreen"
+		     type="checkbox"/>
+	      <label for="togglefullscreen">Full screen mode</label>
+	    </div>
 	  </div> <!-- .checkboxes -->
+
 	</div> <!-- .main -->
       </div> <!-- #settings -->
 
@@ -924,7 +961,6 @@ main#content div.wrap {
       </div>
 
       <div class="pane" id="credits">
-
 	<div class="pane-header">
 	  <span class="closable" onclick="wwt.hideElement('credits');">
             <img alt="Close icon (circle with times symbol in it)"
@@ -933,184 +969,188 @@ main#content div.wrap {
 
           <h2>Credits</h2>
 	</div>
-
-        <p>
-          The display is provided by the
-          <extlink href="http://www.worldwidetelescope.org/webclient/">WorldWide
+	<div class="pane-body">
+          <p>
+            The display is provided by the
+            <extlink target="_blank"
+		     href="http://www.worldwidetelescope.org/webclient/">WorldWide
 	    Telescope</extlink>, which is funded by the
-          <extlink href="http://www.worldwidetelescope.org/About/">American
+            <extlink target="_blank"
+		     href="http://www.worldwidetelescope.org/About/">American
 	    Astronomical Society</extlink>.
-          The target search uses the
-          <extlink href="http://www.strudel.org.uk/lookUP/about.html">LookUP
+            The target search uses the
+            <extlink target="_blank"
+		     href="http://www.strudel.org.uk/lookUP/about.html">LookUP
             service</extlink>,
-          operated by
-          <extlink href="http://www.strudel.org.uk/">Stuart R. Lowe</extlink>,
-          which 
-          provides a simple way to search Astronomical targets by name.
-          The Milky Way outline is from the
-          <extlink href="https://github.com/ofrohn/d3-celestial">d3-celestial
+            operated by
+            <extlink target="_blank"
+		     href="http://www.strudel.org.uk/">Stuart R. Lowe</extlink>,
+            which 
+            provides a simple way to search Astronomical targets by name.
+            The Milky Way outline is from the
+            <extlink target="_blank"
+		     href="https://github.com/ofrohn/d3-celestial">d3-celestial
             project</extlink> - which converted the original
-          <extlink href="http://www.skymap.com/milkyway_cat.htm">Milky Way
+            <extlink target="_blank"
+		     href="http://www.skymap.com/milkyway_cat.htm">Milky Way
             Outline Catalogs data</extlink>
-          by Jose R. Vieira.
-	  The configuration, broadcast, close, plot, reshare, resize,
-	  scissors, search, and zoom icons are from the
-	  <extlink href="https://fontawesome.com/support#fa-opensource">free
-	  version of Font Awesome</extlink> (released under the
-	  <extlink href="https://creativecommons.org/licenses/by/4.0/">CC
-	  BY 4.0 License</extlink>).
-	  The animated "spinner" - seen when loading the source catalogs or
-          looking up a name - is taken from the 
-	  <extlink href="http://tobiasahlin.com/spinkit/">SpinKit package</extlink>
-	  by Tobias Ahlin, which is released under the
-	  <extlink href="https://github.com/tobiasahlin/SpinKit/blob/master/LICENSE">MIT
-	  License</extlink>.
-	  The color picker widget is provided by
-	  <extlink href="http://jscolor.com/">jscolor.js</extlink>,
-	  plotting by
-	  <extlink href="https://plot.ly/javascript/">plotly.js</extlink>,
-	  and the Web-SAMP functionality by
-	  <extlink href="http://astrojs.github.io/sampjs/">sampjs</extlink>.
-	</p>
-	<p>
-	  The display code is based on work originally done for the
-	  <extlink href="http://chandraobservatory.herokuapp.com/">Chandra
-	  Observation Viewer</extlink> and was enhanced based on
-	  the code used to create the
-	  <extlink href="http://www.adsass.org/">NASA ADS
-	  All Sky Survey</extlink>. The interface is also based on
-	  the excellent work done by the
-	  <extlink href="http://sky.esa.int/">ESA Sky</extlink> team.
-	</p>
-	<h3>Source catalogs</h3>
-	<!--
-	<p>
-	  The <span class="term">3XMM DR8</span>
-	  source locations are taken from the
-	  <span class="term">SC_RA</span>
-	  and
-	  <span class="term">SC_DEC</span>
-	  columns of the 
-	  <span class="filename">3XMM_DR8cat_slim_v1.0.fits.gz</span>
-	  downloaded from the
-	  <extlink href="http://xmmssc.irap.omp.eu/Catalogue/3XMM-DR8/3XMM_DR8.html">3XMM DR8</extlink>
-	  catalog page.
-	</p>
-	-->
-	<p>
-	  The <span class="term">3XMM DR8</span>
-	  source locations are taken from the
-	  <span class="term">RA</span>
-	  and
-	  <span class="term">DEC</span>
-	  columns of the 
-	  <span class="filename">3XMM_DR8cat_v1.0.fits.gz</span>
-	  downloaded from the
-	  <extlink href="http://xmmssc.irap.omp.eu/Catalogue/3XMM-DR8/3XMM_DR8.html">3XMM DR8</extlink>
-	  catalog page, after applying the following filter:
-	  <!-- <span class="term">OBS_CLASS &lt; 3</span> and -->
-	  <span class="term">SUM_FLAG &lt; 3</span>.
-	</p>
-	<h3>Background images</h3>
-	<p>
-	  The background imagery is provided by the following
-	  organisations:
-	</p>
-        <!-- taken from csc2.wtml -->
-        <dl>
-          <dt><extlink href="http://www.nasa.gov/mission_pages/planck/index.html">Planck</extlink></dt>
-          <dd>
-            <img class="thumbnail" alt="Planck logo"
-                 src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=planck"/>
-            <p>
-              Planck is a European Space Agency mission, with significant
-              participation from NASA. NASAs Planck Project Office is based at
-              JPL. JPL contributed mission-enabling technology for both of
-              Plancks science instruments. European, Canadian and U.S. Planck
-              scientists work together to analyze the Planck data.
-            </p>
-          </dd>
+            by Jose R. Vieira.
+	    The configuration, broadcast, close, plot, reshare, resize,
+	    scissors, search, and zoom icons are from the
+	    <extlink target="_blank"
+		     href="https://fontawesome.com/support#fa-opensource">free
+	    version of Font Awesome</extlink> (released under the
+	    <extlink target="_blank"
+		     href="https://creativecommons.org/licenses/by/4.0/">CC
+	    BY 4.0 License</extlink>).
+	    The animated "spinner" - seen when loading the source catalogs or
+            looking up a name - is taken from the 
+	    <extlink target="_blank"
+		     href="http://tobiasahlin.com/spinkit/">SpinKit package</extlink>
+	    by Tobias Ahlin, which is released under the
+	    <extlink target="_blank"
+		     href="https://github.com/tobiasahlin/SpinKit/blob/master/LICENSE">MIT
+	    License</extlink>.
+	    The color picker widget is provided by
+	    <extlink target="_blank"
+		     href="http://jscolor.com/">jscolor.js</extlink>,
+	    plotting by
+	    <extlink target="_blank"
+		     href="https://plot.ly/javascript/">plotly.js</extlink>,
+	    and the Web-SAMP functionality by
+	    <extlink target="_blank"
+		     href="http://astrojs.github.io/sampjs/">sampjs</extlink>.
+	  </p>
+	  <p>
+	    The display code is based on work originally done for the
+	    <extlink target="_blank"
+		     href="http://chandraobservatory.herokuapp.com/">Chandra
+	    Observation Viewer</extlink> and was enhanced based on
+	    the code used to create the
+	    <extlink target="_blank"
+		     href="http://www.adsass.org/">NASA ADS
+	    All Sky Survey</extlink>. The interface is also based on
+	    the excellent work done by the
+	    <extlink target="_blank"
+		     href="http://sky.esa.int/">ESA Sky</extlink> team.
+	  </p>
+	  <h3>Source catalogs</h3>
+	  <p>
+	    The <span class="term">3XMM DR8</span>
+	    source locations are taken from the
+	    <span class="term">RA</span>
+	    and
+	    <span class="term">DEC</span>
+	    columns of the 
+	    <span class="filename">3XMM_DR8cat_v1.0.fits.gz</span>
+	    downloaded from the
+	    <extlink target="_blank"
+		     href="http://xmmssc.irap.omp.eu/Catalogue/3XMM-DR8/3XMM_DR8.html">3XMM DR8</extlink>
+	    catalog page, after applying the following filter:
+	    <!-- <span class="term">OBS_CLASS &lt; 3</span> and -->
+	    <span class="term">SUM_FLAG &lt; 3</span>.
+	  </p>
+	  <h3>Background images</h3>
+	  <p>
+	    The background imagery is provided by the following
+	    organisations:
+	  </p>
+          <!-- taken from csc2.wtml -->
+          <dl>
+            <dt><extlink target="_blank" href="http://www.nasa.gov/mission_pages/planck/index.html">Planck</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="Planck logo"
+                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=planck"/>
+              <p>
+		Planck is a European Space Agency mission, with significant
+		participation from NASA. NASAs Planck Project Office is based at
+		JPL. JPL contributed mission-enabling technology for both of
+		Plancks science instruments. European, Canadian and U.S. Planck
+		scientists work together to analyze the Planck data.
+              </p>
+            </dd>
 
-          <dt><extlink href="http://lwa.nrl.navy.mil/VLSS/">VLA Low-frequency Sky
-          Survey (VLSS)</extlink></dt>
-          <dd>
-            <img class="thumbnail" alt="VLA logo"
-                 src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=VLA"/>
-            <p>
-              VLSS Cohen, A. S.; Lane, W. M.; Cotton, W. D.; Kassim, N. E.; Lazio, T. J. W.; Perley, R. A.; Condon, J. J.; Erickson, W. C.; Served From NASA Skyview
-            </p>
-          </dd>
+            <dt><extlink target="_blank" href="http://lwa.nrl.navy.mil/VLSS/">VLA Low-frequency Sky
+            Survey (VLSS)</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="VLA logo"
+                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=VLA"/>
+              <p>
+		VLSS Cohen, A. S.; Lane, W. M.; Cotton, W. D.; Kassim, N. E.; Lazio, T. J. W.; Perley, R. A.; Condon, J. J.; Erickson, W. C.; Served From NASA Skyview
+              </p>
+            </dd>
           
-          <dt><extlink href="http://wise.ssl.berkeley.edu/">WISE</extlink></dt>
-          <dd>
-            <img class="thumbnail" alt="WISE logo"
-                 src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=wise"/>
-            <p>
-              NASA/JPL-Caltech/UCLA
-            </p>
-          </dd>
+            <dt><extlink target="_blank" href="http://wise.ssl.berkeley.edu/">WISE</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="WISE logo"
+                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=wise"/>
+              <p>
+		NASA/JPL-Caltech/UCLA
+              </p>
+            </dd>
           
-          <dt><extlink href="http://www.ipac.caltech.edu/2mass/">2MASS</extlink></dt>
-          <dd>
-            <img class="thumbnail" alt="2MASS logo"
-                 src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=2mass"/>
-            <p>
-              This publication makes use of data products from the Two Micron
-              All Sky Survey, which is a joint project of the University of
-              Massachusetts and the Infrared Processing and Analysis
-              Center/California Institute of Technology, funded by the National
-              Aeronautics and Space Administration and the National Science
-              Foundation.
-            </p>
-          </dd>
+            <dt><extlink target="_blank" href="http://www.ipac.caltech.edu/2mass/">2MASS</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="2MASS logo"
+                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=2mass"/>
+              <p>
+		This publication makes use of data products from the Two Micron
+		All Sky Survey, which is a joint project of the University of
+		Massachusetts and the Infrared Processing and Analysis
+		Center/California Institute of Technology, funded by the National
+		Aeronautics and Space Administration and the National Science
+		Foundation.
+              </p>
+            </dd>
           
-          <dt><extlink href="http://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm">DSS</extlink></dt>
-          <dd>
-            <img class="thumbnail" alt="DSS logo"
-                 src="http://www.worldwidetelescope.org/thumbnails/DSS.png"/>
-            <p>
-              Copyright DSS Consortium
-            </p>
-          </dd>
+            <dt><extlink target="_blank" href="http://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm">DSS</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="DSS logo"
+                   src="http://www.worldwidetelescope.org/thumbnails/DSS.png"/>
+              <p>
+		Copyright DSS Consortium
+              </p>
+            </dd>
           
-          <dt><extlink href="http://www.astro.princeton.edu/~dfink/halpha/processing.html">Hα</extlink></dt>
-          <dd>
-            <img class="thumbnail" alt="Halpha survey logo"
-                 src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=halpha"/>
-            <p>
-              Image Courtesy Douglas Finkbeiner. The full-sky H-alpha map (6'
-              FWHM resolution) is a composite of the Virginia Tech Spectral
-              line Survey (VTSS) in the north and the Southern H-Alpha Sky
-              Survey Atlas (SHASSA) in the south. The Wisconsin H-Alpha Mapper
-              (WHAM) survey provides a stable zero-point over 3/4 of the sky on
-              a one degree scale.
-            </p>
-          </dd>
+            <dt><extlink target="_blank" href="http://www.astro.princeton.edu/~dfink/halpha/processing.html">Hα</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="Halpha survey logo"
+                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=halpha"/>
+              <p>
+		Image Courtesy Douglas Finkbeiner. The full-sky H-alpha map (6'
+		FWHM resolution) is a composite of the Virginia Tech Spectral
+		line Survey (VTSS) in the north and the Southern H-Alpha Sky
+		Survey Atlas (SHASSA) in the south. The Wisconsin H-Alpha Mapper
+		(WHAM) survey provides a stable zero-point over 3/4 of the sky on
+		a one degree scale.
+              </p>
+            </dd>
           
-          <dt><extlink href="http://www.xray.mpe.mpg.de/cgi-bin/rosat/rosat-survey">RASS</extlink></dt>
-          <dd>
-            <img class="thumbnail" alt="RASS logo"
-                 src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=rosatcolor"/>
-            <p>
-              This is a composite of three RASS3 surveys from the ROSAT Data
-              Archive of the Max-Planck-Institut fur extraterrestrische Physik
-              (MPE) at Garching, Germany. TOAST-formatted data was obtained
-              from NASA's SkyView Virtual Telescope. Red is soft band
-              (RASS3sb), Green is broad band (RASS3bb), Blue is hard band
-              (RASS3hb)
-            </p>
-          </dd>
+            <dt><extlink target="_blank" href="http://www.xray.mpe.mpg.de/cgi-bin/rosat/rosat-survey">RASS</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="RASS logo"
+                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=rosatcolor"/>
+              <p>
+		This is a composite of three RASS3 surveys from the ROSAT Data
+		Archive of the Max-Planck-Institut fur extraterrestrische Physik
+		(MPE) at Garching, Germany. TOAST-formatted data was obtained
+		from NASA's SkyView Virtual Telescope. Red is soft band
+		(RASS3sb), Green is broad band (RASS3bb), Blue is hard band
+		(RASS3hb)
+              </p>
+            </dd>
           
-          <dt><extlink href="http://www.nasa.gov/mission_pages/GLAST/main/index.html">Fermi</extlink></dt>
-          <dd>
-            <img class="thumbnail" alt="Fermi logo"
-                 src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=FermiYearThree"/>
-            <p>
-              NASA and the FERMI-LAT Team.
-            </p>
-          </dd>
+            <dt><extlink target="_blank" href="http://www.nasa.gov/mission_pages/GLAST/main/index.html">Fermi</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="Fermi logo"
+                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=FermiYearThree"/>
+              <p>
+		NASA and the FERMI-LAT Team.
+              </p>
+            </dd>
           
-        </dl>
+          </dl>
+	</div>
       </div>
 
       <!-- plot areas -->

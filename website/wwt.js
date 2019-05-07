@@ -507,6 +507,11 @@ var wwt = (function () {
   // Note: togglesavestate must be first (we rely on this being
   // processed first when resetting the state).
   //
+  // Note: the defval values are used to restore the default settings,
+  //       so it is required that they be kept up to date with wwt.xml
+  //       (they could be set from the HTML on load, but for now leave
+  //       that).
+  //
   const toggleInfo = [
     {key: keySave, sel: '#togglesavestate',
      change: setSaveState, defval: true},
@@ -520,6 +525,8 @@ var wwt = (function () {
      change: setBoundaries, defval: false},
     {key: null, sel: '#togglebanners',
      change: showBanners, defval: true},
+    {key: null, sel: '#togglefullscreen',
+     change: setFullScreen, defval: false},
     {key: null, sel: '#togglemw',
      change: showMW, defval: false}];
 
@@ -540,7 +547,7 @@ var wwt = (function () {
       }
 
       if (el.checked !== o.defval) {
-	el.checked = !el.checked;
+	el.checked = o.defval;
       }
 
       // Fire the event whether it was changed or not, to ensure the
@@ -926,6 +933,20 @@ var wwt = (function () {
     const el = document.querySelector('#cxcfooterright p');
     if (el === null) { return; }
     el.style.display = flag ? 'block' : 'none';
+  }
+
+  /* Note that the full-screen mode can be changed
+     by means other than the user selecting the option - that is,
+     the full-screen mode can be turned off by hitting the escape
+     key or causing a new tab to open.
+     This means that we can't guarantee that we know what the
+     state is here, unless we try to keep track of these
+     other changes (i.e. by the window resize event) and ensuring
+     that the selected state is kept correct.
+
+   */
+  function setFullScreen(flag) {
+    wwtscreen.toggleFullScreen(flag);
   }
 
   // NOTE: do not include the leading '#' in the element name.
@@ -1790,13 +1811,15 @@ var wwt = (function () {
       if (keyval !== null) {
 	val = keyval === 'true';
 	const el = document.querySelector(o.sel);
-	if (el !== null) {
-	  el.checked = val;
-	} else {
+	if (el === null) {
 	  console.log(`ERROR: unable to find toggle element ${o.sel}`);
+	} else if (val !== el.checked) {
+	  // only update (and trigger update) if we change the
+	  // value.
+	  el.checked = val;
+	  o.change(val);
 	}
       }
-      o.change(val);
     });
 
     wwt.hideUI(true);
@@ -2864,17 +2887,22 @@ var wwt = (function () {
     //
     if (wwtscreen.hasFullScreen()) {
       trace('found full screen support');
-      const el = host.querySelector('#togglefullscreen');
-      el.style.display = 'inline-block';
+      const container = host.querySelector('#fullscreenoption');
+      if (container === null) {
+	consle.log('ERROR: no #fullscreenoption found');
+      } else {
+	container.style.display = 'block';
+      }
+      /*
       el.addEventListener('click', () => wwtscreen.toggleFullScreen(), false);
-
+      */
     } else {
       trace('no full screen support :-(');
     }
 
     // Event handler for the reset button.
     //
-    const reset = document.querySelector('#resetdefaults');
+    const reset = host.querySelector('#resetdefaults');
     if (reset === null) {
       console.log('ERROR: unable to find #resetdefaults');
     } else {
@@ -2884,7 +2912,7 @@ var wwt = (function () {
     // Settings support (experimental)
     //
     toggleInfo.forEach(o => {
-      const el = document.querySelector(o.sel);
+      const el = host.querySelector(o.sel);
       if (el === null) {
 	console.log(`ERROR: unable to find toggle element ${o.sel}`);
 	return;
@@ -2981,15 +3009,14 @@ var wwt = (function () {
     //
     const el = host.querySelector('#togglefullscreen');
     if (wwtscreen.isFullScreen()) {
-
       if (wwtscreen.isEnteringFullScreen()) {
         wwtscreen.clearEnteringFullScreen();
       } else {
-        el.innerHTML = 'Full screen';
+	el.checked = false;
         wwtscreen.clearFullScreen();
       }
-    } else if (el.innerHTML !== 'Full screen') {
-      el.innerHTML = 'Full screen';
+    } else {
+      if (el.checked) { el.checked = false; }
     }
 
   }
