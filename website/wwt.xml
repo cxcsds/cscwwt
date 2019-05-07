@@ -876,7 +876,7 @@ main#content div.wrap {
 	    <div class="checkbox" id="fullscreenoption">
 	      <input id="togglefullscreen" name="togglefullscreen"
 		     type="checkbox"/>
-	      <label for="togglefullscreen">Use all the screen</label>
+	      <label for="togglefullscreen">Full screen mode</label>
 	    </div>
 	  </div> <!-- .checkboxes -->
 
