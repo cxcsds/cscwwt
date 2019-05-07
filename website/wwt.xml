@@ -813,6 +813,13 @@ main#content div.wrap {
             Restore default settings
           </button>
 
+	  <p>
+	    If the "Remember position and settings" checkbox is set
+	    below, then these settings will be used when you next view
+	    this page with the same browser (this information is only
+	    saved on your machine).
+	  </p>
+
 	  <div class="checkboxes">
 	    <div class="checkbox">
 	      <input id="togglesavestate" name="togglesavestate"
@@ -850,14 +857,22 @@ main#content div.wrap {
 	      <label for="toggleboundaries">Show the boundary of the current constellation</label>
 	    </div>
 
-	    <!-- the banners behave differently (do not save this setting)
-		 so ideally want to style them differently -->
+	  </div> <!-- .checkboxes -->
+
+	  <p>
+	    The following settings are not saved:
+	  </p>
+
+	  <!-- the banners behave differently (do not save this setting)
+	       so ideally want to style them differently -->
+	  <div class="checkboxes">
 	    <div class="checkbox">
 	      <input id="togglebanners" name="togglebanners"
 		     type="checkbox" checked="true"/>
 	      <label for="togglebanners">Show banners</label>
 	    </div>
 	  </div> <!-- .checkboxes -->
+
 	</div> <!-- .main -->
       </div> <!-- #settings -->
 
