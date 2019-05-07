@@ -372,13 +372,14 @@ main#content div.wrap {
 		   />
 	  </div>
 
+	  <!-- moving into the settings
 	  <div>
-	    <!-- only visible if the browser supports the option -->
             <button class="button"
                     type="button" id="togglefullscreen">
               Full screen
             </button>
 	  </div>
+	  -->
 
 	  <div>
             <button class="button"
@@ -870,6 +871,12 @@ main#content div.wrap {
 	      <input id="togglebanners" name="togglebanners"
 		     type="checkbox" checked="true"/>
 	      <label for="togglebanners">Show banners</label>
+	    </div>
+
+	    <div class="checkbox" id="fullscreenoption">
+	      <input id="togglefullscreen" name="togglefullscreen"
+		     type="checkbox"/>
+	      <label for="togglefullscreen">Use all the screen</label>
 	    </div>
 	  </div> <!-- .checkboxes -->
 

@@ -852,9 +852,7 @@ div.gridable {
   grid-template-columns: repeat(5, 8em);
 }
 
-/* should look at using a grid for the toggle/help/credits buttons */
-
-#togglefullscreen {
+#fullscreenoption {
   display: none;
 }
 
