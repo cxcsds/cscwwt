@@ -177,10 +177,6 @@ main#content div.wrap {
 
 	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
 	       id="csclogo" alt="The CSC logo"/>
-	</div>
-
-	<!-- the id name is not ideal here -->
-        <div id="wwtuserbuttons">
 
           <div class="userinfo" id="location">
             <p id="coordinate"><output class="pos"
@@ -199,6 +195,11 @@ main#content div.wrap {
 	    </div>
 	    <p class="centered">FOV: <span id="fov"></span></p>
 	  </div>
+
+	</div>
+
+	<!-- the id name is not ideal here -->
+        <div id="wwtuserbuttons">
 
           <div id="userSelection" class="with-tooltip-static">
             <label for="targetName">
