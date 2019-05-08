@@ -1273,30 +1273,44 @@ var wwt = (function () {
   var showSettingsFlag = false;
   function toggleSettings(event) {
     if (showSettingsFlag) { hideSettings(); }
-    else { showSettings(); }
-    showSettingsFlag = !showSettingsFlag;
+    else { showSettings(event); }
   }
 
   function hideSettings() {
     hideElement('settings');
     document.querySelector('#togglesettings').innerHTML =
       'Show Settings';
+    showSettingsFlag = false;
   }
 
-  function showSettings() {
+  function showSettings(event) {
 
     var pane = document.querySelector('#settings');
 
     // Trying to work out a good place to start the pane
     //
     // these are platform/font dependent...
-    pane.style.left = '16em';
-    pane.style.top = '4em';
+    // pane.style.left = '16em';
+    // pane.style.top = '4em';
+
+    // Base the starting position off the client click, but
+    // offset slightly in Y since there should be space above but
+    // may not be as much space below. Could make this depend on
+    // the height of pane, but don't want to go to that much effort
+    // if not necessary.
+    //
+    // The horizontal space is so that the user can still click
+    // the toggle button (to hide the new pane) without having to
+    // move her mouse left.
+    //
+    pane.style.left = `${event.clientX + 5}px`;
+    pane.style.top = `${event.clientY - 40}px`
 
     pane.style.display = 'block';
 
     document.querySelector('#togglesettings').innerHTML =
       'Hide Settings';
+    showSettingsFlag = true;
   }
 
   // Show the pane with the buttons that move to a location.
@@ -1316,13 +1330,12 @@ var wwt = (function () {
 
   function hidePreSelected() {
     hideElement('preselected');
-    showPre = false;
     document.querySelector('#togglepreselected').innerHTML =
       'Show Popular Places';
+    showPre = false;
   }
 
   function showPreSelected(event) {
-
     var pane = document.querySelector('#preselected');
 
     // Trying to work out a good place to start the pane
@@ -1331,14 +1344,17 @@ var wwt = (function () {
     // pane.style.top = evpos.y.toString() + 'px';
 
     // these are platform/font dependent...
-    pane.style.left = '16em';
-    pane.style.top = '4em';
+    // pane.style.left = '16em';
+    // pane.style.top = '4em';
+
+    // See discussion in showSettings
+    pane.style.left = `${event.clientX + 5}px`;
+    pane.style.top = `${event.clientY - 40}px`;
 
     pane.style.display = 'block';
-
-    showPre = true;
     document.querySelector('#togglepreselected').innerHTML =
       'Hide Popular Places';
+    showPre = true;
   }
 
   function toggleStacks() {
@@ -3866,7 +3882,6 @@ var wwt = (function () {
     hidePreSelected: hidePreSelected,
     togglePreSelected: togglePreSelected,
 
-    showSettings: showSettings,
     hideSettings: hideSettings,
     toggleSettings: toggleSettings,
 
