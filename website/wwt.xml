@@ -201,7 +201,7 @@ main#content div.wrap {
 	<!-- the id name is not ideal here -->
         <div id="wwtuserbuttons">
 
-          <div id="userSelection" class="with-tooltip-static">
+          <div id="userSelection" class="with-tooltip-static centered">
             <label for="targetName">
 	      <input type="text" id="targetName"
                      placeholder="Enter Name or Position..."/>
@@ -235,7 +235,7 @@ main#content div.wrap {
 	    </div>
           </div>
 
-	  <div>
+	  <div class="centered">
 	    <select id="selectionmode" name="selectionmode" class="button"
 		    onchange="wwt.setSelectionMode(event.target.value);">
 	      <option value="point">Move to point</option>
@@ -246,7 +246,7 @@ main#content div.wrap {
 	    </select>
 	  </div>
 
-	  <div>
+	  <div class="centered">
             <select id="imagechoice" name="imagechoice" class="button"
                     onchange="wwt.setImage(event.target.value);">
               <option value="planck-cmb">CMB (Planck)</option>

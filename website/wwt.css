@@ -553,10 +553,18 @@ option:disabled {
 }
 
 #wwtuserbuttons {
+  display: flex;
+  flex-direction: column;
   padding-top: 0.5em;
 }
 
+/* not a great class name */
+.centered {
+  /* align-self: center; */
+}
+
 #userSelection {
+  align-self: center;
 }
 
 #resizeusercontrol {

@@ -2836,26 +2836,21 @@ var wwt = (function () {
       const smallify = panel.querySelector('#smallify');
       const bigify = panel.querySelector('#bigify');
 
-      // I had placed the space on #wwtuserbuttons
-      // but this seemed to get "lost" on redisplay,
-      // so go with this awful approach of adding
-      // or removing it from the img as needed.
-      //
-      var state;
+      var state, ustate;
       if (resizeState) {
         smallify.style.display = 'none';
         bigify.style.display = 'block';
         state = 'none';
-        // smallify.style.marginBottom = '0em';
+	ustate = 'none';
       } else {
         smallify.style.display = 'block';
         bigify.style.display = 'none';
         state = 'block';
-        // smallify.style.marginBottom = '0.4em';
+	ustate = 'flex';
       }
 
       // Do we hide or display the main content?
-      user.querySelector('#wwtuserbuttons').style.display = state;
+      user.querySelector('#wwtuserbuttons').style.display = ustate;
 
       // What about the other control icons: I had originally kept
       // them displayed, but I now want to hide them if the main
