@@ -251,9 +251,10 @@ const wwtprops = (function () {
 		      'wwtimg/fa/cut.svg',
 		      null, null,
 		      'icon');
-    const pos = `${ra} ${dec}`;
     if (active) {
-      img.addEventListener('click', () => wwt.copyToClipboard(pos), false);
+      img.addEventListener('click',
+			   () => wwt.copyCoordinatesToClipboard(ra, dec),
+			   false);
     }
     div.appendChild(img);
 

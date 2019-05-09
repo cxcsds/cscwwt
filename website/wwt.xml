@@ -831,13 +831,13 @@ main#content div.wrap {
 
 	    <div>
 	      <select id="clipboardformat" name="clipboardformat" class="button">
-		<option value="degrees" selected="1">ra dec</option>
-		<option value="degrees-d">&lt;ra&gt;d &lt;dec&gt;d (NED)</option>
+		<option value="degrees" selected="1">degrees</option>
+		<option value="degrees-d">degrees+d (NED)</option>
 		<option value="colons">colon separated</option>
 		<option value="letters">hms °'"</option>
 	      </select>
 	      <label for="clipformat">
-		Clipboard format for coordinates
+		Coordinate format (clipboard)
 	      </label>
 	    </div>
 

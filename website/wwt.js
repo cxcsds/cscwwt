@@ -160,10 +160,13 @@ var wwt = (function () {
       return;
     }
 
-    // In case it's useful (e.g. for a clipboard action)
+    // data-ra/dec is used by the copy-to-clipboard action.
     //
-    coord.setAttribute('data-ra', ra);
-    coord.setAttribute('data-dec', dec);
+    // Use 5 decimal places for both as should be sufficient for
+    // the accuracy level we care about with the CSC
+    //
+    coord.setAttribute('data-ra', ra.toFixed(5));
+    coord.setAttribute('data-dec', dec.toFixed(5));
 
     const hms = wwtprops.raToTokens(ra);
     const dms = wwtprops.decToTokens(dec);
@@ -221,7 +224,7 @@ var wwt = (function () {
       return;
     }
 
-    copyToClipboard(coordinateFormat(ra, dec));
+    copyCoordinatesToClipboard(ra, dec);
   }
 
   // What format to use when converting a location to a string,
@@ -275,7 +278,12 @@ var wwt = (function () {
     } else {
       // letters
       return `${rah}h${ram}m${ras}s ${decd}°${decm}'${decs}"`;
+      // fix emacs: need an extra '
     }
+  }
+
+  function copyCoordinatesToClipboard(ra, dec) {
+    copyToClipboard(coordinateFormat(ra, dec));
   }
 
   // Poll the WWT every two seconds for the location and FOV.
@@ -625,6 +633,7 @@ var wwt = (function () {
       //
       // Can I not just use el.click()?
       try {
+	trace(` firing event=${evtype} for ${o.sel}`);
 	el.dispatchEvent(new CustomEvent(evtype));
       }
       catch (e) {
@@ -3947,6 +3956,7 @@ var wwt = (function () {
     clearRegionSelection: clearRegionSelection,
 
     copyToClipboard: copyToClipboard,
+    copyCoordinatesToClipboard: copyCoordinatesToClipboard,
 
     zoomToSource: zoomToSource,
     zoomToStack: zoomToStack,
