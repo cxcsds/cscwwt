@@ -220,7 +220,14 @@ var wwt = (function () {
       return;
     }
 
-    copyToClipboard(ra + ' ' + dec);
+    copyToClipboard(coordinateFormat(ra, dec));
+  }
+
+  // Given RA and Dec in decimal degrees, return a string representation
+  // (intended for the clip board).
+  //
+  function coordinateFormat(ra, dec) {
+    return `${ra} ${dec}`;
   }
 
   // Poll the WWT every two seconds for the location and FOV.
