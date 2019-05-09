@@ -804,41 +804,31 @@ main#content div.wrap {
 	</div>
 
 	<div class="main">
-	  <p>
-	    These settings control the appearance and
-	    behavior of the World Wide Telescope interface to the
-	    Chandra Source Catalog.
-	  </p>
-
           <button class="button"
                   type="button" id="resetdefaults">
             Restore default settings
           </button>
 
-	  <p>
-	    If the "Remember position and settings" checkbox is set
-	    below, then these settings will be used when you next view
-	    this page with the same browser (this information is only
-	    saved on your machine).
-	  </p>
+	  <div class="flowable">
+	    <p>
+	      These settings control the appearance and
+	      behavior of the World Wide Telescope interface to the
+	      Chandra Source Catalog.
+	    </p>
+
+	    <p>
+	      If the "Remember position and settings" checkbox is set
+	      below, then these settings will be used when you next view
+	      this page with the same browser (this information is
+	      <strong>only</strong> saved on your machine).
+	    </p>
+	  </div>
 
 	  <div class="options">
 	    <div class="checkbox">
 	      <input id="togglesavestate" name="togglesavestate"
 		     type="checkbox" checked="true"/>
 	      <label for="togglesavestate">Remember position and settings?</label>
-	    </div>
-
-	    <div>
-	      <select id="clipboardformat" name="clipboardformat" class="button">
-		<option value="degrees" selected="1">degrees</option>
-		<option value="degrees-d">degrees+d (NED)</option>
-		<option value="colons">colon separated</option>
-		<option value="letters">hms °'"</option>
-	      </select>
-	      <label for="clipformat">
-		Coordinate format (clipboard)
-	      </label>
 	    </div>
 
 	    <div class="checkbox">
@@ -869,6 +859,19 @@ main#content div.wrap {
 	      <input id="toggleboundaries" name="toggleboundaries"
 		     type="checkbox"/>
 	      <label for="toggleboundaries">Show the boundary of the current constellation</label>
+	    </div>
+
+	    <div>
+	      <!-- do not style this as a "button" -->
+	      <select id="clipboardformat" name="clipboardformat">
+		<option value="degrees" selected="1">degrees</option>
+		<option value="degrees-d">degrees+d (NED)</option>
+		<option value="colons">colon separated</option>
+		<option value="letters">hms °'"</option>
+	      </select>
+	      <label for="clipformat">
+		Coordinate format (clipboard)
+	      </label>
 	    </div>
 
 	  </div> <!-- .options -->

@@ -446,13 +446,24 @@ div.basicinfo + br {
   border-radius: 0.5em;
   color: white;
   cursor: pointer;
-  display: inline-block;
+  /* display: inline-block; */
   margin-top: 0.4em;
   padding: 0.5em;
   text-align: center;
   vertical-align: middle;
   width: 100%;
 }
+
+/* over-rides for specific buttons */
+#resetdefaults {
+  float: right;
+  /* margin-bottom: 1em; */
+  margin-top: 0;
+  width: auto;
+}
+
+
+
 
 .button:hover {
   background-color: rgba(210, 35, 45, 0.8);
@@ -480,13 +491,6 @@ div.basicinfo + br {
 option:disabled {
   color: rgba(0, 0, 0, 0.4);
 }
-
-.settingspane .button {
-  margin-bottom: 1em;
-  margin-top: 0;
-  width: auto;
-}
-
 
 #sourcebar , #source11bar , #xmmsourcebar {
   display: flex;
@@ -769,14 +773,24 @@ div.settingspane {
   max-width: 28em;
 }
 
+/***
 div.settingspane .main + p {
   border-top: 0;
 }
+***/
 
-.options {
+div.flowable p:first-child {
+  margin-top: 0;
+}
+
+div.options {
   background-color: white;
   padding-bottom: 1em;
   padding-top: 1em;
+}
+
+div.options div {
+  margin-left: 0.5em;
 }
 
 /* Use a grid to align the "zoom to location" buttons; should allow
