@@ -447,8 +447,10 @@ div.basicinfo + br {
   color: white;
   cursor: pointer;
   /* display: inline-block; */
-  margin-top: 0.4em;
-  padding: 0.5em;
+  margin-top: 0.3em;
+  /* padding: 0.5em; */
+  padding-bottom: 0.2em;
+  padding-top: 0.2em;
   text-align: center;
   vertical-align: middle;
   width: 100%;
