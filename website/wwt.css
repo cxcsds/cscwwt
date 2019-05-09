@@ -446,13 +446,26 @@ div.basicinfo + br {
   border-radius: 0.5em;
   color: white;
   cursor: pointer;
-  display: inline-block;
-  margin-top: 0.4em;
-  padding: 0.5em;
+  /* display: inline-block; */
+  margin-top: 0.3em;
+  /* padding: 0.5em; */
+  padding-bottom: 0.2em;
+  padding-top: 0.2em;
   text-align: center;
   vertical-align: middle;
   width: 100%;
 }
+
+/* over-rides for specific buttons */
+#resetdefaults {
+  float: right;
+  /* margin-bottom: 1em; */
+  margin-top: 0;
+  width: auto;
+}
+
+
+
 
 .button:hover {
   background-color: rgba(210, 35, 45, 0.8);
@@ -480,77 +493,6 @@ div.basicinfo + br {
 option:disabled {
   color: rgba(0, 0, 0, 0.4);
 }
-
-.settingspane .button {
-  margin-bottom: 1em;
-  margin-top: 0;
-  width: auto;
-}
-
-/* Try https://medium.com/claritydesignsystem/pure-css-accessible-checkboxes-and-radios-buttons-54063e759bb3 */
-.checkbox input[type='checkbox'] {
-  opacity: 0;
-}
-
-.checkbox label::before {
-  border: 1px solid;
-  content: " ";
-  display: inline-block;
-  height: 1em;
-	margin-right: 0.5em;
-  width: 1em;
-}
-
-.checkbox label::after {
-  border-bottom: 2px solid;
-  border-left: 2px solid;
-  content: "";
-  display: inline-block;
-  height: 0.38em;
-  transform: rotate(-55deg);
-  width: 0.56em;
-}
-
-.checkbox label {
-  position: relative;
-}
-
-/***
-.checkbox label::before {
-  position: absolute;
-}
-***/
-
-.checkbox label::after {
-  position: absolute;
-}
-
-/*Outer-box*/
-.checkbox label::before {
-  top: 0.19em;
-}
-
-/*Checkmark*/
-.checkbox label::after {
-  left: 0.25em;
-  top: 0.1em;
-}
-
-/*Hide the checkmark by default*/
-.checkbox input[type="checkbox"] + label::after {
-  content: none;
-}
-
-/*Unhide the checkmark on the checked state*/
-.checkbox input[type="checkbox"]:checked + label::after {
-  content: "";
-}
-
-/*Adding focus styles on the outer-box of the fake checkbox*/
-.checkbox input[type="checkbox"]:focus + label::before {
-  outline: rgb(59, 153, 252) auto 5px;
-}
-
 
 #sourcebar , #source11bar , #xmmsourcebar {
   display: flex;
@@ -613,10 +555,18 @@ option:disabled {
 }
 
 #wwtuserbuttons {
+  display: flex;
+  flex-direction: column;
   padding-top: 0.5em;
 }
 
+/* not a great class name */
+.centered {
+  /* align-self: center; */
+}
+
 #userSelection {
+  align-self: center;
 }
 
 #resizeusercontrol {
@@ -833,14 +783,24 @@ div.settingspane {
   max-width: 28em;
 }
 
+/***
 div.settingspane .main + p {
   border-top: 0;
 }
+***/
 
-.checkboxes {
+div.flowable p:first-child {
+  margin-top: 0;
+}
+
+div.options {
   background-color: white;
   padding-bottom: 1em;
   padding-top: 1em;
+}
+
+div.options div {
+  margin-left: 0.5em;
 }
 
 /* Use a grid to align the "zoom to location" buttons; should allow

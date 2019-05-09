@@ -50,6 +50,7 @@ var wwt = (function () {
   const keyConstellations = 'wwt-constellations';
   const keyBoundaries = 'wwt-boundaries';
   const keyMilkyWay = 'wwt-milkyway';
+  const keyClipboardFormat = 'wwt-clipboardformat';
 
   // Remove any user-stored values.
   //
@@ -58,7 +59,7 @@ var wwt = (function () {
 		  keySave, keyLocation, keyFOV, keyForeground,
 		  keyCoordinateGrid,
 		  keyCrosshairs, keyConstellations, keyBoundaries,
-		  keyMilkyWay];
+		  keyMilkyWay, keyClipboardFormat];
 
     keys.forEach(key => {
       trace(`-- clearing state for key=${key}`);
@@ -159,10 +160,13 @@ var wwt = (function () {
       return;
     }
 
-    // In case it's useful (e.g. for a clipboard action)
+    // data-ra/dec is used by the copy-to-clipboard action.
     //
-    coord.setAttribute('data-ra', ra);
-    coord.setAttribute('data-dec', dec);
+    // Use 5 decimal places for both as should be sufficient for
+    // the accuracy level we care about with the CSC
+    //
+    coord.setAttribute('data-ra', ra.toFixed(5));
+    coord.setAttribute('data-dec', dec.toFixed(5));
 
     const hms = wwtprops.raToTokens(ra);
     const dms = wwtprops.decToTokens(dec);
@@ -220,7 +224,66 @@ var wwt = (function () {
       return;
     }
 
-    copyToClipboard(ra + ' ' + dec);
+    copyCoordinatesToClipboard(ra, dec);
+  }
+
+  // What format to use when converting a location to a string,
+  // which will then be added to the clipboard.
+  //
+  var clipboardFormat = 'degrees';
+  const supportedClipboardFormats = ['degrees',
+				     'degrees-d',
+				     'colons',
+				     'letters'];
+  function setClipboardFormat(format) {
+    if (!supportedClipboardFormats.includes(format)) {
+      console.log(`ERROR: clipboard format '${format}' is not supported.`);
+      return;
+    }
+    clipboardFormat = format;
+    saveState(keyClipboardFormat, clipboardFormat);
+  }
+
+  // Given RA and Dec in decimal degrees, return a string representation
+  // (intended for the clip board).
+  //
+  function coordinateFormat(ra, dec) {
+    // Not worried about efficiency here.
+    //
+    if (!supportedClipboardFormats.includes(clipboardFormat)) {
+      console.log(`ERROR: unknown clipboardformat '${clipboardFormat}'`);
+      clipboardFormat = 'degrees';
+      saveState(keyClipboardFormat, clipboardFormat);
+    }
+
+    if (clipboardFormat === 'degrees') {
+      return `${ra} ${dec}`;
+    } else if (clipboardFormat === 'degrees-d') {
+      return `${ra}d ${dec}d`;
+    }
+
+    const hms = wwtprops.raToTokens(ra);
+    const dms = wwtprops.decToTokens(dec);
+
+    const rah = i2(hms.hours);
+    const ram = i2(hms.minutes);
+    const ras = f2(hms.seconds, 2);
+
+    const decd = dms.sign + i2(dms.degrees);
+    const decm = i2(dms.minutes);
+    const decs = f2(dms.seconds, 1);
+
+    if (clipboardFormat === 'colons') {
+      return `${rah}:${ram}:${ras} ${decd}:${decm}:${decs}`;
+    } else {
+      // letters
+      return `${rah}h${ram}m${ras}s ${decd}°${decm}'${decs}"`;
+      // fix emacs: need an extra '
+    }
+  }
+
+  function copyCoordinatesToClipboard(ra, dec) {
+    copyToClipboard(coordinateFormat(ra, dec));
   }
 
   // Poll the WWT every two seconds for the location and FOV.
@@ -512,9 +575,14 @@ var wwt = (function () {
   //       (they could be set from the HTML on load, but for now leave
   //       that).
   //
+  // This started out only supporting checkboxes, but now also want
+  // to support option lists.
+  //
   const toggleInfo = [
     {key: keySave, sel: '#togglesavestate',
      change: setSaveState, defval: true},
+    {key: keyClipboardFormat, sel: '#clipboardformat',
+     change: setClipboardFormat, defval: 'degrees'},
     {key: keyCoordinateGrid, sel: '#togglegrid',
      change: setCoordinateGrid, defval: true},
     {key: keyCrosshairs, sel: '#togglecrosshair',
@@ -546,8 +614,18 @@ var wwt = (function () {
 	return;
       }
 
-      if (el.checked !== o.defval) {
-	el.checked = o.defval;
+      let evtype = null;
+      if (el.tagName === 'SELECT') {
+	evtype = 'change';
+	for (var idx = 0; idx < el.options.length; idx++) {
+	  const opt = el.options[idx];
+	  if (opt.value === o.defval) { opt.selected = true; }
+	}
+      } else {
+	evtype = 'click';
+	if (el.checked !== o.defval) {
+	  el.checked = o.defval;
+	}
       }
 
       // Fire the event whether it was changed or not, to ensure the
@@ -555,10 +633,11 @@ var wwt = (function () {
       //
       // Can I not just use el.click()?
       try {
-	el.dispatchEvent(new CustomEvent('click'));
+	trace(` firing event=${evtype} for ${o.sel}`);
+	el.dispatchEvent(new CustomEvent(evtype));
       }
       catch (e) {
-	console.log(`ERROR: Unable to send click event to ${o.sel}`);
+	console.log(`ERROR: Unable to send ${evtype} event to ${o.sel}`);
       }
     });
   }
@@ -1814,28 +1893,46 @@ var wwt = (function () {
     trace('Created CHS annotations');
   }
 
+  // Change the settings to the values stored in the users state.
+  // The assumption is that if the user has selected "don't store"
+  // then there will be no key value in the state (other than for
+  // the "do you want to save state" key).
+  //
   // This should only be called after the event handlers for the
   // toggle options have been set up. As I extend this to include
   // items that require external data, that may be loaded asynchrounously,
-  // it gets messier.
+  // or non-checkbox elements, it gets messier.
   //
   function createSettings() {
-
     toggleInfo.forEach(o => {
       const keyval = o.key === null ? null : getState(o.key);
-      let val = o.defval;
-      if (keyval !== null) {
+      if (keyval === null) { return; }
+
+      const el = document.querySelector(o.sel);
+      if (el === null) {
+	console.log(`ERROR: unable to find toggle element ${o.sel}`);
+	return;
+      }
+
+      let val = keyval;
+      let changed = false;
+      if (el.tagName === 'SELECT') {
+	for (var idx = 0; idx < el.options.length; idx++) {
+	  const opt = el.options[idx];
+	  if (opt.value === val) {
+	    changed = !opt.selected;
+	    opt.selected = true;
+	  }
+	}
+      } else {
 	val = keyval === 'true';
-	const el = document.querySelector(o.sel);
-	if (el === null) {
-	  console.log(`ERROR: unable to find toggle element ${o.sel}`);
-	} else if (val !== el.checked) {
-	  // only update (and trigger update) if we change the
-	  // value.
+	if (val !== el.checked) {
 	  el.checked = val;
-	  o.change(val);
+	  changed = true;
 	}
       }
+
+      if (changed) { o.change(val); }
     });
 
     wwt.hideUI(true);
@@ -2739,26 +2836,21 @@ var wwt = (function () {
       const smallify = panel.querySelector('#smallify');
       const bigify = panel.querySelector('#bigify');
 
-      // I had placed the space on #wwtuserbuttons
-      // but this seemed to get "lost" on redisplay,
-      // so go with this awful approach of adding
-      // or removing it from the img as needed.
-      //
-      var state;
+      var state, ustate;
       if (resizeState) {
         smallify.style.display = 'none';
         bigify.style.display = 'block';
         state = 'none';
-        // smallify.style.marginBottom = '0em';
+	ustate = 'none';
       } else {
         smallify.style.display = 'block';
         bigify.style.display = 'none';
         state = 'block';
-        // smallify.style.marginBottom = '0.4em';
+	ustate = 'flex';
       }
 
       // Do we hide or display the main content?
-      user.querySelector('#wwtuserbuttons').style.display = state;
+      user.querySelector('#wwtuserbuttons').style.display = ustate;
 
       // What about the other control icons: I had originally kept
       // them displayed, but I now want to hide them if the main
@@ -2933,9 +3025,17 @@ var wwt = (function () {
 	console.log(`ERROR: unable to find toggle element ${o.sel}`);
 	return;
       }
-      el.addEventListener('click',
-			  ev => { o.change(ev.target.checked); },
-			  false);
+      if (el.tagName === 'SELECT') {
+	trace(` - adding change handler for settings: ${o.sel}`);
+	el.addEventListener('change',
+			    ev => { o.change(ev.target.value); },
+			    false);
+      } else {
+	trace(` - adding click handler for settings: ${o.sel}`);
+	el.addEventListener('click',
+			    ev => { o.change(ev.target.checked); },
+			    false);
+      }
     });
 
     // Start up the WWT initialization and then load in
@@ -3851,6 +3951,7 @@ var wwt = (function () {
     clearRegionSelection: clearRegionSelection,
 
     copyToClipboard: copyToClipboard,
+    copyCoordinatesToClipboard: copyCoordinatesToClipboard,
 
     zoomToSource: zoomToSource,
     zoomToStack: zoomToStack,

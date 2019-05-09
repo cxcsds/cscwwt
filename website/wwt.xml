@@ -201,7 +201,7 @@ main#content div.wrap {
 	<!-- the id name is not ideal here -->
         <div id="wwtuserbuttons">
 
-          <div id="userSelection" class="with-tooltip-static">
+          <div id="userSelection" class="with-tooltip-static centered">
             <label for="targetName">
 	      <input type="text" id="targetName"
                      placeholder="Enter Name or Position..."/>
@@ -235,7 +235,7 @@ main#content div.wrap {
 	    </div>
           </div>
 
-	  <div>
+	  <div class="centered">
 	    <select id="selectionmode" name="selectionmode" class="button"
 		    onchange="wwt.setSelectionMode(event.target.value);">
 	      <option value="point">Move to point</option>
@@ -246,7 +246,7 @@ main#content div.wrap {
 	    </select>
 	  </div>
 
-	  <div>
+	  <div class="centered">
             <select id="imagechoice" name="imagechoice" class="button"
                     onchange="wwt.setImage(event.target.value);">
               <option value="planck-cmb">CMB (Planck)</option>
@@ -804,25 +804,27 @@ main#content div.wrap {
 	</div>
 
 	<div class="main">
-	  <p>
-	    These settings control the appearance and
-	    behavior of the World Wide Telescope interface to the
-	    Chandra Source Catalog.
-	  </p>
-
           <button class="button"
                   type="button" id="resetdefaults">
             Restore default settings
           </button>
 
-	  <p>
-	    If the "Remember position and settings" checkbox is set
-	    below, then these settings will be used when you next view
-	    this page with the same browser (this information is only
-	    saved on your machine).
-	  </p>
+	  <div class="flowable">
+	    <p>
+	      These settings control the appearance and
+	      behavior of the World Wide Telescope interface to the
+	      Chandra Source Catalog.
+	    </p>
 
-	  <div class="checkboxes">
+	    <p>
+	      If the "Remember position and settings" checkbox is set
+	      below, then these settings will be used when you next view
+	      this page with the same browser (this information is
+	      <strong>only</strong> saved on your machine).
+	    </p>
+	  </div>
+
+	  <div class="options">
 	    <div class="checkbox">
 	      <input id="togglesavestate" name="togglesavestate"
 		     type="checkbox" checked="true"/>
@@ -859,7 +861,20 @@ main#content div.wrap {
 	      <label for="toggleboundaries">Show the boundary of the current constellation</label>
 	    </div>
 
-	  </div> <!-- .checkboxes -->
+	    <div>
+	      <!-- do not style this as a "button" -->
+	      <select id="clipboardformat" name="clipboardformat">
+		<option value="degrees" selected="1">degrees</option>
+		<option value="degrees-d">degrees+d (NED)</option>
+		<option value="colons">colon separated</option>
+		<option value="letters">hms °'"</option>
+	      </select>
+	      <label for="clipformat">
+		Coordinate format (clipboard)
+	      </label>
+	    </div>
+
+	  </div> <!-- .options -->
 
 	  <p>
 	    The following settings are not saved:
@@ -867,7 +882,7 @@ main#content div.wrap {
 
 	  <!-- the banners behave differently (do not save this setting)
 	       so ideally want to style them differently -->
-	  <div class="checkboxes">
+	  <div class="options">
 	    <div class="checkbox">
 	      <input id="togglebanners" name="togglebanners"
 		     type="checkbox" checked="true"/>
@@ -879,7 +894,7 @@ main#content div.wrap {
 		     type="checkbox"/>
 	      <label for="togglefullscreen">Full screen mode</label>
 	    </div>
-	  </div> <!-- .checkboxes -->
+	  </div> <!-- .options -->
 
 	</div> <!-- .main -->
       </div> <!-- #settings -->
