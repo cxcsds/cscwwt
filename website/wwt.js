@@ -3937,6 +3937,57 @@ var wwt = (function () {
     trace('Loaded XMM data');
   }
 
+  // Can I use the spreadsheet layer in WWT (if it exists)?
+  function hackLayer(props) {
+
+    const create = wwtlib.LayerManager.createSpreadsheetLayer;
+    if (typeof create === 'undefined') {
+      console.log('ERROR: no support for spreadhseet layers!');
+      return;
+    }
+
+    if (props.data === null) {
+      console.log(`ERROR: no data loaded for ${props.label}`);
+      return;
+    }
+
+    // What's the best way to create what could be a long string?
+    //
+    // It seems excessive to give the same size/color value to each point
+    let tbl = 'name,ra,dec,size,color\r\n'
+    let ctr = 1;
+    props.data.forEach(a => {
+      const pos = props.getPos(a);
+      tbl += `src${ctr},${pos.ra},${pos.dec},${props.size},${props.color}\r\n`;
+      ctr += 1;
+    });
+
+    const frame = 'Sky';
+    const layer = create(frame, `Source layer: ${props.label}`, tbl);
+    layer.set_referenceFrame(frame);
+
+    // Be explicit about columns
+    //
+    layer.set_nameColumn(0);
+    layer.set_lngColumn(1);
+    layer.set_latColumn(2);
+    layer.set_altColumn(-1);
+    layer.set_sizeColumn(3);
+    layer.set_colorMapColumn(4);
+    layer.set_startDateColumn(-1);
+    layer.set_endDateColumn(-1);
+
+    layer.set_altUnit(1);  // is this needed / useful / ?
+
+    layer.set_astronomical(true);
+    layer.set_markerScale(wwtlib.MarkerScales.world);
+    layer.set_raUnits(wwtlib.RAUnits.degrees);
+
+    // layer.set_plotType(wwtlib.PlotTypes.circle);
+
+    return layer;
+  }
+
   // Most of these are likely to be removed or replaced
   // as they are here for debugging, or historical "accident"
   // (i.e. not removed when no-longer needed).
@@ -4016,6 +4067,7 @@ var wwt = (function () {
     strToRA: strToRA, strToDec: strToDec,
 
     getProps: () => catalogProps,
+    hackLayer: hackLayer,
 
     click: addAnnotationClicked,
     unclick: removeAnnotationClicked,
