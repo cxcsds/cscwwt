@@ -1906,6 +1906,7 @@ var wwt = (function () {
   function createSettings() {
     toggleInfo.forEach(o => {
       const keyval = o.key === null ? null : getState(o.key);
+      trace(` - setting for ${o.sel}  key=${o.key} -> ${keyval}`);
       if (keyval === null) { return; }
 
       const el = document.querySelector(o.sel);
@@ -1915,12 +1916,10 @@ var wwt = (function () {
       }
 
       let val = keyval;
-      let changed = false;
       if (el.tagName === 'SELECT') {
 	for (var idx = 0; idx < el.options.length; idx++) {
 	  const opt = el.options[idx];
 	  if (opt.value === val) {
-	    changed = !opt.selected;
 	    opt.selected = true;
 	  }
 	}
@@ -1928,11 +1927,15 @@ var wwt = (function () {
 	val = keyval === 'true';
 	if (val !== el.checked) {
 	  el.checked = val;
-	  changed = true;
 	}
       }
 
-      if (changed) { o.change(val); }
+      // Do we want to trigger a call to the event handler for this
+      // option? I switched to "only call if there is no change", but
+      // then it doesn't actually cause the value to be acted on. So
+      // for now always trigger the call.
+      //
+      o.change(val);
     });
 
     wwt.hideUI(true);
@@ -4017,6 +4020,7 @@ var wwt = (function () {
     click: addAnnotationClicked,
     unclick: removeAnnotationClicked,
 
+    clearState: clearState,
     switchSelectionMode: switchSelectionMode
 
   };
