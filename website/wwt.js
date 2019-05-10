@@ -2924,19 +2924,19 @@ var wwt = (function () {
      * search text box. The search button is only active when
      * there is text.
      */
-    host.querySelector('#targetName')
-      .addEventListener('keyup',
-			(e) => {
-                          const val = this.value.trim();
+    const tname = host.querySelector('#targetName');
+    tname.addEventListener('keyup',
+			   (e) => {
+                             const val = tname.value.trim();
 
-                          // Ensure the submit button is only enabled when there is
-                          // any text.
-                          if (val === '') { tfind.disabled = true; return; }
-                          else if (tfind.disabled) { tfind.disabled = false; };
+                             // Ensure the submit button is only enabled when
+			     // there is any text.
+                             if (val === '') { tfind.disabled = true; return; }
+                             else if (tfind.disabled) { tfind.disabled = false; };
 
-                          if (e.keyCode !== 13) { return; }
-                          tfind.click();
-                        }, false);
+                             if (e.keyCode !== 13) { return; }
+                             tfind.click();
+                           }, false);
 
     // resize the user-control area
     host.querySelector('#resizeusercontrol')
