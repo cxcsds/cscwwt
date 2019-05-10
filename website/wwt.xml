@@ -19,7 +19,7 @@
     </metalist>
 
     <htmlscripts>
-      <htmlscript src="http://www.worldwidetelescope.org/scripts/wwtsdk.aspx"/>
+      <htmlscript src="http://www.worldwidetelescope.org/webclient/sdk/wwtsdk.min.js"/>
 
       <!-- should probably specify a version -->
       <htmlscript src="https://cdn.plot.ly/plotly-latest.min.js"/>
