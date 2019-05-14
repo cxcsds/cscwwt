@@ -462,6 +462,9 @@ main#content div.wrap {
 	    applications - such as
 	    <extlink target="_blank"
 		     href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
+	    or
+	    <extlink target="_blank"
+		     href="http://ds9.si.edu/site/Home.html">SAOImageDS9</extlink>
 	    - with the
             <img alt="Send via SAMP"
 		 class="example-icons icon" src="wwtimg/fa/share.svg"/>
@@ -625,7 +628,7 @@ main#content div.wrap {
 		The second icon is displayed if a SAMP hub is available
 		and CSC 2.0 sources are shown: selecting the icon will send
 		the summary master source properties to any table viewer (such
-		as TOPCAT) to support more in-depth analysis.
+		as TOPCAT or DS9) to support more in-depth analysis.
 		Note that this icon can also be found in the
 		"source properties" window that is displayed when a CSC 2.0
 		source is selected. In this case the full set of master-source
@@ -671,6 +674,16 @@ main#content div.wrap {
 	    </div>
 	  </div>
 
+	  <p>
+	    If a SAMP hub is running on your machine, and
+	    DS9 is connected to it, then you will be
+	    able to send the stack event file to the DS9
+	    by clicking on the "export" icon:
+            <img alt="Send via SAMP"
+		 class="icon"
+		 src="wwtimg/fa/share.svg"/>
+	  </p>
+
 	  <h3>Selecting a source</h3>
 
 	  <p>
@@ -694,6 +707,15 @@ main#content div.wrap {
 	    density, the best estimate of the model-independent flux
 	    using an aperture correction, hardness-ratios, and several
 	    details about the data used for the source.
+	  </p>
+
+	  <p>
+	    If a SAMP hub is running on your machine then you will be
+	    able to send all the master properties for the source to
+	    a table viewer by clicking on the "export" icon:
+            <img alt="Send via SAMP"
+		 class="icon"
+		 src="wwtimg/fa/share.svg"/>
 	  </p>
 
 	  <p>
@@ -724,8 +746,12 @@ main#content div.wrap {
 
 	  <p>
 	    These windows - showing stack or source properties - can be
-	    dragged around the display, in case they obscure the
-	    background.
+	    dragged around the display, or minimised, if they
+            obscure parts of the display, with the
+            <img alt="Hide" class="icon"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+	    icon.
+
 	  </p>
 
 	  <h3>Chandra and XMM sources</h3>
@@ -773,8 +799,9 @@ main#content div.wrap {
             <extlink target="_blank"
 		     href="http://www.worldwidetelescope.org/webclient/">WorldWide
 	    Telescope</extlink> - can be panned, zoomed into (or
-            out of), and the background image changed using the list of
-            options below.
+            out of), and the background image changed to show
+	    one of a range of wavelenghts (from Gamma Ray to Microwave)
+	    using the selection in the "control panel".
 	  </p>
 
 	  <h3>Thanks</h3>
