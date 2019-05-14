@@ -1326,7 +1326,7 @@ var wwt = (function () {
     shownCHS = false;
   }
 
-  function toggleFlexById(elname) {
+  function toggleSourceProps(event, elname) {
     const sel = '#' + elname;
     const el = document.querySelector(sel);
     if (el === null) {
@@ -1335,7 +1335,8 @@ var wwt = (function () {
     }
 
     // Assume that initially (when style.display is '') that
-    // the item is hidden by a CSS rule.
+    // the item is hidden by a CSS rule. So, if it is set to
+    // 'flex' then we know it has to be hidden, otherwise shown.
     //
     var style;
     if (el.style.display === 'flex') {
@@ -1343,6 +1344,9 @@ var wwt = (function () {
     } else {
       style = 'flex';
     }
+
+    // el.style.left = `${event.clientX + 5}px`;
+    el.style.top = `${event.clientY}px`;
 
     el.style.display = style;
   }
@@ -3980,7 +3984,7 @@ var wwt = (function () {
 
     toggleCHS: toggleCHS,
 
-    toggleFlexById: toggleFlexById,
+    toggleSourceProps: toggleSourceProps,
 
     showPreSelected: showPreSelected,
     hidePreSelected: hidePreSelected,

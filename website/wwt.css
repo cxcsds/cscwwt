@@ -504,7 +504,7 @@ option:disabled {
   display: none;
 }
 
-#sourceprops , #source11props , #xmmsourceprops {
+.sourceprops {
   background-color: rgba(255, 255, 255, 0.6);
   border: 1px solid #D9D9D9;
   border-radius: 0.5em;
@@ -522,7 +522,7 @@ option:disabled {
 }
 
 /* Looks like may need to explicitly replace margin/padding settings
- * as seeing significant variationson different browsers
+ * as seeing significant variations on different browsers
  */
 #togglesourceprops , #togglesource11props , #togglexmmsourceprops {
   border-radius: 0.5em;
@@ -534,10 +534,6 @@ option:disabled {
   padding-right: 0.3em;
 }
 
-#togglesourceprops img , #togglesource11props img , #togglexmmsourceprops img {
-  /* height: 1em; */
-}
-
 /* color buttons for sources */
 .jscolor {
   border-radius: 0.5em;
@@ -547,9 +543,6 @@ option:disabled {
   margin-top: 0.4em;
   vertical-align: middle;
   width: 2em;
-}
-
-#sourcesize , #source11size , #xmmsourcesize {
 }
 
 .sourcesize {

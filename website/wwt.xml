@@ -292,14 +292,14 @@ main#content div.wrap {
               Load CSC2.0 Sources
             </button>
 	    <button type="button" id="togglesourceprops"
-		    onclick="wwt.toggleFlexById('sourceprops')">
+		    onclick="wwt.toggleSourceProps(event, 'sourceprops')">
 	      <img src="wwtimg/fa/cog.svg" class="icon"
 		   alt="Change Properties"
 		   />
 	    </button>
 	  </div>
 
-	  <div id="sourceprops">
+	  <div class="sourceprops" id="sourceprops">
 	    <button class="jscolor" id="sourcecolor"
 		    data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
 		    />
@@ -333,14 +333,14 @@ main#content div.wrap {
               Load CSC1.1 Sources
             </button>
 	    <button type="button" id="togglesource11props"
-		    onclick="wwt.toggleFlexById('source11props')">
+		    onclick="wwt.toggleSourceProps(event, 'source11props')">
 	      <img src="wwtimg/fa/cog.svg" class="icon"
 		   alt="Change Properties"
 		   />
 	    </button>
 	  </div>
 
-	  <div id="source11props">
+	  <div class="sourceprops" id="source11props">
 	    <button class="jscolor" id="source11color"
 		    data-jscolor="{onFineChange:'wwt.colorUpdate11(this)',valueElement:null,closable:true,value:'ffa500'}"
 		    />
@@ -357,13 +357,13 @@ main#content div.wrap {
               Load XMM Sources
             </button>
 	    <button type="button" id="togglexmmsourceprops"
-		    onclick="wwt.toggleFlexById('xmmsourceprops')">
+		    onclick="wwt.toggleSourceProps(event, 'xmmsourceprops')">
 	      <img src="wwtimg/fa/cog.svg" class="icon"
 		   alt="Change Properties"/>
 	    </button>
 	  </div>
 
-	  <div id="xmmsourceprops">
+	  <div class="sourceprops" id="xmmsourceprops">
 	    <button class="jscolor" id="xmmsourcecolor"
 		    data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
 		    />
