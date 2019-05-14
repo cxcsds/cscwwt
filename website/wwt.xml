@@ -345,7 +345,7 @@ main#content div.wrap {
 		    data-jscolor="{onFineChange:'wwt.colorUpdate11(this)',valueElement:null,closable:true,value:'ffa500'}"
 		    />
 	    <input type="range" id="source11size" min="1" max="30"
-		   value="7" class="source11size"
+		   value="7" class="sourcesize"
 		   onchange="wwt.changeSource11Size(this.valueAsNumber)"
 		   />
 	  </div>
@@ -536,12 +536,9 @@ main#content div.wrap {
 	  <h3>What do all the icons mean?</h3>
 
 	  <p>
-	    The top of the control panel - above the "Chandra Source 2.0"
-	    title - contains several icons, which can be used to
-	    change the appearance or perform some action. Please note that
-	    the icons are
-	    not always shown, as they can depend on previous actions
-	    or other factors, as explained below.
+	    There are a number of icons that can appear throughout
+	    the display (most of them at the top of the control panel,
+	    above the "Chandra Source Catalog 2.0" title):
 	  </p>
 
 	  <dl>
@@ -556,8 +553,9 @@ main#content div.wrap {
 
 	    <dd>
 	      <p>
-		These two icons control whether the control panel is
-		hidden or displayed.
+		These two icons control whether a "window" (a
+		panel of information) is hidden (minimised)
+		or displayed.
 	      </p>
 	    </dd>
 
@@ -600,6 +598,35 @@ main#content div.wrap {
 	    <dt>
 	      <div class="iconarea">
 		<img class="icon"
+		     alt="Scissors (cut to clipboard)"
+		     src="wwtimg/fa/cut.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		This icon will copy the location (the value to the left
+		of it) to the clipboard, so that it can then be pasted
+		into another application (such as
+		<extlink target="_blank"
+			 href="http://cda.cfa.harvard.edu/cscview/">CSCView</extlink>).
+		The default format is to use decimal degrees, but this
+		can be changed using the "Settings panel". The options
+		are (a space is always used to separate the Right
+		Ascension value from the Declination):
+		decimal degrees;
+		decimal degrees labelled with a trailing 'd' (as used
+		in
+		<extlink target="_blank"
+		     href="http://ned.ipac.caltech.edu/">NED</extlink>);
+		colons separating the sexagesimal components;
+		or hms/°'" separating the sexagesimal components.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon"
 		     alt="Register with a SAMP Hub"
 		     src="wwtimg/fa/broadcast-tower.svg"/>
 		<img class="icon" alt="Send via SAMP"
@@ -625,18 +652,117 @@ main#content div.wrap {
 		the SAMP hub: this is an optional step but selecting it will
 		mean that the WWT interface will both send and respond to
 		<span class="term">coord.pointAt.sky</span> messages.
-		The second icon is displayed if a SAMP hub is available
-		and CSC 2.0 sources are shown: selecting the icon will send
-		the summary master source properties to any table viewer (such
-		as TOPCAT or DS9) to support more in-depth analysis.
-		Note that this icon can also be found in the
-		"source properties" window that is displayed when a CSC 2.0
-		source is selected. In this case the full set of master-source
-		properties for this source will be sent to any table viewer.
 	      </p>
+	      <p>
+		The second icon indicates "send information via SAMP", and
+		can appear in different panels. The information sent depends
+		on the location of this "share" icon
+		(<img class="icon" alt="Send via SAMP"
+		src="wwtimg/fa/share.svg"/>):
+	      </p>
+	      <list>
+		<li>
+		  <p>
+		    It is displayed at the top of the control panel when
+		    the CSC 2.0 sources are shown. Selecting the icon will send
+		    the summary master source properties to any table viewer (such
+		    as TOPCAT or DS9) to support more in-depth analysis.
+		  </p>
+		</li>
+		<li>
+		  <p>
+		    In the stack-information panel, clicking on the icon will
+		    send the stack event file to an application (such
+		    as SAOImageDS9).
+		  </p>
+		</li>
+		<li>
+		  <p>
+		    In the source-properties panel it is used to send the
+		    full set of master-source properties for this source will be
+		    sent to any table viewer (e.g. TOPCAT and SAOImageDS9).
+		  </p>
+		</li>
+	      </list>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon" alt="Change Properties"
+		     src="wwtimg/fa/cog.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		This icon will appear once the source information has
+		been loaded, and allows you to change the color and
+		size of the circles used to mark the source locations.
+		Selecting the icon a second time will hide the
+		source-property controls:
+	      </p>
+	      <list>
+		<li>
+		  <p>
+		    Source color:
+		    <button class="jscolor"
+			    data-jscolor="{valueElement:null,closable:true,value:'00ffff'}"
+			    />
+		  </p>
+		</li>
+		<li>
+		  <p>
+		    Source size:
+		    <input type="range" class="sourcesize" min="1" max="30"
+			   value="5"/>
+		  </p>
+		</li>
+	      </list>
 	    </dd>
 
 	  </dl>
+
+	  <h3>Settings</h3>
+
+	  <p>
+	    The <span class="example-button">Show Settings</span> button
+	    will display the settings panel, which is used to control the
+	    appearance and behavior of the World-Wide Telescope.
+	    The settings will be saved on your local machine - and so
+	    remembered next time you visit this site with the same
+	    browser and machine - but this option can be turned off.
+	    Note that this <strong>only</strong> saves information on
+	    your machine; it is <strong>not</strong> stored by the
+	    Chandra X-ray Center.
+	  </p>
+
+	  <p>
+	    The settings which can be saved include:
+	  </p>
+
+	  <list>
+	    <li>Is the Milky Way outline shown (default is no)?</li>
+	    <li>Is a cross-hair shown at the center of the field
+	    (default is yes)?</li>
+	    <li>Is a coordinate grid (Right Ascension and Declination)
+	    shown (default is yes)?</li>
+	    <li>Are the constellations shown (default is yes)?</li>
+	    <li>Is the boundary of the current constellation (that is,
+	    the constellation which covers the aim point) shown (default
+	    is no)?</li>
+	    <li>What format is used when copying a location to
+	    the clipboard (default is decimal degrees)?</li>
+	  </list>
+
+	  <p>
+	    There are two settings which are not saved:
+	  </p>
+
+	  <list>
+	    <li>Are the header and footer banners displayed (default is yes)?</li>
+	    <li>Should full-screen mode be used (default is no; this option
+	    is only displayed if the web-browser supports this option)?</li>
+	  </list>
 
 	  <h3>Searching for a name or position</h3>
 
@@ -779,8 +905,9 @@ main#content div.wrap {
 	  </p>
 
 	  <p>
-	    The CSC v2 sources are drawn as cyan circles with a radius
-	    of 5 arcseconds, the XMM sources are drawn as green
+	    By default, the CSC2.0 sources are drawn as cyan circles with
+	    a radius
+	    of 5 arcseconds, and the XMM sources are drawn as green
 	    circles with a radius of 10 arcseconds. These radii are
 	    generally <em>significantly larger</em> than the positional
 	    error on the location; instead the values were chosen to
@@ -800,7 +927,7 @@ main#content div.wrap {
 		     href="http://www.worldwidetelescope.org/webclient/">WorldWide
 	    Telescope</extlink> - can be panned, zoomed into (or
             out of), and the background image changed to show
-	    one of a range of wavelenghts (from Gamma Ray to Microwave)
+	    one of a range of wavelengths (from Gamma Ray to Microwave)
 	    using the selection in the "control panel".
 	  </p>
 

@@ -539,7 +539,7 @@ option:disabled {
 }
 
 /* color buttons for sources */
-#sourcecolor , #source11color , #xmmsourcecolor {
+.jscolor {
   border-radius: 0.5em;
   height: 2em;
   margin-left: 0.5em;
@@ -550,6 +550,9 @@ option:disabled {
 }
 
 #sourcesize , #source11size , #xmmsourcesize {
+}
+
+.sourcesize {
   margin-right: 0.5em;
   width: 4em;
 }
