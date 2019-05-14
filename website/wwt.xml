@@ -1342,7 +1342,8 @@ main#content div.wrap {
 	  <p>
 	    Note that no error ranges are included in these visualizations.
 	    For a more-detailed analysis try sending
-	    the data to TOPCAT (or other Virtual Observatory application)
+	    the data to TOPCAT, SAOImageDS9, or other Virtual
+	    Observatory application,
 	    since this provides more columns from the catalog, or use
 	    <cxclink target="_blank"
 		     href="/csc2/gui/intro.html">CSCView</cxclink> to
