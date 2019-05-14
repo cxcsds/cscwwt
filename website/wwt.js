@@ -17,7 +17,12 @@
 
 var wwt = (function () {
 
-  // TWEAK WWT display for testing/development
+  // The features available are controlled by default choices (the
+  // values of the displayXXX fields below), but they can be over-ridden
+  // by the presence of the following tokens as query terms - e.g.
+  //   ?csc11,chs,polygon,stack,source
+  // This can only "turn on" a field, not turn it off.
+  //
   //   - do we display the
   //     - CHS sources
   //     - CSC 1.1 sources
@@ -25,16 +30,17 @@ var wwt = (function () {
   //     - show nearest stacks
   //     - show nearest sources
   //
-  // const displayCHS = false;
-  // const displayCSC11 = false;
-  // const displayPolygonSelect = false;
-  // const displayNearestStacks = false;
-  // const displayNearestSources = false;
-  const displayCHS = true;
-  const displayCSC11 = true;
-  const displayPolygonSelect = true;
-  const displayNearestStacks = true;
-  const displayNearestSources = true;
+  let displayCHS = false;
+  let displayCSC11 = false;
+  let displayPolygonSelect = false;
+  let displayNearestStacks = false;
+  let displayNearestSources = false;
+
+  // const displayCHS = true;
+  // const displayCSC11 = true;
+  // const displayPolygonSelect = true;
+  // const displayNearestStacks = true;
+  // const displayNearestSources = true;
 
   var wwt;
 
@@ -2890,6 +2896,28 @@ var wwt = (function () {
     }
   }
 
+  // Has the user asked for certain behavior? I don't believe this
+  // will work on IE, but in this case we just don't try to support
+  // the optional triggers.
+  //
+  function toggleOptionalBehavior() {
+    let params = null;
+    try {
+      params = (new URL(document.location)).searchParams;
+    } catch (e) {
+      console.log(`ERROR: unable to retrieve searchParams: ${e}`);
+      return;
+    }
+
+    trace('Setting optional behavior');
+    displayPolygonSelect = params.has('polygon');
+    displayCSC11 = params.has('csc11');
+    displayCHS = params.has('chs');
+    displayNearestStacks = params.has('stack');
+    displayNearestSources = params.has('source');
+    trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
+  }
+
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
@@ -2902,6 +2930,8 @@ var wwt = (function () {
     }
 
     trace('initialize');
+
+    toggleOptionalBehavior();
 
     // In case the local-storage schema ever needs to be updated.
     updateSchema();
