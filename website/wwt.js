@@ -30,17 +30,27 @@ var wwt = (function () {
   //     - show nearest stacks
   //     - show nearest sources
   //
+  /***
   let displayCHS = false;
   let displayCSC11 = false;
   let displayPolygonSelect = false;
   let displayNearestStacks = false;
   let displayNearestSources = false;
+  ***/
 
   // const displayCHS = true;
   // const displayCSC11 = true;
   // const displayPolygonSelect = true;
   // const displayNearestStacks = true;
   // const displayNearestSources = true;
+
+  // can not use const here in case a user tries ?csc11 (or I need
+  // to rewrite more code to better support this)
+  let displayCHS = true;
+  let displayCSC11 = true;
+  let displayPolygonSelect = true;
+  let displayNearestStacks = true;
+  let displayNearestSources = true;
 
   var wwt;
 
