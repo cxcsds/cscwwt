@@ -52,6 +52,9 @@ var wwt = (function () {
   let displayNearestStacks = true;
   let displayNearestSources = true;
 
+  // Has the user provided a location via query parameters?
+  let userLocation = null;
+
   var wwt;
 
   // keys for local storage values; not guaranteed all in use yet.
@@ -2414,7 +2417,7 @@ var wwt = (function () {
 
   // Convert a value to a floating-point number, returning null
   // if there was a problem. It is not guaranteed to catch all
-  // problems (since it uses parseFloat tather than Number).
+  // problems (since it uses parseFloat rather than Number).
   //
   function toNumber(inval) {
     const outval = parseFloat(inval);
@@ -2422,16 +2425,10 @@ var wwt = (function () {
     return outval;
   }
 
-  // This will go to the user's last-selected position or, if not set,
-  // a default value given by ra0, dec0.
-  //
-  // The choice of last-selected position currently is based on an
-  // explicit move by the UI (that is, user has selected a stack or
-  // source and said "go there", or given a name/location). It
-  // does *not* include random scrolling (this could be done but
-  // requires regular polling of WWT to get the location).
-  //
-  // This does not restore the FOV, which it probably should.
+  // This will go to (in order of preference)
+  //   location specified in URL
+  //   user's last-selected position
+  //   a default value given by ra0, dec0.
   //
   function resetLocation() {
     // Clear out the target name field, as can see it remain on
@@ -2440,6 +2437,15 @@ var wwt = (function () {
     // visit, as I think this is too much effort to track
     // reliably.
     setTargetName('');
+
+    if (userLocation !== null) {
+      // assume userLocation has been validated
+      wwt.gotoRaDecZoom(userLocation.ra,
+			userLocation.dec,
+			userLocation.zoom, false);
+      trace('Set up zoom to user-supplied location');
+      return;
+    }
 
     // Try to guard against accidentally-stupid values
     //
@@ -2925,7 +2931,44 @@ var wwt = (function () {
     displayCHS = params.has('chs');
     displayNearestStacks = params.has('stack');
     displayNearestSources = params.has('source');
+
     trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
+
+    // zoom is only used if ra and dec are given, but is optional
+    if (params.has('ra') && params.has('dec')) {
+      const raStr = params.get('ra');
+      const decStr = params.get('dec');
+      const zoomStr = params.has('zoom') ? params.get('zoom') : '1.0';
+
+      const ra = Number(raStr);
+      const dec = Number(decStr);
+      const zoom = Number(zoomStr);
+
+      if (isNaN(ra) || isNaN(dec) || isNaN(zoom)) {
+	console.log(`Unable to convert ra=${raStr} dec=${decStr} zoom=${zoomStr} to a location`);
+	return;
+      }
+
+      if ((ra < 0) || (ra >= 360)) {
+	console.log(`Invalid ra=${raStr} for location`);
+	return;
+      }
+
+      if ((dec < -90) || (dec > 90)) {
+	console.log(`Invalid dec=${decStr} for location`);
+	return;
+      }
+
+      // Should we cap the zoom rather than throw out invalid values?
+      if ((zoom <= 0) || (zoom > 60)) {
+	console.log(`Invalid zoom=${zoomStr} for location`);
+	return;
+      }
+
+      userLocation = {ra: ra, dec: dec, zoom: zoom};
+      trace(` -> userLocation: ra=${userLocation.ra} dec=${userLocation.dec} zoom=${userLocation.zoom}`);
+    }
+
   }
 
   // Note that the WWT "control" panel will not be displayed until
