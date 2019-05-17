@@ -253,7 +253,7 @@ const wwtprops = (function () {
 		      'icon');
     if (active) {
       img.addEventListener('click',
-			   () => wwt.copyCoordinatesToClipboard(ra, dec),
+			   (event) => wwt.copyCoordinatesToClipboard(event, ra, dec),
 			   false);
     }
     div.appendChild(img);
@@ -366,7 +366,7 @@ const wwtprops = (function () {
 
     addSpanLink(binfoDiv, 'clipboard',
 		'Copy stack name to clipboard',
-		active ? () => wwt.copyToClipboard(stack.stackid) : null);
+		active ? (event) => wwt.copyToClipboard(event, stack.stackid) : null);
     addSpanLink(binfoDiv, 'zoomto', 'Zoom to stack',
 		active ? () => wwt.zoomToStack(stack.stackid) : null);
 
@@ -905,7 +905,7 @@ const wwtprops = (function () {
 
     addSpanLink(binfoDiv, 'clipboard',
 		'Copy source name to clipboard',
-		active ? () => wwt.copyToClipboard(src.name) : null);
+		active ? (event) => wwt.copyToClipboard(event, src.name) : null);
 
     const span = document.createElement('span');
     span.setAttribute('class', 'search');

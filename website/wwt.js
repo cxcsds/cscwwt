@@ -52,6 +52,10 @@ var wwt = (function () {
   let displayNearestStacks = true;
   let displayNearestSources = true;
 
+  // What options has the user provided via query parameters?
+  let userLocation = null;
+  let userDisplay = null;
+
   var wwt;
 
   // keys for local storage values; not guaranteed all in use yet.
@@ -155,7 +159,8 @@ var wwt = (function () {
   //
   // It is expected that this is called periodically.
   //
-  // This also updates the #coordinate and #fov displays.
+  // This also updates the #coordinate and #fov displays, and
+  // the example URL #example-url on the help page.
   //
   function storeDisplayState() {
     const ra = 15.0 * wwt.getRA();
@@ -167,12 +172,16 @@ var wwt = (function () {
       saveState(keyFOV, fov);
     }
 
+    const url = getPageURL();
+    
     const coord = document.querySelector('#coordinate');
-    if (coord === null) {
+    const fovspan = document.querySelector('#fov');
+    const exurl = document.querySelector('#example-url');
+    if ((coord === null) || (fovspan === null) || (exurl === null)) {
       // Should really only log this once but it's not worth the effort,
       // as this should not happen.
       //
-      console.log('ERROR: unable to find #coordinate!');
+      console.log(`ERROR: unable to find ${coord} ${fovspan} ${exurl}`);
       return;
     }
 
@@ -194,11 +203,6 @@ var wwt = (function () {
     coord.querySelector('#dec_m').innerText = i2(dms.minutes);
     coord.querySelector('#dec_s').innerText = f2(dms.seconds, 1);
 
-    const fovspan = document.querySelector('#fov');
-    if (fovspan === null) {
-      console.log('ERROR: unable to find #fov');
-      return;
-    }
     removeChildren(fovspan);
 
     let fovtxt = '';
@@ -211,6 +215,12 @@ var wwt = (function () {
     }
     fovspan.appendChild(document.createTextNode(fovtxt));
 
+    removeChildren(exurl);
+    if (url === null) {
+      exurl.appendChild(document.createTextNode('oops, unable to create the URL'));
+    } else {
+      exurl.appendChild(document.createTextNode(url));
+    }
   }
 
   // integer to "xx" format string, 0-padded to the left.
@@ -229,7 +239,7 @@ var wwt = (function () {
   // shouldn't make much difference as it is hard to get to the clip
   // functionality and still be moving and not expect confusion).
   //
-  function clipCoordinates() {
+  function clipCoordinates(event) {
     const el = document.querySelector('#coordinate');
     if (el === null) {
       return;
@@ -240,7 +250,7 @@ var wwt = (function () {
       return;
     }
 
-    copyCoordinatesToClipboard(ra, dec);
+    copyCoordinatesToClipboard(event, ra, dec);
   }
 
   // What format to use when converting a location to a string,
@@ -298,8 +308,46 @@ var wwt = (function () {
     }
   }
 
-  function copyCoordinatesToClipboard(ra, dec) {
-    copyToClipboard(coordinateFormat(ra, dec));
+  function copyCoordinatesToClipboard(event, ra, dec) {
+    copyToClipboard(event, coordinateFormat(ra, dec));
+  }
+
+  // Create a bookmark for the current location (at least, the
+  // same location as 'Clip Location' uses), zoom level,
+  // and display. Copy it to the clipboard.
+  //
+  function getPageURL() {
+    const el = document.querySelector('#coordinate');
+    if (el === null) {
+      return null;
+    }
+    const ra = el.getAttribute('data-ra');
+    const dec = el.getAttribute('data-dec');
+    if ((ra === null) || (dec === null)) {
+      return null;
+    }
+
+    const zoom = wwt.get_fov();
+
+    // What is the current image setting?
+    // This logic is repeated several times and should be
+    // centralized.
+    //
+    const sel = document.querySelector('#imagechoice');
+    let display = null;
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if (opt.selected) { display = opt.value; break; }
+    }
+    if (display === null) { return null; }
+
+    return `${window.location.href}?ra=${ra},dec=${dec},display=${display}`;
+  }
+  
+  function clipBookmark(event) {
+    const url = getPageURL();
+    if (url === null) { return; }
+    copyToClipboard(event, url);
   }
 
   // Poll the WWT every two seconds for the location and FOV.
@@ -789,7 +837,7 @@ var wwt = (function () {
   // You can inspect the result of execCommand to see if it worked or not.
   // It returns a Boolean that relates to the success of the command.
   //
-  const copyToClipboard = str => {
+  const copyToClipboardAction = str => {
     const el = document.createElement('textarea');
     el.value = str;
     el.setAttribute('readonly', '');
@@ -808,6 +856,71 @@ var wwt = (function () {
       document.getSelection().addRange(selected);
     }
   };
+
+  // Display the text that is being copied (so that the used can do
+  // something with it, and to let them know that something has happened).
+  //
+  // The inspiration are systems like stackoverflow's "share this page"
+  // interface. Let's see how it goes.
+  //
+  function copyToClipboard(event, str) {
+
+    // Copy to the clipboard before trying to be clever, so that we
+    // know this has happened (assuming there is support).
+    //
+    copyToClipboardAction(str);
+
+    const host = getHost();
+    if (host === null) { return; }
+    const parent = document.createElement('div');
+    parent.setAttribute('class', 'share');
+
+    parent.appendChild(addCloseButton(() => host.removeChild(parent)));
+    
+    const intro = document.createElement('p');
+    intro.appendChild(document.createTextNode('Copied to clipboard:'));
+    parent.appendChild(intro);
+    
+    const text = document.createElement('input');
+    text.setAttribute('type', 'text');
+    text.setAttribute('value', str);
+    parent.appendChild(text);
+
+    host.appendChild(parent);
+    
+    // Position relative to event. The issue is that we have to
+    // worry about falling off the screen.
+    //
+    // Are these values available and reliable at this time?
+    //
+    // If the display is too narrow or tall then remove this
+    // element.
+    //
+    // Use getBoundingClientRect or offsetWidth/Height values?
+    //
+    const parentbbox = parent.getBoundingClientRect();
+    const hostbbox = parent.parentElement.getBoundingClientRect();
+
+    const xmin = 0;
+    const ymin = 0;
+    const xmax = hostbbox.width - parentbbox.width;
+    const ymax = hostbbox.height - parentbbox.height;
+
+    if ((xmax <= 0) || (ymax <= 0)) {
+      trace('Unable to place share box so skipping');
+      host.removeChild(parent);
+      return;
+    }
+    
+    let x = event.clientX;
+    let y = event.clientY;
+
+    if (x > xmax) { x = xmax; }
+    if (y > ymax) { y = ymax; }
+    
+    parent.style.left = `${x}px`;
+    parent.style.top = `${y}px`;
+  }
 
   // This updates the stackAnnotations dict
   //
@@ -2414,7 +2527,7 @@ var wwt = (function () {
 
   // Convert a value to a floating-point number, returning null
   // if there was a problem. It is not guaranteed to catch all
-  // problems (since it uses parseFloat tather than Number).
+  // problems (since it uses parseFloat rather than Number).
   //
   function toNumber(inval) {
     const outval = parseFloat(inval);
@@ -2422,16 +2535,10 @@ var wwt = (function () {
     return outval;
   }
 
-  // This will go to the user's last-selected position or, if not set,
-  // a default value given by ra0, dec0.
-  //
-  // The choice of last-selected position currently is based on an
-  // explicit move by the UI (that is, user has selected a stack or
-  // source and said "go there", or given a name/location). It
-  // does *not* include random scrolling (this could be done but
-  // requires regular polling of WWT to get the location).
-  //
-  // This does not restore the FOV, which it probably should.
+  // This will go to (in order of preference)
+  //   location specified in URL
+  //   user's last-selected position
+  //   a default value given by ra0, dec0.
   //
   function resetLocation() {
     // Clear out the target name field, as can see it remain on
@@ -2440,6 +2547,15 @@ var wwt = (function () {
     // visit, as I think this is too much effort to track
     // reliably.
     setTargetName('');
+
+    if (userLocation !== null) {
+      // assume userLocation has been validated
+      wwt.gotoRaDecZoom(userLocation.ra,
+			userLocation.dec,
+			userLocation.zoom, false);
+      trace('Set up zoom to user-supplied location');
+      return;
+    }
 
     // Try to guard against accidentally-stupid values
     //
@@ -2561,9 +2677,13 @@ var wwt = (function () {
       loadStackEventVersions();
       downloadEnsData();
 
-      // Try and restore the user's last settings.
+      // TODO: should this only be changed once the ready function has
+      //       finished?
       //
-      const selImg = getState(keyForeground);
+      // Use the image choice from the display query parameter or, if
+      // not set, the saved setting.
+      //
+      const selImg = userDisplay === null ? getState(keyForeground) : userDisplay;
       if (selImg !== null) {
 	const sel = document.querySelector('#imagechoice');
 
@@ -2571,20 +2691,25 @@ var wwt = (function () {
 	// for the case when selImg is not valid: what happens to
 	// the display?
 	//
+	let found = false;
 	for (var idx = 0; idx < sel.options.length; idx++) {
 	  const opt = sel.options[idx];
-	  if (opt.value === selImg) { opt.selected = true; break; }
+	  if (opt.value === selImg) { opt.selected = true; found = true; break; }
 	}
 
-	// Assume this is supported in recent browsers; see
-	// https://stackoverflow.com/questions/19329978/change-selects-option-and-trigger-events-with-javascript/28296580
-	//
-	try {
-	  sel.dispatchEvent(new CustomEvent('change'));
-	}
-	catch (e) {
-	  // Try this
-          setImage(selImg);
+	if (found) {
+	  trace(`Trying to change the display to ${selImg}`);
+	  // Assume this is supported in recent browsers; see
+	  // https://stackoverflow.com/questions/19329978/change-selects-option-and-trigger-events-with-javascript/28296580
+	  //
+	  try {
+	    sel.dispatchEvent(new CustomEvent('change'));
+	  }
+	  catch (e) {
+	    // Try this
+	    trace(` - change event failed with ${e}`);
+            setImage(selImg);
+	  }
 	}
       }
 
@@ -2925,7 +3050,59 @@ var wwt = (function () {
     displayCHS = params.has('chs');
     displayNearestStacks = params.has('stack');
     displayNearestSources = params.has('source');
+
     trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
+
+    // zoom is only used if ra and dec are given, but is optional
+    if (params.has('ra') && params.has('dec')) {
+      const raStr = params.get('ra');
+      const decStr = params.get('dec');
+      const zoomStr = params.has('zoom') ? params.get('zoom') : '1.0';
+
+      const ra = Number(raStr);
+      const dec = Number(decStr);
+      const zoom = Number(zoomStr);
+
+      if (isNaN(ra) || isNaN(dec) || isNaN(zoom)) {
+	console.log(`Unable to convert ra=${raStr} dec=${decStr} zoom=${zoomStr} to a location`);
+	return;
+      }
+
+      if ((ra < 0) || (ra >= 360)) {
+	console.log(`Invalid ra=${raStr} for location`);
+	return;
+      }
+
+      if ((dec < -90) || (dec > 90)) {
+	console.log(`Invalid dec=${decStr} for location`);
+	return;
+      }
+
+      // Should we cap the zoom rather than throw out invalid values?
+      if ((zoom <= 0) || (zoom > 60)) {
+	console.log(`Invalid zoom=${zoomStr} for location`);
+	return;
+      }
+
+      userLocation = {ra: ra, dec: dec, zoom: zoom};
+      trace(` -> userLocation: ra=${userLocation.ra} dec=${userLocation.dec} zoom=${userLocation.zoom}`);
+    }
+
+    // Match against the values in the select widget, to ensure it
+    // is a valid setting.
+    //
+    const sel = document.querySelector('#imagechoice');
+    const display = params.get('display');
+    if ((sel !== null) && (display !== null)) {
+      let found = false;
+      for (var idx = 0; !found && (idx < sel.options.length); idx++) {
+	found |= (sel.options[idx].value === display);
+      }
+      if (found) {
+	userDisplay = display;
+	trace(` -> userDisplay: ${userDisplay}`);
+      }
+    }
   }
 
   // Note that the WWT "control" panel will not be displayed until
@@ -3005,7 +3182,9 @@ var wwt = (function () {
     // Copy to clipboard button(s)
     //
     host.querySelector('#coordinate-clip')
-      .addEventListener('click', () => { clipCoordinates(); }, false);
+      .addEventListener('click', (event) => { clipCoordinates(event); }, false);
+    host.querySelector('#bookmark')
+      .addEventListener('click', (event) => { clipBookmark(event); }, false);
 
     // SAMP button
     //
@@ -3030,6 +3209,7 @@ var wwt = (function () {
     addToolTipHandler('bigify');
 
     addToolTipHandler('coordinate-clip');
+    addToolTipHandler('bookmark');
 
     addToolTipHandler('register-samp');
 
@@ -3476,6 +3656,22 @@ var wwt = (function () {
 
   }
 
+  // Where else do I have this coded up?
+  //
+  function addCloseButton(callback) {
+    const span = document.createElement('span');
+    span.setAttribute('class', 'closable');
+    span.addEventListener('click', callback, false);
+
+    const img = document.createElement('img');
+    img.setAttribute('class', 'icon');
+    img.setAttribute('alt', 'Close icon (circle with a times symbol in it)');
+    img.setAttribute('src', 'wwtimg/fa/times-circle.svg');
+    span.appendChild(img);
+
+    return span;
+  }
+  
   function reportLookupFailure(msg) {
     hideElement('targetSuccess');
 
@@ -3487,20 +3683,10 @@ var wwt = (function () {
 
     removeChildren(pane);
 
-    const span = document.createElement('span');
-    span.setAttribute('class', 'closable');
-    span.addEventListener('click', () => {
+    pane.appendChild(addCloseButton(() => {
       hideElement('targetFailure');
       setTargetName('');
-    }, false);
-
-    const img = document.createElement('img');
-    img.setAttribute('class', 'icon');
-    img.setAttribute('alt', 'Close icon (circle with a times symbol in it)');
-    img.setAttribute('src', 'wwtimg/fa/times-circle.svg');
-    span.appendChild(img);
-
-    pane.appendChild(span);
+    }));
 
     const div = document.createElement('div');
     div.innerHTML = msg;
@@ -3798,6 +3984,7 @@ var wwt = (function () {
   // This also changes the window localStorage field: 'wwt-foreground'
   //
   function setImage(name) {
+    trace(`setImage sent name=${name}`);
     if (name === 'dss') {
       wwt.setForegroundOpacity(0.0);
       saveState(keyForeground, name);
