@@ -239,7 +239,7 @@ var wwt = (function () {
   // shouldn't make much difference as it is hard to get to the clip
   // functionality and still be moving and not expect confusion).
   //
-  function clipCoordinates() {
+  function clipCoordinates(event) {
     const el = document.querySelector('#coordinate');
     if (el === null) {
       return;
@@ -250,7 +250,7 @@ var wwt = (function () {
       return;
     }
 
-    copyCoordinatesToClipboard(ra, dec);
+    copyCoordinatesToClipboard(event, ra, dec);
   }
 
   // What format to use when converting a location to a string,
@@ -308,8 +308,8 @@ var wwt = (function () {
     }
   }
 
-  function copyCoordinatesToClipboard(ra, dec) {
-    copyToClipboard(coordinateFormat(ra, dec));
+  function copyCoordinatesToClipboard(event, ra, dec) {
+    copyToClipboard(event, coordinateFormat(ra, dec));
   }
 
   // Create a bookmark for the current location (at least, the
@@ -344,10 +344,10 @@ var wwt = (function () {
     return `${window.location.href}?ra=${ra},dec=${dec},display=${display}`;
   }
   
-  function clipBookmark() {
+  function clipBookmark(event) {
     const url = getPageURL();
     if (url === null) { return; }
-    copyToClipboard(url);
+    copyToClipboard(event, url);
   }
 
   // Poll the WWT every two seconds for the location and FOV.
@@ -837,7 +837,7 @@ var wwt = (function () {
   // You can inspect the result of execCommand to see if it worked or not.
   // It returns a Boolean that relates to the success of the command.
   //
-  const copyToClipboard = str => {
+  const copyToClipboardAction = str => {
     const el = document.createElement('textarea');
     el.value = str;
     el.setAttribute('readonly', '');
@@ -856,6 +856,71 @@ var wwt = (function () {
       document.getSelection().addRange(selected);
     }
   };
+
+  // Display the text that is being copied (so that the used can do
+  // something with it, and to let them know that something has happened).
+  //
+  // The inspiration are systems like stackoverflow's "share this page"
+  // interface. Let's see how it goes.
+  //
+  function copyToClipboard(event, str) {
+
+    // Copy to the clipboard before trying to be clever, so that we
+    // know this has happened (assuming there is support).
+    //
+    copyToClipboardAction(str);
+
+    const host = getHost();
+    if (host === null) { return; }
+    const parent = document.createElement('div');
+    parent.setAttribute('class', 'share');
+
+    parent.appendChild(addCloseButton(() => host.removeChild(parent)));
+    
+    const intro = document.createElement('p');
+    intro.appendChild(document.createTextNode('Copied to clipboard:'));
+    parent.appendChild(intro);
+    
+    const text = document.createElement('input');
+    text.setAttribute('type', 'text');
+    text.setAttribute('value', str);
+    parent.appendChild(text);
+
+    host.appendChild(parent);
+    
+    // Position relative to event. The issue is that we have to
+    // worry about falling off the screen.
+    //
+    // Are these values available and reliable at this time?
+    //
+    // If the display is too narrow or tall then remove this
+    // element.
+    //
+    // Use getBoundingClientRect or offsetWidth/Height values?
+    //
+    const parentbbox = parent.getBoundingClientRect();
+    const hostbbox = parent.parentElement.getBoundingClientRect();
+
+    const xmin = 0;
+    const ymin = 0;
+    const xmax = hostbbox.width - parentbbox.width;
+    const ymax = hostbbox.height - parentbbox.height;
+
+    if ((xmax <= 0) || (ymax <= 0)) {
+      trace('Unable to place share box so skipping');
+      host.removeChild(parent);
+      return;
+    }
+    
+    let x = event.clientX;
+    let y = event.clientY;
+
+    if (x > xmax) { x = xmax; }
+    if (y > ymax) { y = ymax; }
+    
+    parent.style.left = `${x}px`;
+    parent.style.top = `${y}px`;
+  }
 
   // This updates the stackAnnotations dict
   //
@@ -3117,9 +3182,9 @@ var wwt = (function () {
     // Copy to clipboard button(s)
     //
     host.querySelector('#coordinate-clip')
-      .addEventListener('click', () => { clipCoordinates(); }, false);
+      .addEventListener('click', (event) => { clipCoordinates(event); }, false);
     host.querySelector('#bookmark')
-      .addEventListener('click', () => { clipBookmark(); }, false);
+      .addEventListener('click', (event) => { clipBookmark(event); }, false);
 
     // SAMP button
     //
@@ -3591,6 +3656,22 @@ var wwt = (function () {
 
   }
 
+  // Where else do I have this coded up?
+  //
+  function addCloseButton(callback) {
+    const span = document.createElement('span');
+    span.setAttribute('class', 'closable');
+    span.addEventListener('click', callback, false);
+
+    const img = document.createElement('img');
+    img.setAttribute('class', 'icon');
+    img.setAttribute('alt', 'Close icon (circle with a times symbol in it)');
+    img.setAttribute('src', 'wwtimg/fa/times-circle.svg');
+    span.appendChild(img);
+
+    return span;
+  }
+  
   function reportLookupFailure(msg) {
     hideElement('targetSuccess');
 
@@ -3602,20 +3683,10 @@ var wwt = (function () {
 
     removeChildren(pane);
 
-    const span = document.createElement('span');
-    span.setAttribute('class', 'closable');
-    span.addEventListener('click', () => {
+    pane.appendChild(addCloseButton(() => {
       hideElement('targetFailure');
       setTargetName('');
-    }, false);
-
-    const img = document.createElement('img');
-    img.setAttribute('class', 'icon');
-    img.setAttribute('alt', 'Close icon (circle with a times symbol in it)');
-    img.setAttribute('src', 'wwtimg/fa/times-circle.svg');
-    span.appendChild(img);
-
-    pane.appendChild(span);
+    }));
 
     const div = document.createElement('div');
     div.innerHTML = msg;
