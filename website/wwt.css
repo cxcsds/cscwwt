@@ -847,7 +847,9 @@ div.pane {
   border: 2px solid black;
   /* display: none; */
   left: 50%;
+  max-height: 80%;
   max-width: 50em;
+  overflow: auto;
   padding: 1em;
   position: absolute;
   top: 50%;
