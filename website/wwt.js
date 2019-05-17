@@ -159,7 +159,8 @@ var wwt = (function () {
   //
   // It is expected that this is called periodically.
   //
-  // This also updates the #coordinate and #fov displays.
+  // This also updates the #coordinate and #fov displays, and
+  // the example URL #example-url on the help page.
   //
   function storeDisplayState() {
     const ra = 15.0 * wwt.getRA();
@@ -171,12 +172,16 @@ var wwt = (function () {
       saveState(keyFOV, fov);
     }
 
+    const url = getPageURL();
+    
     const coord = document.querySelector('#coordinate');
-    if (coord === null) {
+    const fovspan = document.querySelector('#fov');
+    const exurl = document.querySelector('#example-url');
+    if ((coord === null) || (fovspan === null) || (exurl === null)) {
       // Should really only log this once but it's not worth the effort,
       // as this should not happen.
       //
-      console.log('ERROR: unable to find #coordinate!');
+      console.log(`ERROR: unable to find ${coord} ${fovspan} ${exurl}`);
       return;
     }
 
@@ -198,11 +203,6 @@ var wwt = (function () {
     coord.querySelector('#dec_m').innerText = i2(dms.minutes);
     coord.querySelector('#dec_s').innerText = f2(dms.seconds, 1);
 
-    const fovspan = document.querySelector('#fov');
-    if (fovspan === null) {
-      console.log('ERROR: unable to find #fov');
-      return;
-    }
     removeChildren(fovspan);
 
     let fovtxt = '';
@@ -215,6 +215,12 @@ var wwt = (function () {
     }
     fovspan.appendChild(document.createTextNode(fovtxt));
 
+    removeChildren(exurl);
+    if (url === null) {
+      exurl.appendChild(document.createTextNode('oops, unable to create the URL'));
+    } else {
+      exurl.appendChild(document.createTextNode(url));
+    }
   }
 
   // integer to "xx" format string, 0-padded to the left.
@@ -304,6 +310,44 @@ var wwt = (function () {
 
   function copyCoordinatesToClipboard(ra, dec) {
     copyToClipboard(coordinateFormat(ra, dec));
+  }
+
+  // Create a bookmark for the current location (at least, the
+  // same location as 'Clip Location' uses), zoom level,
+  // and display. Copy it to the clipboard.
+  //
+  function getPageURL() {
+    const el = document.querySelector('#coordinate');
+    if (el === null) {
+      return null;
+    }
+    const ra = el.getAttribute('data-ra');
+    const dec = el.getAttribute('data-dec');
+    if ((ra === null) || (dec === null)) {
+      return null;
+    }
+
+    const zoom = wwt.get_fov();
+
+    // What is the current image setting?
+    // This logic is repeated several times and should be
+    // centralized.
+    //
+    const sel = document.querySelector('#imagechoice');
+    let display = null;
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if (opt.selected) { display = opt.value; break; }
+    }
+    if (display === null) { return null; }
+
+    return `${window.location.href}?ra=${ra},dec=${dec},display=${display}`;
+  }
+  
+  function clipBookmark() {
+    const url = getPageURL();
+    if (url === null) { return; }
+    copyToClipboard(url);
   }
 
   // Poll the WWT every two seconds for the location and FOV.
@@ -3074,6 +3118,8 @@ var wwt = (function () {
     //
     host.querySelector('#coordinate-clip')
       .addEventListener('click', () => { clipCoordinates(); }, false);
+    host.querySelector('#bookmark')
+      .addEventListener('click', () => { clipBookmark(); }, false);
 
     // SAMP button
     //
@@ -3098,6 +3144,7 @@ var wwt = (function () {
     addToolTipHandler('bigify');
 
     addToolTipHandler('coordinate-clip');
+    addToolTipHandler('bookmark');
 
     addToolTipHandler('register-samp');
 
@@ -3866,6 +3913,7 @@ var wwt = (function () {
   // This also changes the window localStorage field: 'wwt-foreground'
   //
   function setImage(name) {
+    trace(`setImage sent name=${name}`);
     if (name === 'dss') {
       wwt.setForegroundOpacity(0.0);
       saveState(keyForeground, name);

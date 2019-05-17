@@ -178,6 +178,7 @@ main#content div.wrap {
 	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
 	       id="csclogo" alt="The CSC logo"/>
 
+	  <!-- move to grid layout for this section? -->
           <div class="userinfo" id="location">
             <p id="coordinate"><output class="pos"
 				       id="ra_h">&nbsp;</output><sup>h</sup><output class="pos"
@@ -193,7 +194,17 @@ main#content div.wrap {
 	    <div class="tooltip" id="coordinate-clip-tooltip">
 	      Copy RA and Dec to the clipboard, as decimal degrees.
 	    </div>
-	    <p class="centered">FOV: <span id="fov"></span></p>
+	    <p class="centered">
+	      FOV: <span id="fov"></span>
+	      <img src="wwtimg/fa/bookmark.svg" id="bookmark"
+		   alt="Bookmark this location (copy URL to clipboard)"
+		   class="icon end-of-line"/>
+	    </p>
+	    <div class="tooltip" id="bookmark-tooltip">
+	      Create a URL for the current display (location,
+	      zoom level, and selected wavelength for the background
+	      data) and copy it to the clipboard.
+	    </div>
 	  </div>
 
 	</div>
@@ -621,6 +632,29 @@ main#content div.wrap {
 		     href="http://ned.ipac.caltech.edu/">NED</extlink>);
 		colons separating the sexagesimal components;
 		or hms/°'" separating the sexagesimal components.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon"
+		     alt="Bookmark this location (copy URL to clipboard)"
+		     src="wwtimg/fa/bookmark.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		Create a URL to describe the current WWT view, and copy
+		it to the clipboard. This URL can then be saved or sent
+		to a colleague. The URL for the current display is
+		<span id="example-url">(will be filled in
+		in a few seconds)</span>.
+	      </p>
+	      <p>
+		Note that the only things that are "saved" in the URL
+		are the location, zoom level, and choice of image.
+		Source displays or settings are not saved.
 	      </p>
 	    </dd>
 
