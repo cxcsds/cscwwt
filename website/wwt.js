@@ -30,27 +30,12 @@ var wwt = (function () {
   //     - show nearest stacks
   //     - show nearest sources
   //
-  /***
+  // We flip these all to true if run on the test server.
   let displayCHS = false;
   let displayCSC11 = false;
   let displayPolygonSelect = false;
   let displayNearestStacks = false;
   let displayNearestSources = false;
-  ***/
-
-  // const displayCHS = true;
-  // const displayCSC11 = true;
-  // const displayPolygonSelect = true;
-  // const displayNearestStacks = true;
-  // const displayNearestSources = true;
-
-  // can not use const here in case a user tries ?csc11 (or I need
-  // to rewrite more code to better support this)
-  let displayCHS = true;
-  let displayCSC11 = true;
-  let displayPolygonSelect = true;
-  let displayNearestStacks = true;
-  let displayNearestSources = true;
 
   // What options has the user provided via query parameters?
   let userLocation = null;
@@ -3036,20 +3021,39 @@ var wwt = (function () {
   // the optional triggers.
   //
   function toggleOptionalBehavior() {
+    const loc = document.location;
+    if (typeof loc === 'undefined') {
+      console.log('ERROR: no document.location field!');
+      return;
+    }
+
     let params = null;
     try {
-      params = (new URL(document.location)).searchParams;
+      params = (new URL(loc)).searchParams;
     } catch (e) {
       console.log(`ERROR: unable to retrieve searchParams: ${e}`);
       return;
     }
 
     trace('Setting optional behavior');
-    displayPolygonSelect = params.has('polygon');
-    displayCSC11 = params.has('csc11');
-    displayCHS = params.has('chs');
-    displayNearestStacks = params.has('stack');
-    displayNearestSources = params.has('source');
+
+    // Hard-code behavior for the test server
+    //
+    const origin = loc.origin;
+    if (typeof origin !== 'undefined' && origin.indexOf('cxc-dmz-prev') > 0) {
+      displayPolygonSelect = true;
+      displayCSC11 = true;
+      displayCHS = true;
+      displayNearestStacks = true;
+      displayNearestSources = true;
+    }
+
+    // Only ever support turning on an option, not off.
+    displayPolygonSelect = displayPolygonSelect || params.has('polygon');
+    displayCSC11 = displayCSC11 | params.has('csc11');
+    displayCHS = displayCHS || params.has('chs');
+    displayNearestStacks = displayNearestStacks || params.has('stack');
+    displayNearestSources = displayNearestSources || params.has('source');
 
     trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
 
