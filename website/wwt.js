@@ -52,8 +52,9 @@ var wwt = (function () {
   let displayNearestStacks = true;
   let displayNearestSources = true;
 
-  // Has the user provided a location via query parameters?
+  // What options has the user provided via query parameters?
   let userLocation = null;
+  let userDisplay = null;
 
   var wwt;
 
@@ -2567,9 +2568,13 @@ var wwt = (function () {
       loadStackEventVersions();
       downloadEnsData();
 
-      // Try and restore the user's last settings.
+      // TODO: should this only be changed once the ready function has
+      //       finished?
       //
-      const selImg = getState(keyForeground);
+      // Use the image choice from the display query parameter or, if
+      // not set, the saved setting.
+      //
+      const selImg = userDisplay === null ? getState(keyForeground) : userDisplay;
       if (selImg !== null) {
 	const sel = document.querySelector('#imagechoice');
 
@@ -2577,20 +2582,25 @@ var wwt = (function () {
 	// for the case when selImg is not valid: what happens to
 	// the display?
 	//
+	let found = false;
 	for (var idx = 0; idx < sel.options.length; idx++) {
 	  const opt = sel.options[idx];
-	  if (opt.value === selImg) { opt.selected = true; break; }
+	  if (opt.value === selImg) { opt.selected = true; found = true; break; }
 	}
 
-	// Assume this is supported in recent browsers; see
-	// https://stackoverflow.com/questions/19329978/change-selects-option-and-trigger-events-with-javascript/28296580
-	//
-	try {
-	  sel.dispatchEvent(new CustomEvent('change'));
-	}
-	catch (e) {
-	  // Try this
-          setImage(selImg);
+	if (found) {
+	  trace(`Trying to change the display to ${selImg}`);
+	  // Assume this is supported in recent browsers; see
+	  // https://stackoverflow.com/questions/19329978/change-selects-option-and-trigger-events-with-javascript/28296580
+	  //
+	  try {
+	    sel.dispatchEvent(new CustomEvent('change'));
+	  }
+	  catch (e) {
+	    // Try this
+	    trace(` - change event failed with ${e}`);
+            setImage(selImg);
+	  }
 	}
       }
 
@@ -2969,6 +2979,21 @@ var wwt = (function () {
       trace(` -> userLocation: ra=${userLocation.ra} dec=${userLocation.dec} zoom=${userLocation.zoom}`);
     }
 
+    // Match against the values in the select widget, to ensure it
+    // is a valid setting.
+    //
+    const sel = document.querySelector('#imagechoice');
+    const display = params.get('display');
+    if ((sel !== null) && (display !== null)) {
+      let found = false;
+      for (var idx = 0; !found && (idx < sel.options.length); idx++) {
+	found |= (sel.options[idx].value === display);
+      }
+      if (found) {
+	userDisplay = display;
+	trace(` -> userDisplay: ${userDisplay}`);
+      }
+    }
   }
 
   // Note that the WWT "control" panel will not be displayed until
