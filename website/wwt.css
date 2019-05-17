@@ -741,6 +741,7 @@ div.share p {
 
 /* text area for the text being copied to the clipboard */
 div.share input {
+  background: rgba(153, 204, 102, 0.8); /* match .userinfo */
   display: block;
   width: 20em; /* guess */
 }
