@@ -3953,12 +3953,11 @@ var wwt = (function () {
 
     // What's the best way to create what could be a long string?
     //
-    // It seems excessive to give the same size/color value to each point
-    let tbl = 'name,ra,dec,size,color\r\n'
+    let tbl = 'name,ra,dec\r\n'
     let ctr = 1;
     props.data.forEach(a => {
       const pos = props.getPos(a);
-      tbl += `src${ctr},${pos.ra},${pos.dec},${props.size},${props.color}\r\n`;
+      tbl += `src${ctr},${pos.ra},${pos.dec}\r\n`;
       ctr += 1;
     });
 
@@ -3972,18 +3971,18 @@ var wwt = (function () {
     layer.set_lngColumn(1);
     layer.set_latColumn(2);
     layer.set_altColumn(-1);
-    layer.set_sizeColumn(3);
-    layer.set_colorMapColumn(4);
+    layer.set_sizeColumn(-1);
+    layer.set_colorMapColumn(-1);
     layer.set_startDateColumn(-1);
     layer.set_endDateColumn(-1);
 
-    layer.set_altUnit(1);  // is this needed / useful / ?
+    layer.set_altUnit(1);
 
     layer.set_astronomical(true);
     layer.set_markerScale(wwtlib.MarkerScales.world);
     layer.set_raUnits(wwtlib.RAUnits.degrees);
 
-    // layer.set_plotType(wwtlib.PlotTypes.circle);
+    layer.set_plotType(wwtlib.PlotTypes.circle);
 
     return layer;
   }
