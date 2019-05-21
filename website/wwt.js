@@ -3368,6 +3368,19 @@ var wwt = (function () {
 
   }
 
+  // primarily for websamp coord.pointAt.sky handler
+  //
+  function moveTo(ra0, dec0) {
+    trace(`Moving display to ra=${ra0} dec=${dec0}`);
+
+    // simplest way to check input is to ensure it's a Number
+    const ra = Number(ra0);
+    const dec = Number(dec0);
+    if (isNaN(ra) || isNaN(dec)) { return; }
+    if ((ra < 0) || (ra >= 360) || (dec < -90) || (dec > 90)) { return; }
+    wwt.gotoRaDecZoom(ra, dec, wwt.get_fov(), false);
+  }
+
   function setPosition(ra, dec, label, fov) {
 
     // Could request the current FOV, but I think it makes
@@ -4205,6 +4218,7 @@ var wwt = (function () {
     getWWTControl: function () { return wwt; },
 
     setPosition: setPosition,
+    moveTo: moveTo,
 
     hideSources: hideSources,
     showSources: showSources,
