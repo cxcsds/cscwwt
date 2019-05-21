@@ -1345,8 +1345,19 @@ const wwtprops = (function () {
   //
   // pbtn is to be disabled if no sources shown, otherwise enabled.
   //
+  // Note that when a selection has changed we remove the 'selected
+  // source' and 'nearest source' panes since they may be out of
+  // date. We could handle the "newstate=true" case since this would
+  // just need to regenerate the nearest-sources pane, but it is
+  // harder when "newstate=false" since the selected source could have
+  // been removed by this toggle. It's easiest just to remove both
+  // panes.
+  //
   function updateSourceToggles(catinfo, toggles, pbtn,
 			       bitinfo, toggled, newstate) {
+
+    wwt.clearNearestSource();
+    wwt.hideElement('sourceprops');
 
     // This shouldn't happen, but short-circuit things if it ever does.
     //
