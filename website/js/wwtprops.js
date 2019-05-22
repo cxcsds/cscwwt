@@ -1070,14 +1070,14 @@ const wwtprops = (function () {
 
     const newOptions = [];
     if (hasHub) {
-      newOptions.push(makeOption('opt-all', 'all'));
+      newOptions.push(makeOption('opt-all', 'All clients'));
 
       if (isRegistered) {
 	wwtsamp.respondsTo(mtype).forEach(client => {
 	  newOptions.push(makeOption(`client-${client.id}`, client.name));
 	});
       } else {
-	newOptions.push(makeOption('opt-find', 'find clients'));
+	newOptions.push(makeOption('opt-find', 'Find clients'));
       }
     }
 
@@ -1119,86 +1119,65 @@ const wwtprops = (function () {
 
   // Add the export-to-samp options.
   //
-  // If active is false then this is taken to be for the help page,
-  // so we skip the requires-samp class so it is always shown.
-  //
   function createExportSourceProperties(active, ra0, dec0, rmax) {
-
-    // Argh: the timer that checks for SAMP sets the display to
-    // none or block, but we are using flex for the contents, so
-    // need nested divs (or a different approach, but this is quicker to
-    // hack).
-    //
-
-    /*** NOTES
-    TODO: expand requires-samp with a data attribute giving the mtype,
-    so can check if there are any clients that match the data and
-    a data url giving the id of the element to update with the links
-    (a select/input set up) [this latter is optional]
-
-    Note: once a SAMP connection has been updated the availablity check
-    stops running (restarts once the connection stops, I *believe*). So
-    this list will not get updated, unless hook into the client tracker
-    to update the list whenever a client is added/removed
-
-    if have cipy-to-clipboard action (for the url) then we can always display
-    the samp area.
-
-    TODO: perhaps want
-
-        EXPORT   |  What:   <options>
-          TO     |  Where:  <options>
-
-    ***/
-
     const clientListId = 'export-clientlist-sources';
     const mtype = 'table.load.votable';
 
     const div = document.createElement('div');
-    // div.setAttribute('class', 'requires-samp');
+    div.setAttribute('class', 'samp-export-list');
     div.setAttribute('data-samp-mtype', mtype);
     div.setAttribute('data-samp-clientlist', `#${clientListId}`);
-
-    const div2 = document.createElement('div');
-    div2.setAttribute('class', 'samp-export-list');
 
     const btn = document.createElement('button');
     btn.id = 'export-samp';
     btn.setAttribute('class', 'button');
     btn.setAttribute('type', 'button');
-    addText(btn, 'Export to ...');
+    addText(btn, 'Export ...');
 
-    // Do we want a label for this widget?
-    const clientList = createSAMPClientList(active, clientListId, mtype, false);
-
-    const sel = document.createElement('select');
-    sel.id = 'export-samp-choice';
-    sel.setAttribute('name', 'export-samp-choice');
-    sel.setAttribute('class', 'button');
+    const adqlList = document.createElement('select');
+    adqlList.id = 'export-samp-choice';
+    adqlList.setAttribute('name', 'export-samp-choice');
+    adqlList.setAttribute('class', 'button');
 
     const opts = [{value: 'basic', label: 'Basic Summary'},
 		  {value: 'summary', label: 'Summary'},
 		  {value: 'photometry', label: 'Photometric'},
 		  {value: 'variability', label: 'Variability'}];
     opts.forEach(opt => {
-      addOption(sel, opt.value, opt.label);
+      addOption(adqlList, opt.value, opt.label);
     });
 
-    const lbl = document.createElement('label');
-    lbl.setAttribute('for', 'export-samp-choice');
-    addText(lbl, 'Master-source properties to return.');
+    const lbl1 = document.createElement('label');
+    lbl1.setAttribute('for', adqlList.id);
+    addText(lbl1, 'What:');
+
+    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+
+    const lbl2 = document.createElement('label');
+    lbl2.setAttribute('for', clientList.id);
+    addText(lbl2, 'Where:');
 
     const bdiv = document.createElement('div');
     bdiv.appendChild(btn);
-    bdiv.appendChild(clientList);
 
     const sdiv = document.createElement('div');
-    sdiv.appendChild(sel);
-    sdiv.appendChild(lbl);
+    sdiv.setAttribute('class', 'grid-2-cols');
 
-    div2.appendChild(bdiv);
-    div2.appendChild(sdiv);
-    div.appendChild(div2);
+    // Need to wrap in div do can use with grid CSS
+    const addWrap = el => {
+      const div = document.createElement('div');
+      div.appendChild(el);
+      sdiv.appendChild(div);
+    };
+
+    addWrap(lbl1);
+    addWrap(adqlList);
+
+    addWrap(lbl2);
+    addWrap(clientList);
+
+    div.appendChild(bdiv);
+    div.appendChild(sdiv);
 
     // What query do we send (choice) and where to (target)?
     //
@@ -1209,7 +1188,7 @@ const wwtprops = (function () {
     const selected = {choice: 'basic', target: 'opt-clipboard'};
 
     if (active) {
-      sel.addEventListener('change', ev => {
+      adqlList.addEventListener('change', ev => {
 	selected.choice = ev.target.value;
       }, false);
 
@@ -1233,13 +1212,6 @@ const wwtprops = (function () {
 					 selected.choice,
 					 selected.target);
       }, false);
-    }
-
-    // If we know that SAMP is available then no need to wait for
-    // the periodic refresh. This is going to go away.
-    //
-    if (active) {
-      div.style.display = 'block';
     }
 
     return div;
