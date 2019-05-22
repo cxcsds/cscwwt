@@ -1,7 +1,7 @@
 'use strict';
 
 /* global alert */
-/* global samp, wwt */
+/* global samp, wwt, wwtprops */
 
 //
 // Support SAMP use by the CSC2/WWT interface. This is a wrapper around
@@ -56,6 +56,8 @@ const wwtsamp = (function () {
       sampClientTracker = new samp.ClientTracker();
       const handler = sampClientTracker.callHandler;
       handler['coord.pointAt.sky'] = handlePointAtSky;
+
+      sampClientTracker.onchange = clientChanged;
     }
 
     sampConnection = new samp.Connector(sampName,
@@ -116,6 +118,30 @@ const wwtsamp = (function () {
     sampCheckHandler = null;
   }
 
+  // Tie the SAMP client in to the "select a client" lists: update
+  // the list whenever a client's subscription list is changed OR
+  // a client unregisters. This could be made specific to the mtype
+  // of each select list (i.e. only report clients which add or delete
+  // support for this mtype) but that can be added at a later date.
+  // Similarly, perhaps this should move to a "registered" list of
+  // select widgets to process, rather than doing a query on the
+  // document.
+  //
+  function clientChanged(clientid, changetype, changedata) {
+    sampTrace(`SAMP: client=${clientid} change=${changetype}`);
+    if ((changetype !== 'subs') && (changetype !== 'unregister')) {
+      return;
+    }
+    refreshSAMPClientLists();
+  }
+
+  function refreshSAMPClientLists() {
+    document.querySelectorAll('select[data-clientlist-mtype]').forEach(sel => {
+      sampTrace(`SAMP: refreshing ${sel.id}`);
+      wwtprops.refreshSAMPClientList(sel);
+    });
+  }
+
   function registerSAMP() {
     openSAMP();
     if (sampIsRegistered) { return; }
@@ -141,15 +167,28 @@ const wwtsamp = (function () {
     sampTrace('Unregistered SAMP');
   }
 
-  // When do we show the register button
+  // When do we show the register button. This also has to update the
+  // selection lists to add in the "find clients" option.
+  //
+  // I had ttried to only change things if flag and sampHubIsPresent
+  // were different, but this can miss items that were added to the
+  // DOM after the last change (of sampHubIsPresent) was made. I
+  // now rely on refreshSAMPClientList to not change lists which
+  // do not need to be changed.
+  //
   function sampIsAvailable(flag) {
-
     sampHubIsPresent = flag;
 
-    const style = flag ? 'block' : 'none'; // are any inline-block?
+    // I have kept this outside the check for the flag being changed
+    // since the following will catch any new elements added to the
+    // DOM since the last call.
+    //
+    const style = flag ? 'block' : 'none'; // are any inline-block or flex?
     for (let el of document.querySelectorAll('.requires-samp')) {
       el.style.display = style;
     }
+
+    refreshSAMPClientLists();
   }
 
   // Provide an explicit error handler as the default one appears to
@@ -363,21 +402,21 @@ const wwtsamp = (function () {
   // target can be
   //    opt-clipboard
   //    opt-all
-  //    opt-find
   //    client-<client id>
   //
-  // For now treat opt-find as opt-all.
+  // This routine should never be sent a target of opt-fint.
   //
-  // Limited checking of the target field.
   //
   function sendURL(target, mtype, url, desc) {
+    if (target === 'opt-find') {
+      sampTrace(`Internal SAMP error: sendURL target=${target} mtype=${mtype}`);
+      return;
+    }
+
     if (target === 'opt-clipboard') {
       sampTrace('SAMP: copying URL to clipboard');
       wwt.copyToClipboard(null, url);
       return;
-    } else if (target === 'opt-find') {
-      console.log('*** WARNING *** opt-find -> opt-all');
-      target = 'opt-all';
     }
 
     openSAMP();
@@ -491,13 +530,13 @@ const wwtsamp = (function () {
     //
     sampTrace(`SAMP: querying for [${mtype}] clients`);
 
-    // Rely on the callable client knowing this- i.e. we do not
+    // Rely on the callable client knowing this - i.e. we do not
     // have to call getSubscribedClients.
     //
     const clientNames = [];
     const cc = sampConnection.callableClient;
     for (var clid in cc.ids) {
-      if (mtype in cc.subs[clid]) {
+      if ((clid in cc.subs) && (mtype in cc.subs[clid])) {
 	const clName = cc.getName(clid);
 	clientNames.push({id: clid, name: clName});
       }

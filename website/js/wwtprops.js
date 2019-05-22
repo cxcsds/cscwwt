@@ -1001,11 +1001,15 @@ const wwtprops = (function () {
   // Add an option element to the select instance. At the moment only
   // plain text can be used as the contents.
   //
-  function addOption(sel, value, label) {
+  function makeOption(value, label) {
     const option = document.createElement('option');
     option.setAttribute('value', value);
     addText(option, label);
-    sel.appendChild(option);
+    return option;
+  }
+
+  function addOption(sel, value, label) {
+    sel.appendChild(makeOption(value, label));
   }
 
   // Create an option list of SAMP clients. The user uses this to
@@ -1023,10 +1027,15 @@ const wwtprops = (function () {
   // and a client name, the values are opt-<value> or client-<name>,
   // other than the 'select target' option, which is empty.
   //
-  function createSAMPClientList(id, mtype, unselected) {
+  function createSAMPClientList(active, id, mtype, unselected) {
     const sel = document.createElement('select');
-    sel.id = id;
-    sel.setAttribute('name', id);
+    if (active) {
+      sel.id = id;
+      sel.setAttribute('name', id);
+    } else {
+      sel.id = `${id}-example`;
+      sel.setAttribute('name', `${id}-example`);
+    }
     sel.setAttribute('class', 'button');
     sel.setAttribute('data-clientlist-mtype', mtype);
     sel.setAttribute('data-clientlist-unselected', unselected);
@@ -1051,30 +1060,61 @@ const wwtprops = (function () {
       return;
     }
 
-    // Would removing from the end of the list be any better for the DOM?
-    //
     const oldOptions = sel.querySelectorAll('option');
     const startClear = 1 + (unselected === 'true' ? 1 : 0);
-    for (var i = startClear; i < oldOptions.length; i++) {
+
+    // Do we need to refresh the list?
+    //
+    const hasHub = wwtsamp.hasHub();
+    const isRegistered = wwtsamp.isRegistered();
+
+    const newOptions = [];
+    if (hasHub) {
+      newOptions.push(makeOption('opt-all', 'all'));
+
+      if (isRegistered) {
+	wwtsamp.respondsTo(mtype).forEach(client => {
+	  newOptions.push(makeOption(`client-${client.id}`, client.name));
+	});
+      } else {
+	newOptions.push(makeOption('opt-find', 'find clients'));
+      }
+    }
+
+    let i;
+    if (oldOptions.length === newOptions.length + startClear) {
+      let flag = true;
+      for (i = startClear; flag && (i < newOptions.length); i++) {
+	const oldO = oldOptions[i + startClear];
+	const newO = newOptions[i];
+	const same = ((oldO.value === newO.value) &&
+		      (oldO.innerText === newO.innerText));
+	flag &= same;
+      }
+      if (flag) {
+	return;
+      }
+    }
+
+    // Would removing from the end of the list be any better for the DOM?
+    //
+    for (i = startClear; i < oldOptions.length; i++) {
       removeChildren(oldOptions[i]);
       sel.removeChild(oldOptions[i]);
     }
 
-    const hasHub = wwtsamp.hasHub();
-    const isRegistered = wwtsamp.isRegistered();
+    newOptions.forEach(opt => sel.appendChild(opt));
 
-    if (hasHub) {
-      addOption(sel, 'opt-all', 'all');
-
-      if (isRegistered) {
-	wwtsamp.respondsTo(mtype).forEach(client => {
-	  addOption(sel, `client-${client.id}`, client.name);
-	});
-      } else {
-	// The 'find clients' functionality is not currently supported
-	// addOption(sel, 'opt-find', 'find clients');
-      }
+    // Try to ensure any handlers for this widget get fired in case there
+    // has been a change in the selected item.
+    //
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
     }
+    catch (e) {
+      console.log(`INTERNAL ERROR: unable to trigger change for SAMP client list ${sel.id}`);
+    }
+
   }
 
   // Add the export-to-samp options.
@@ -1129,7 +1169,7 @@ const wwtprops = (function () {
     addText(btn, 'Export to ...');
 
     // Do we want a label for this widget?
-    const clientList = createSAMPClientList(clientListId, mtype, false);
+    const clientList = createSAMPClientList(active, clientListId, mtype, false);
 
     const sel = document.createElement('select');
     sel.id = 'export-samp-choice';
@@ -1162,6 +1202,10 @@ const wwtprops = (function () {
 
     // What query do we send (choice) and where to (target)?
     //
+    // Should these settings be generated from the DOM (i.e. what
+    // is selected) rather than hard-coding the default values here
+    // (in case the defults are changed in the future)?
+    //
     const selected = {choice: 'basic', target: 'opt-clipboard'};
 
     if (active) {
@@ -1169,8 +1213,17 @@ const wwtprops = (function () {
 	selected.choice = ev.target.value;
       }, false);
 
+      // NOTE: we special case the handling of target=opt-find,
+      //       as this means register and then repopulate the field.
+      //
       clientList.addEventListener('change', ev => {
-	selected.target = ev.target.value;
+	if (ev.target.value === 'opt-find') {
+	  wwtsamp.register();
+	  // No point in refreshing the list, as the registration is
+	  // done asynchronously, so we don't know when to update.
+	} else {
+	  selected.target = ev.target.value;
+	}
       }, false);
 
       btn.addEventListener('click', () => {
@@ -1641,6 +1694,8 @@ const wwtprops = (function () {
 
 	   addPolygonPane: addPolygonPane,
 	   closePolygonPane: closePolygonPane,
+
+	   refreshSAMPClientList: refreshSAMPClientList,
 
 	   raToTokens: raToTokens,
 	   decToTokens: decToTokens,
