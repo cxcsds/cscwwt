@@ -278,12 +278,13 @@ div.samp {
 }
 
 div.samp-export-list {
+  align-items: center;
   display: flex;
   flex-direction: row;
 }
 
 div.samp-export-list div:first-child {
-  margin-right: 0.4em;
+  margin-right: 0.5em;
 }
 
 /* note: using a table for layout as easy to do */
@@ -808,9 +809,18 @@ div.settingspane .main + p {
 }
 ***/
 
+div.sourceselectionpane div.main p:first-child {
+  margin-top: 0;
+}
+
 div.sourceselectionpane div.main p {
   margin-bottom: 0.1em;
   margin-top: 0.1em;
+}
+
+div.sourceselectionpane div.main div.options {
+  margin-bottom: 0.5em;
+  margin-top: 0.5em;
 }
 
 div.flowable p:first-child {
@@ -834,6 +844,13 @@ div.gridable {
   display: grid;
   grid-gap: 0.2em;
   grid-template-columns: repeat(5, 8em);
+}
+
+div.grid-2-cols {
+  align-items: center;
+  display: grid;
+  grid-gap: 0.2em;
+  grid-template-columns: auto auto;
 }
 
 #fullscreenoption {
