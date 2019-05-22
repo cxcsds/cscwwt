@@ -326,7 +326,17 @@ var wwt = (function () {
     }
     if (display === null) { return null; }
 
-    return `${window.location.href}?ra=${ra},dec=${dec},display=${display}`;
+    // Need to remove any existing search term
+    //
+    try {
+      const url = new URL(document.location);
+    } catch (e) {
+      console.log(`ERROR: unable to create a URL for the page`);
+      return null;
+    }
+
+    url.search = '';
+    return `${url.href}?ra=${ra}&dec=${dec}&zoom=${zoom}&display=${display}`;
   }
   
   function clipBookmark(event) {
