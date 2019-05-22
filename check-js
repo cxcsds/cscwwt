@@ -1,0 +1,1 @@
+../node_modules/.bin/standard $1 | egrep -v 'Extra semicolon|Unexpected tab character|Mixed spaces and tabs|Expected indentation of|Block must not be padded by blank lines|Missing space before function parentheses|Object properties must go on a new line if they|A space is required |Closing curly brace|Statement inside of curly braces should| is not in camel case' 
