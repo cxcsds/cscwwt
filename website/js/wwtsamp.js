@@ -188,13 +188,29 @@ const wwtsamp = (function () {
   //       stored location
   function handlePointAtSky(senderId, message, isCall) {
     const params = message['samp.params'];
-    const ra = params['ra'];
-    const dec = params['dec'];
 
-    console.log('pointAt.sky sent'); console.log(typeof ra); console.log(typeof dec);
+    sampTrace(`SAMP coord.pointAt.sky sent ra=${params['ra']} dec=${params['dec']}`);
 
-    wwt.gotoRaDecZoom(ra, dec, wwt.get_fov(), false);
-    sampReport('Moving to α=' + ra + ' δ=' + dec);
+    // Use subtly-different error messages for the two cases.
+    //
+    const ra = Number(params['ra']);
+    const dec = Number(params['dec']);
+
+    sampTrace(`SAMP coord.pointAt.sky -> ra=${ra} dec=${dec}`);
+
+    // This includes ra/dec parameters being undefined
+    if (isNaN(ra) || isNaN(dec)) {
+      sampReport(`Unsupported coordinates for move:<br/>α=${params['ra']} δ=${params['dec']}`);
+      return;
+    }
+
+    if ((ra < 0) || (ra >= 360.0) || (dec < -90) || (dec > 90)) {
+      sampReport(`Invalid coordinates for move:<br/>α=${params['ra']} δ=${params['dec']}`);
+      return;
+    }
+
+    wwt.moveTo(ra, dec);
+    sampReport(`Moving to α=${ra} δ=${dec}`);
   }
 
   // Tell others we've moved.
