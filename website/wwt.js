@@ -157,8 +157,6 @@ var wwt = (function () {
       saveState(keyFOV, fov);
     }
 
-    const url = getPageURL();
-    
     const coord = document.querySelector('#coordinate');
     const fovspan = document.querySelector('#fov');
     const exurl = document.querySelector('#example-url');
@@ -201,6 +199,7 @@ var wwt = (function () {
     fovspan.appendChild(document.createTextNode(fovtxt));
 
     removeChildren(exurl);
+    const url = getPageURL();
     if (url === null) {
       exurl.appendChild(document.createTextNode('oops, unable to create the URL'));
     } else {
@@ -328,10 +327,11 @@ var wwt = (function () {
 
     // Need to remove any existing search term
     //
+    let url = null;
     try {
-      const url = new URL(document.location);
+      url = new URL(document.location);
     } catch (e) {
-      console.log(`ERROR: unable to create a URL for the page`);
+      console.log(`ERROR: unable to create a URL for the page - ${e}`);
       return null;
     }
 
@@ -703,7 +703,7 @@ var wwt = (function () {
 
   // Change the zoom level if it is not too small or large
   //
-  function zoom(fov) {
+  function zoomTo(fov) {
     if (fov < minFOV) { return; }
     if (fov > maxFOV) { return; }
     let ra = 15.0 * wwt.getRA();
@@ -714,12 +714,12 @@ var wwt = (function () {
   const zoomFactor = 1.25;
   function zoomIn() {
     var fov = wwt.get_fov() / zoomFactor;
-    zoom(fov);
+    zoomTo(fov);
   }
 
   function zoomOut() {
     var fov = zoomFactor * wwt.get_fov();
-    zoom(fov);
+    zoomTo(fov);
   }
 
   // zoom factor to use has been guessed at
@@ -3191,9 +3191,9 @@ var wwt = (function () {
     //        a source or a stack?
     //
     host.querySelector('#zoom0')
-      .addEventListener('click', () => { zoom(60); }, false);
+      .addEventListener('click', () => { zoomTo(60); }, false);
     host.querySelector('#zoomn')
-      .addEventListener('click', () => { zoom(0.2); }, false);  // 0.6 is okay too
+      .addEventListener('click', () => { zoomTo(0.2); }, false);  // 0.6 is okay too
     host.querySelector('#zoomin')
       .addEventListener('click', () => { zoomIn(); }, false);
     host.querySelector('#zoomout')
@@ -4263,7 +4263,7 @@ var wwt = (function () {
     setSelectionMode: setSelectionMode,
     setTargetName: setTargetName,
 
-    zoom: zoom,
+    zoom: zoomTo,
     zoomIn: zoomIn,
     zoomOut: zoomOut,
 
