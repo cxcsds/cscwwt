@@ -3029,7 +3029,11 @@ var wwt = (function () {
   // Pull out the ra/dec handling so that we don't stop parsing
   // other elements in the query if one of these fails.
   //
-  function handleQueryLocation(raStr, decStr, zoomStr) {
+  function handleQueryLocation(params) {
+    // zoom is only used if ra and dec are given, but is optional
+    const raStr = params.get('ra');
+    const decStr = params.get('dec');
+    const zoomStr = params.get('zoom');
     if ((raStr === null) || (decStr === null)) { return; }
 
     const ra = Number(raStr);
@@ -3102,11 +3106,7 @@ var wwt = (function () {
 
     trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
 
-    // zoom is only used if ra and dec are given, but is optional
-    const raStr = params.get('ra');
-    const decStr = params.get('dec');
-    const zoomStr = params.get('zoom');
-    handleQueryLocation(raStr, decStr, zoomStr);
+    handleQueryLocation(params);
 
     // Match against the values in the select widget, to ensure it
     // is a valid setting.
