@@ -359,31 +359,75 @@ const wwtprops = (function () {
 
   // Add in the SAMP export button for the stack info panel.
   //
-  function addSendStackEvtFile(parent, stack, stackVersion) {
+  function addSendStackEvtFile(active, parent, stack, stackVersion) {
     if (stackVersion === null) { return; }
 
-    const sampDiv = mkDiv('samp');
-    parent.appendChild(sampDiv);
+    const clientListId = 'export-clientlist-stkevt';
+    const mtype = 'image.load.fits';
 
-    const sampImg = mkImg('Send via SAMP',
-			  'wwtimg/fa/share.svg',
-			  null, null,
-			  'usercontrol icon requires-samp');
-    sampImg.id = 'export-samp-stkevt3';
-    sampImg.addEventListener('click',
-			     () => wwtsamp.sendStackEvt3(stack.stackid,
-							 stackVersion),
-			     false);
-    sampDiv.appendChild(sampImg);
+    const div = document.createElement('div');
+    div.setAttribute('class', 'samp-export-list');
+    div.setAttribute('data-samp-mtype', mtype);
+    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
 
-    // TODO: tool-tip handling of this doesn't seem to work
-    //       INVESTIGATE
+    const btn = document.createElement('button');
+    btn.id = 'export-samp-stkevt';
+    btn.setAttribute('class', 'button');
+    btn.setAttribute('type', 'button');
+    addText(btn, 'Export ...');
+
+    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+
+    const lbl = document.createElement('label');
+    lbl.setAttribute('for', clientList.id);
+    addText(lbl, 'Where:');
+
+    const bdiv = document.createElement('div');
+    bdiv.appendChild(btn);
+
+    const sdiv = document.createElement('div');
+    sdiv.setAttribute('class', 'grid-2-cols');
+
+    // Need to wrap in div do can use with grid CSS
+    const addWrap = el => {
+      const div = document.createElement('div');
+      div.appendChild(el);
+      sdiv.appendChild(div);
+    };
+
+    addWrap(lbl);
+    addWrap(clientList);
+
+    div.appendChild(bdiv);
+    div.appendChild(sdiv);
+
+    // Should this settings be generated from the DOM (i.e. what
+    // is selected) rather than hard-coding the default value here
+    // (in case the defult is changed in the future)?
     //
-    const tooltip = 'Send the stack event3 file to ' +
-	  'virtual-observatory applications (this can be slow).'
-    addToolTip(sampDiv, 'export-samp-stkevt3-tooltip', tooltip);
+    const selected = {target: 'opt-clipboard'};
 
-    wwt.addToolTipHandler('export-samp-stkevt3');
+    if (active) {
+      // NOTE: we special case the handling of target=opt-find,
+      //       as this means register and then repopulate the field.
+      //
+      clientList.addEventListener('change', ev => {
+	if (ev.target.value === 'opt-find') {
+	  wwtsamp.register();
+	  // No point in refreshing the list, as the registration is
+	  // done asynchronously, so we don't know when to update.
+	} else {
+	  selected.target = ev.target.value;
+	}
+      }, false);
+
+      btn.addEventListener('click', () => {
+	console.log(`Chosen target: ${selected.target}`);
+	wwtsamp.sendStackEvt3(stack.stackid, stackVersion, selected.target);
+      }, false);
+    }
+
+    parent.appendChild(div);
   }
 
   // Create a "pop-up" window with details on the given stack.
@@ -425,10 +469,6 @@ const wwtprops = (function () {
     // Location of stack
     //
     nDiv.appendChild(addLocation(stack.pos[0], stack.pos[1], active));
-
-    // SAMP: send stack event file
-    //
-    addSendStackEvtFile(nDiv, stack, stackVersion);
 
     // Target name (if available)
     //
@@ -558,6 +598,10 @@ const wwtprops = (function () {
       }
     }
 
+    // SAMP: send stack event file
+    //
+    addSendStackEvtFile(active, mainDiv, stack, stackVersion);
+
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
     //
@@ -669,7 +713,9 @@ const wwtprops = (function () {
       return;
     }
 
-    addStackInfoContents(parent, stack, null, false);
+    // Need a version value for the SAMP button to appear, but doesn't
+    // really matter what it is.
+    addStackInfoContents(parent, stack, 20, false);
   }
 
   // Hide the element, remove its children, and return it.
@@ -689,9 +735,6 @@ const wwtprops = (function () {
 
   function clearStackInfo() {
     clearElement('#stackinfo');
-    // This handler may not have been created, so do not report
-    // if it can't be found.
-    wwt.removeToolTipHandler('export-samp-stkevt3', false);
   }
 
   // How to display the given "measured" or "calculated"
@@ -1142,7 +1185,7 @@ const wwtprops = (function () {
 
     const adqlList = document.createElement('select');
     adqlList.id = 'export-samp-choice';
-    adqlList.setAttribute('name', 'export-samp-choice');
+    adqlList.setAttribute('name', adqlList.id);
     adqlList.setAttribute('class', 'button');
 
     const opts = [{value: 'basic', label: 'Basic Summary'},

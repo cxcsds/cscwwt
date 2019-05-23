@@ -170,7 +170,7 @@ const wwtsamp = (function () {
   // When do we show the register button. This also has to update the
   // selection lists to add in the "find clients" option.
   //
-  // I had ttried to only change things if flag and sampHubIsPresent
+  // I had tried to only change things if flag and sampHubIsPresent
   // were different, but this can miss items that were added to the
   // DOM after the last change (of sampHubIsPresent) was made. I
   // now rely on refreshSAMPClientList to not change lists which
@@ -498,9 +498,13 @@ const wwtsamp = (function () {
             'CSC 2.0 master-source properties (single source)');
   }
 
-  function sendStackEvt3(stack, stackver) {
+  function sendStackEvt3(stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackEvt3 sent empty target');
+      return;
+    }
 
-    sampTrace(`SAMP: stack=${stack} ver=${stackver}`);
+    sampTrace(`SAMP: stack=${stack} ver=${stackver} target=${target}`);
 
     // simple for now
     let verstr;
@@ -512,7 +516,7 @@ const wwtsamp = (function () {
       `version=cur&filetype=stkevt3&filename=${stack}N${verstr}_evt3.fits`;
 
     console.log(`--> sending image.load.fits for ${url}`);
-    sendURL('opt-all', 'image.load.fits', url,
+    sendURL(target, 'image.load.fits', url,
             `Stack evt3 for ${stack}`);
   }
 
