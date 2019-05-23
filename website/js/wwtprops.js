@@ -357,6 +357,35 @@ const wwtprops = (function () {
     return mainDiv;
   }
 
+  // Add in the SAMP export button for the stack info panel.
+  //
+  function addSendStackEvtFile(parent, stack, stackVersion) {
+    if (stackVersion === null) { return; }
+
+    const sampDiv = mkDiv('samp');
+    parent.appendChild(sampDiv);
+
+    const sampImg = mkImg('Send via SAMP',
+			  'wwtimg/fa/share.svg',
+			  null, null,
+			  'usercontrol icon requires-samp');
+    sampImg.id = 'export-samp-stkevt3';
+    sampImg.addEventListener('click',
+			     () => wwtsamp.sendStackEvt3(stack.stackid,
+							 stackVersion),
+			     false);
+    sampDiv.appendChild(sampImg);
+
+    // TODO: tool-tip handling of this doesn't seem to work
+    //       INVESTIGATE
+    //
+    const tooltip = 'Send the stack event3 file to ' +
+	  'virtual-observatory applications (this can be slow).'
+    addToolTip(sampDiv, 'export-samp-stkevt3-tooltip', tooltip);
+
+    wwt.addToolTipHandler('export-samp-stkevt3');
+  }
+
   // Create a "pop-up" window with details on the given stack.
   // This fills in the parent structure and determines whether this
   // is an "operational" or "inactive" version (for use or for display
@@ -397,32 +426,9 @@ const wwtprops = (function () {
     //
     nDiv.appendChild(addLocation(stack.pos[0], stack.pos[1], active));
 
-    // TEST SAMP: send stack event file
+    // SAMP: send stack event file
     //
-    if (stackVersion !== null) {
-      const sampDiv = mkDiv('samp');
-      nDiv.appendChild(sampDiv);
-
-      const sampImg = mkImg('Send via SAMP',
-			    'wwtimg/fa/share.svg',
-			    null, null,
-			    'usercontrol icon requires-samp');
-      sampImg.id = 'export-samp-stkevt3';
-      sampImg.addEventListener('click',
-			       () => wwtsamp.sendStackEvt3(stack.stackid,
-							   stackVersion),
-			       false);
-      sampDiv.appendChild(sampImg);
-
-      // TODO: tool-tip handling of this doesn't seem to work
-      //       INVESTIGATE
-      //
-      const tooltip = 'Send the stack event3 file to ' +
-	    'virtual-observatory applications (this can be slow).'
-      addToolTip(sampDiv, 'export-samp-stkevt3-tooltip', tooltip);
-
-      wwt.addToolTipHandler('export-samp-stkevt3');
-    }
+    addSendStackEvtFile(nDiv, stack, stackVersion);
 
     // Target name (if available)
     //
