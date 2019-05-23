@@ -326,7 +326,17 @@ var wwt = (function () {
     }
     if (display === null) { return null; }
 
-    return `${window.location.href}?ra=${ra},dec=${dec},display=${display}`;
+    // Need to remove any existing search term
+    //
+    try {
+      const url = new URL(document.location);
+    } catch (e) {
+      console.log(`ERROR: unable to create a URL for the page`);
+      return null;
+    }
+
+    url.search = '';
+    return `${url.href}?ra=${ra}&dec=${dec}&zoom=${zoom}&display=${display}`;
   }
   
   function clipBookmark(event) {
@@ -3016,6 +3026,45 @@ var wwt = (function () {
     }
   }
 
+  // Pull out the ra/dec handling so that we don't stop parsing
+  // other elements in the query if one of these fails.
+  //
+  function handleQueryLocation(params) {
+    // zoom is only used if ra and dec are given, but is optional
+    const raStr = params.get('ra');
+    const decStr = params.get('dec');
+    const zoomStr = params.get('zoom');
+    if ((raStr === null) || (decStr === null)) { return; }
+
+    const ra = Number(raStr);
+    const dec = Number(decStr);
+    const zoom = Number(zoomStr === null ? '1.0' : zoomStr);
+
+    if (isNaN(ra) || isNaN(dec) || isNaN(zoom)) {
+      console.log(`Unable to convert ra=${raStr} dec=${decStr} zoom=${zoomStr} to a location`);
+      return;
+    }
+
+    if ((ra < 0) || (ra >= 360)) {
+      console.log(`Invalid ra=${raStr} for location`);
+      return;
+    }
+
+    if ((dec < -90) || (dec > 90)) {
+      console.log(`Invalid dec=${decStr} for location`);
+      return;
+    }
+
+    // Should we cap the zoom rather than throw out invalid values?
+    if ((zoom <= 0) || (zoom > 60)) {
+      console.log(`Invalid zoom=${zoomStr} for location`);
+      return;
+    }
+
+    userLocation = {ra: ra, dec: dec, zoom: zoom};
+    trace(` -> userLocation: ra=${userLocation.ra} dec=${userLocation.dec} zoom=${userLocation.zoom}`);
+  }
+
   // Has the user asked for certain behavior? I don't believe this
   // will work on IE, but in this case we just don't try to support
   // the optional triggers.
@@ -3057,40 +3106,7 @@ var wwt = (function () {
 
     trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
 
-    // zoom is only used if ra and dec are given, but is optional
-    if (params.has('ra') && params.has('dec')) {
-      const raStr = params.get('ra');
-      const decStr = params.get('dec');
-      const zoomStr = params.has('zoom') ? params.get('zoom') : '1.0';
-
-      const ra = Number(raStr);
-      const dec = Number(decStr);
-      const zoom = Number(zoomStr);
-
-      if (isNaN(ra) || isNaN(dec) || isNaN(zoom)) {
-	console.log(`Unable to convert ra=${raStr} dec=${decStr} zoom=${zoomStr} to a location`);
-	return;
-      }
-
-      if ((ra < 0) || (ra >= 360)) {
-	console.log(`Invalid ra=${raStr} for location`);
-	return;
-      }
-
-      if ((dec < -90) || (dec > 90)) {
-	console.log(`Invalid dec=${decStr} for location`);
-	return;
-      }
-
-      // Should we cap the zoom rather than throw out invalid values?
-      if ((zoom <= 0) || (zoom > 60)) {
-	console.log(`Invalid zoom=${zoomStr} for location`);
-	return;
-      }
-
-      userLocation = {ra: ra, dec: dec, zoom: zoom};
-      trace(` -> userLocation: ra=${userLocation.ra} dec=${userLocation.dec} zoom=${userLocation.zoom}`);
-    }
+    handleQueryLocation(params);
 
     // Match against the values in the select widget, to ensure it
     // is a valid setting.
