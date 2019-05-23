@@ -157,8 +157,6 @@ var wwt = (function () {
       saveState(keyFOV, fov);
     }
 
-    const url = getPageURL();
-    
     const coord = document.querySelector('#coordinate');
     const fovspan = document.querySelector('#fov');
     const exurl = document.querySelector('#example-url');
@@ -201,6 +199,7 @@ var wwt = (function () {
     fovspan.appendChild(document.createTextNode(fovtxt));
 
     removeChildren(exurl);
+    const url = getPageURL();
     if (url === null) {
       exurl.appendChild(document.createTextNode('oops, unable to create the URL'));
     } else {
@@ -328,10 +327,11 @@ var wwt = (function () {
 
     // Need to remove any existing search term
     //
+    let url = null;
     try {
-      const url = new URL(document.location);
+      url = new URL(document.location);
     } catch (e) {
-      console.log(`ERROR: unable to create a URL for the page`);
+      console.log(`ERROR: unable to create a URL for the page - ${e}`);
       return null;
     }
 
