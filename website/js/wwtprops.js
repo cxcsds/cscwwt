@@ -1614,6 +1614,11 @@ const wwtprops = (function () {
       return;
     }
 
+    if (!wwt.showSourceToggles()) {
+      console.log('NOTE: source toggle display is turned off.');
+      return;
+    }
+
     const div = mkDiv('options');
     parent.appendChild(div);
 

@@ -34,6 +34,7 @@ var wwt = (function () {
   //     - "select sources with a polygon"
   //     - show nearest stacks
   //     - show nearest sources
+  //     - allow source-selection to be toggled/faceted
   //
   // We flip these all to true if run on the test server.
   let displayCHS = false;
@@ -41,6 +42,7 @@ var wwt = (function () {
   let displayPolygonSelect = false;
   let displayNearestStacks = false;
   let displayNearestSources = false;
+  let displaySourceToggles = false;
 
   // What options has the user provided via query parameters?
   let userLocation = null;
@@ -3134,6 +3136,7 @@ var wwt = (function () {
       displayCHS = true;
       displayNearestStacks = true;
       displayNearestSources = true;
+      displaySourceToggles = true;
     }
 
     // Only ever support turning on an option, not off.
@@ -3142,6 +3145,7 @@ var wwt = (function () {
     displayCHS = displayCHS || params.has('chs');
     displayNearestStacks = displayNearestStacks || params.has('stack');
     displayNearestSources = displayNearestSources || params.has('source');
+    displaySourceToggles = displaySourceToggles || params.has('toggles');
 
     trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
 
@@ -4322,6 +4326,8 @@ var wwt = (function () {
 
     click: addAnnotationClicked,
     unclick: removeAnnotationClicked,
+
+    showSourceToggles: () => displaySourceToggles,
 
     clearState: clearState,
     switchSelectionMode: switchSelectionMode
