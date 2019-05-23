@@ -648,27 +648,11 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The second icon indicates "send information via SAMP", and
-		can appear in different panels. The information sent depends
-		on the location of this "share" icon
-		(<img class="icon" alt="Send via SAMP"
-		src="wwtimg/fa/share.svg"/>):
+		can appear in the source-properties panel, where it will
+		send the <strong>full set</strong>
+		of master-source properties for this source
+		to any table viewer (e.g. TOPCAT and SAOImageDS9).
 	      </p>
-	      <list>
-		<li>
-		  <p>
-		    In the stack-information panel, clicking on the icon will
-		    send the stack event file to an application (such
-		    as SAOImageDS9).
-		  </p>
-		</li>
-		<li>
-		  <p>
-		    In the source-properties panel it is used to send the
-		    full set of master-source properties for this source will be
-		    sent to any table viewer (e.g. TOPCAT and SAOImageDS9).
-		  </p>
-		</li>
-	      </list>
 	    </dd>
 
 	    <dt>
@@ -792,13 +776,13 @@ main#content div.wrap {
 	  </div>
 
 	  <p>
-	    If a SAMP hub is running on your machine, and
-	    DS9 is connected to it, then you will be
-	    able to send the stack event file to the DS9
-	    by clicking on the "export" icon:
-            <img alt="Send via SAMP"
-		 class="icon"
-		 src="wwtimg/fa/share.svg"/>
+	    The <span class='example-button'>Export ...</span>
+	    button lets you send the stack event file to a
+	    Virtual-Observatory application if a SAMP hub
+	    is running on your machine and SAOImageDS9 is
+	    connected to it. If there is no SAMP hub then
+	    the URL of the stack event file can be copied to
+	    the clipboard.
 	  </p>
 
 	  <h3>Selecting a source</h3>
