@@ -489,10 +489,10 @@ const wwtsamp = (function () {
             `CSC 2.0 ${searchURL.label} source properties (cone-search)`);
   }
 
-  function sendSourcePropertiesName(event, name) {
+  function sendSourcePropertiesName(event, target, name) {
     sampTrace(`SAMP: source properties name ${name}`);
     const url = masterSourcePropertiesByName(name);
-    sendURL(event, 'opt-all', 'table.load.votable', url,
+    sendURL(event, target, 'table.load.votable', url,
             'CSC 2.0 master-source properties (single source)');
   }
 

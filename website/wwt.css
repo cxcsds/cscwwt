@@ -264,11 +264,7 @@ div.coords {
   flex: auto;
 }
 
-/* due to rule specificity, need some explicit matches and not just rely
- * on .requires-samp.
- */
-.requires-samp ,
-img#export-samp-source , img#export-samp-stkevt3 {
+.requires-samp {
   display: none;
 }
 
