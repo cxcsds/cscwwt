@@ -206,14 +206,6 @@ const wwtprops = (function () {
     return p;
   }
 
-  // Add a tooltip para element.
-  //
-  function addToolTip(parent, id, text) {
-    const p = addPara(parent, text);
-    p.id = id;
-    p.setAttribute('class', 'tooltip');
-  }
-
   // Add a span item with the given class name which is a link
   // element with link text and the given call back when clicked.
   //
@@ -424,6 +416,77 @@ const wwtprops = (function () {
       btn.addEventListener('click', (event) => {
 	console.log(`Chosen target: ${selected.target}`);
 	wwtsamp.sendStackEvt3(event, stack.stackid, stackVersion, selected.target);
+      }, false);
+    }
+
+    parent.appendChild(div);
+  }
+
+  // Add in the SAMP export button for the single-source panel.
+  //
+  function addSendSourcePropertiesName(active, parent, src) {
+    const clientListId = 'export-clientlist-sourcename';
+    const mtype = 'table.load.votable';
+
+    const div = document.createElement('div');
+    div.setAttribute('class', 'samp-export-list');
+    div.setAttribute('data-samp-mtype', mtype);
+    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
+
+    const btn = document.createElement('button');
+    btn.id = 'export-samp-stkevt';
+    btn.setAttribute('class', 'button');
+    btn.setAttribute('type', 'button');
+    addText(btn, 'Export ...');
+
+    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+
+    const lbl = document.createElement('label');
+    lbl.setAttribute('for', clientList.id);
+    addText(lbl, 'Where:');
+
+    const bdiv = document.createElement('div');
+    bdiv.appendChild(btn);
+
+    const sdiv = document.createElement('div');
+    sdiv.setAttribute('class', 'grid-2-cols');
+
+    // Need to wrap in div do can use with grid CSS
+    const addWrap = el => {
+      const div = document.createElement('div');
+      div.appendChild(el);
+      sdiv.appendChild(div);
+    };
+
+    addWrap(lbl);
+    addWrap(clientList);
+
+    div.appendChild(bdiv);
+    div.appendChild(sdiv);
+
+    // Should this settings be generated from the DOM (i.e. what
+    // is selected) rather than hard-coding the default value here
+    // (in case the defult is changed in the future)?
+    //
+    const selected = {target: 'opt-clipboard'};
+
+    if (active) {
+      // NOTE: we special case the handling of target=opt-find,
+      //       as this means register and then repopulate the field.
+      //
+      clientList.addEventListener('change', ev => {
+	if (ev.target.value === 'opt-find') {
+	  wwtsamp.register();
+	  // No point in refreshing the list, as the registration is
+	  // done asynchronously, so we don't know when to update.
+	} else {
+	  selected.target = ev.target.value;
+	}
+      }, false);
+
+      btn.addEventListener('click', (event) => {
+	console.log(`Chosen target: ${selected.target}`);
+	wwtsamp.sendSourcePropertiesName(event, selected.target, src.name);
       }, false);
     }
 
@@ -962,7 +1025,7 @@ const wwtprops = (function () {
     mainDiv.appendChild(binfoDiv);
 
     addSpanLink(binfoDiv, 'clipboard',
-		'Copy source name to clipboard',
+		'Copy name to clipboard',
 		active ? (event) => wwt.copyToClipboard(event, src.name) : null);
 
     const span = document.createElement('span');
@@ -986,40 +1049,14 @@ const wwtprops = (function () {
     //
     nDiv.appendChild(addLocation(src.ra, src.dec, active));
 
-    // TODO: this should only be done for sources we have
-    //       processed (e.g. have a nH), shouldn't it?
-    //
-    if (active) {
-      const sampDiv = mkDiv('samp');
-      nDiv.appendChild(sampDiv);
-
-      const sampImg = mkImg('Send via SAMP',
-			    'wwtimg/fa/share.svg',
-			    null, null,
-			    'usercontrol icon requires-samp');
-      sampImg.id = 'export-samp-source';
-      sampImg.addEventListener('click',
-			       (event) => wwtsamp.sendSourcePropertiesName(event, src.name),
-			       false);
-      sampDiv.appendChild(sampImg);
-
-      // TODO: tool-tip handling of this doesn't seem to work
-      //       INVESTIGATE <is this true here?>
-      //
-      const tooltip = 'Send the source properties to ' +
-	'virtual-observatory applications.';
-      addToolTip(sampDiv, 'export-samp-source-tooltip', tooltip);
-    }
-
     // finished adding to nDiv
     addSourceProperties(mainDiv, src, active);
 
-    parent.style.display = 'block';
+    // SAMP: send source properties
+    //
+    addSendSourcePropertiesName(active, mainDiv, src);
 
-    // The location of the tooltip isn't ideal here
-    if (active) {
-      wwt.addToolTipHandler('export-samp-source');
-    }
+    parent.style.display = 'block';
   }
 
   // srcid is the position of the source within catalogData
@@ -1044,7 +1081,6 @@ const wwtprops = (function () {
 
   function clearSourceInfo() {
     clearElement('#sourceinfo');
-    wwt.removeToolTipHandler('export-samp-source');
   }
 
   // Add an option element to the select instance. At the moment only
@@ -1361,7 +1397,6 @@ const wwtprops = (function () {
 
   function clearSourceSelection() {
     clearElement('#sourceselection');
-    // wwt.removeToolTipHandler('export-samp-source');
   }
 
   // Convert a separation in degrees to a "nice" string.

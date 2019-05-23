@@ -106,7 +106,6 @@ main#content div.wrap {
 		 src="wwtimg/fa/broadcast-tower.svg"/>
 	  </div>
 
-
 	  <!-- since floating right, order so that it reads
 	       zoom 0, zoom in, zoom out from left-to-right -->
 	  <div class="with-tooltip">
@@ -622,14 +621,12 @@ main#content div.wrap {
 		<img class="icon"
 		     alt="Register with a SAMP Hub"
 		     src="wwtimg/fa/broadcast-tower.svg"/>
-		<img class="icon" alt="Send via SAMP"
-		     src="wwtimg/fa/share.svg"/>
 	      </div>
 	    </dt>
 
 	    <dd>
 	      <p>
-		These two icons will only appear if a SAMP hub (one
+		This icon will only appear if a SAMP hub (one
 		that supports the
 		<extlink target="_blank"
 			 href="http://www.ivoa.net/documents/SAMP/20120411/REC-SAMP-1.3-20120411.html#tth_sEc5">SAMP Web Profile</extlink>)
@@ -641,17 +638,12 @@ main#content div.wrap {
 		and
 		<extlink target="_blank"
 			 href="http://ds9.si.edu/site/Home.html">SAOImageDS9</extlink>.
-		The first icon will register the WWT display with
-		the SAMP hub: this is an optional step but selecting it will
-		mean that the WWT interface will both send and respond to
+		Selecting the icon will register the WWT/CSC2 display with
+		the SAMP hub: this is an <em>optional step</em>,
+		but selecting it will
+		mean that the WWT interface will <!-- both send and -->
+		respond to
 		<span class="term">coord.pointAt.sky</span> messages.
-	      </p>
-	      <p>
-		The second icon indicates "send information via SAMP", and
-		can appear in the source-properties panel, where it will
-		send the <strong>full set</strong>
-		of master-source properties for this source
-		to any table viewer (e.g. TOPCAT and SAOImageDS9).
 	      </p>
 	    </dd>
 
@@ -811,17 +803,6 @@ main#content div.wrap {
 	  </p>
 
 	  <p>
-	    If a SAMP hub is running on your machine then you will be
-	    able to send
-	    <cxclink href="columns/master.html" target="_blank">all
-	    the master properties for the source</cxclink> to
-	    a table viewer by clicking on the "export" icon:
-            <img alt="Send via SAMP"
-		 class="icon"
-		 src="wwtimg/fa/share.svg"/>
-	  </p>
-
-	  <p>
 	    Above the properties are links to copy the search name to the
 	    clipboard, search in the
 	    <extlink target="_blank"
@@ -833,6 +814,17 @@ main#content div.wrap {
 	    Astronomical Database</extlink>
 	    within 5 arcseconds of the source
 	    location, and to center-and-zoom the WWT display on the source.
+	  </p>
+
+	  <p>
+	    If a SAMP hub is running on your machine then you will be
+	    able to send
+	    <cxclink href="columns/master.html" target="_blank">all
+	    the master properties for the source</cxclink> to
+	    a table viewer by clicking on the 
+	    <span class='example-button'>Export ...</span> button.
+	    If no SAMP hub is running then the URL of the query can be
+	    copied to the clipboard.
 	    More-detailed access to the CSC 2.0 source and data properties -
 	    as well as to previous releases - is available
             either via the
@@ -1164,7 +1156,7 @@ main#content div.wrap {
 		     href="http://www.skymap.com/milkyway_cat.htm">Milky Way
             Outline Catalogs data</extlink>
             by Jose R. Vieira.
-	    The configuration, broadcast, close, reshare, resize,
+	    The configuration, broadcast, close, resize,
 	    scissors, search, and zoom icons are from the
 	    <extlink target="_blank"
 		     href="https://fontawesome.com/support#fa-opensource">free
