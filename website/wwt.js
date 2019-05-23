@@ -311,7 +311,14 @@ var wwt = (function () {
       return null;
     }
 
+    // Ensure there isn't excessive precision
     const zoom = wwt.get_fov();
+    let zoomStr = zoom.toString();
+    const zndp = zoomStr.indexOf('.');
+    if (zndp >= 0) {
+      const ndp = zoomStr.length - zndp - 1;
+      if (ndp > 4) { zoomStr = zoom.toFixed(4); }
+    }
 
     // What is the current image setting?
     // This logic is repeated several times and should be
@@ -335,8 +342,10 @@ var wwt = (function () {
       return null;
     }
 
+    // Clear out previous terms
     url.search = '';
-    return `${url.href}?ra=${ra}&dec=${dec}&zoom=${zoom}&display=${display}`;
+    url.hash = '';
+    return `${url.href}?ra=${ra}&dec=${dec}&zoom=${zoomStr}&display=${display}`;
   }
   
   function clipBookmark(event) {
