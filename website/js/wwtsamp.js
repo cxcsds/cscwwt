@@ -129,15 +129,30 @@ const wwtsamp = (function () {
   //
   function clientChanged(clientid, changetype, changedata) {
     sampTrace(`SAMP: client=${clientid} change=${changetype}`);
-    if ((changetype !== 'subs') && (changetype !== 'unregister')) {
-      return;
-    }
+    // The expected changetypes are
+    //    register
+    //    unregister
+    //    meta
+    //    subs
+    // and we want to respond to all but register (since it could
+    // adding or removing a client that subscribes to a mtype, or
+    // changing its name). We could be clever and drill-down to
+    // see if the change is interesting to us, but at present it
+    // doesn't seem worth it.
+    //
+    // The assumption is that the set of changetypes isn't going
+    // to change, which it hasn't for at least 6 years (or, if it
+    // does, then we are better to respond, just in case).
+    //
+    if (changetype === 'register') { return; }
     refreshSAMPClientLists();
   }
 
   function refreshSAMPClientLists() {
+    // Since this can be called every 5 seconds, do not create
+    // logging output unless necessary
     document.querySelectorAll('select[data-clientlist-mtype]').forEach(sel => {
-      sampTrace(`SAMP: refreshing ${sel.id}`);
+      // sampTrace(`SAMP: refreshing client list for ${sel.id}`);
       wwtprops.refreshSAMPClientList(sel);
     });
   }
