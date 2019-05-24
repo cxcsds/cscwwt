@@ -25,6 +25,8 @@ const wwtsamp = (function () {
   var sampReport = null;
   var sampTrace = null;
 
+  var sampCheckHandler = null;
+
   // The arguments are functions which take a single paremerter and
   // are used
   //   report - to report a message from a SAMP process (e.g.
@@ -63,10 +65,7 @@ const wwtsamp = (function () {
     //
     const el = document.querySelector('#register-samp');
 
-    // Try to avoid polling too often (in part because it seems to
-    // create a CORS-related error on the console).
-    //
-    sampConnection.onHubAvailability(sampIsAvailable, 5000);
+    startPolling();
     sampConnection.onreg = () => {
       sampIsRegistered = true;
 
@@ -84,6 +83,31 @@ const wwtsamp = (function () {
 
       sampTrace('Un-registered from SAMP hub');
     }
+  }
+
+  // Try to avoid polling too often (in part because it seems to
+  // create a CORS-related error on the console when no hub is
+  // present). Should polling be disabled when connected to a hub,
+  // or should it be kept so that we can perhaps-better-handle the
+  // case of the hub disappearing without sending out shutdown
+  // messages?
+  //
+  function startPolling() {
+    stopPolling();
+    if (sampConnection === null) { return; }
+    sampCheckHandler = sampConnection.onHubAvailability(sampIsAvailable, 5000);
+    sampTrace(`Started SAMP polling: handler ${sampCheckHandler}`);
+  }
+
+  // A user may want to stop polling if they know they are not
+  // using SAMP. Should this unregister/disconnect the SAMP object
+  // too?
+  //
+  function stopPolling() {
+    if (sampCheckHandler === null) { return; }
+    sampTrace(`Stopping SAMP polling: handler ${sampCheckHandler}`);
+    clearInterval(sampCheckHandler);
+    sampCheckHandler = null;
   }
 
   function registerSAMP() {
@@ -308,6 +332,8 @@ const wwtsamp = (function () {
     
   return { setup: openSAMP,
            teardown: closeSAMP,
+	   startPolling: startPolling,
+	   stopPolling: stopPolling,
 
            moveTo: moveTo,
 
