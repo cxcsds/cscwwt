@@ -313,7 +313,7 @@ const wwtsamp = (function () {
   //
   // Should we provide id's or names of the applications?
   //
-  function handleSAMPResponse(mtype) {
+  function handleSAMPResponseAll(mtype) {
     return (resp) => {
       let msg;
       const n = resp.length;
@@ -332,6 +332,13 @@ const wwtsamp = (function () {
       }
 
       sampReport(msg);
+    };
+  }
+
+  // Sent the message to one client, with no response expected,
+  // so do nothing.
+  function handleSAMPResponse(mtype) {
+    return (resp) => {
     };
   }
 
@@ -425,7 +432,7 @@ const wwtsamp = (function () {
 
       if (target === 'opt-all') {
 	sampTrace(`SAMP ${mtype} query to all clients`);
-	conn.notifyAll([msg], handleSAMPResponse(mtype));
+	conn.notifyAll([msg], handleSAMPResponseAll(mtype));
 
       } else if (target.startsWith('client-')) {
 	const client = target.slice(7);
