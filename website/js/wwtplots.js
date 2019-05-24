@@ -256,12 +256,24 @@ const wwtplots = (function () {
 	    nplots += 1;
 	}
 
+      // Have a problem with p4; may happen with other plots too
+      // but for now just handle the p4 failure case.
+      //
 	if (p4 !== null) {
-	    // Plotly.newPlot(plot4, p4.data, p4.opts, genOpts);
+	  // Plotly.newPlot(plot4, p4.data, p4.opts, genOpts);
+	  let p4okay = true;
+	  try {
 	    Plotly.react(plot4, p4.data, p4.opts, genOpts);
+	  } catch (e) {
+	    console.log(`DBG: plotly (p4) threw ${e}`);
+	    p4okay = false;
+	  }
+
+	  if (p4okay) {
 	    if (nplots === 0) { defaultPlot = 4; }
 	    plotShown[3] = true;
 	    nplots += 1;
+	  }
 	}
 
 	// Make sure display areas are reset; also need to toggle the
