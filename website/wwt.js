@@ -4152,6 +4152,8 @@ var wwt = (function () {
     //
     getWWTControl: function () { return wwt; },
 
+    getCSCObject: getCSCObject,
+
     setPosition: setPosition,
     moveTo: moveTo,
 
