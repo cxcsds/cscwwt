@@ -1100,11 +1100,26 @@ const wwtprops = (function () {
   // Create an option list of SAMP clients. The user uses this to
   // decide where the message is sent. The options are
   //
+  // *) currently unused
+  //
   //    -- select target --      if unselected argument is true
-  //    copy to clipboard        valid even if no SAMP hub is present
-  //    all                      requires hub
-  //    find clients             requires hub but not registered
-  //    client name ...          requires hub and regisgtered
+  //        would need to disable/enable button when set/changed
+  //
+  // *) always present
+  //
+  //    copy to clipboard
+  //
+  // *) hub present but not registered
+  //
+  //    all
+  //    find clients
+  //
+  // *) registered with hub and at least one client accepts the mtype
+  //
+  //    all                      if multiple clients
+  //    client name 1
+  //    ...
+  //    client name n
   //
   // This list is updated by refreshSAMPClientList.
   //
@@ -1137,6 +1152,12 @@ const wwtprops = (function () {
 
   // Re-create the optional contents of the SAMP client list selector.
   //
+  // TODO:
+  //   - can we save/restore the selected item when the list is changed?
+  //     at the moment it swaps back to 'copy to clipboard', but if
+  //     a user has selected 'topcat' and then sees this disappear because
+  //     ds9 has just registered, they may not notice this change.
+  //
   function refreshSAMPClientList(sel) {
     const mtype = sel.getAttribute('data-clientlist-mtype');
     const unselected = sel.getAttribute('data-clientlist-unselected');
@@ -1150,18 +1171,30 @@ const wwtprops = (function () {
 
     // Do we need to refresh the list?
     //
+    // Note that clientNames is null if we are not registered with a hub.
+    //
     const hasHub = wwtsamp.hasHub();
     const isRegistered = wwtsamp.isRegistered();
+    const clients = wwtsamp.respondsTo(mtype);
 
+    // See the comments to createSAMPClientList for the logic (the
+    // aim is to only provide an option when it is meaningfull).
+    //
     const newOptions = [];
+    const allOption = makeOption('opt-all', 'All clients');
     if (hasHub) {
-      newOptions.push(makeOption('opt-all', 'All clients'));
-
       if (isRegistered) {
-	wwtsamp.respondsTo(mtype).forEach(client => {
-	  newOptions.push(makeOption(`client-${client.id}`, client.name));
-	});
+	// should not be null here, but just in case
+	if ((clients !== null) && (clients.length > 0)) {
+	  if (clients.length > 1) {
+	    newOptions.push(allOption);
+	  }
+	  clients.forEach(client => {
+	    newOptions.push(makeOption(`client-${client.id}`, client.name));
+	  });
+	}
       } else {
+	newOptions.push(allOption);
 	newOptions.push(makeOption('opt-find', 'Find clients'));
       }
     }
