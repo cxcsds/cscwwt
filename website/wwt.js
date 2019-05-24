@@ -1683,8 +1683,6 @@ var wwt = (function () {
     sourceRA = undefined;
     sourceDec = undefined;
     sourceFOV = undefined;
-
-    sourcePlotData = null;
   }
 
   function showSources() {
@@ -1729,8 +1727,6 @@ var wwt = (function () {
   var sourceDec = undefined;
   var sourceFOV = undefined;
 
-  var sourcePlotData = null;
-
   // Display the sources and create the data needed for the plots
   //
   function _showSources() {
@@ -1739,21 +1735,6 @@ var wwt = (function () {
     const fov = wwt.get_fov();
 
     _hideSources();
-
-    // Plot data
-    const sigB = [];
-    const sigW = [];
-    const fluxB = [];
-    const fluxW = [];
-
-    const hrHM = [];
-    const hrMS = [];
-
-    const acisNum = [];
-    const hrcNum = [];
-
-    const r0 = [];
-    const r1 = [];
 
     // Assume the FOV is the box size in degrees. Could
     // filter to fov / 2.0, but leave as fov just so that
@@ -1764,52 +1745,13 @@ var wwt = (function () {
     const props = catalogProps.csc20;
     props.annotations = null;
 
-    // Storage routine also has to fill in the plot data
-    //
     const toStore = (row, pos) => {
-
       // could access the elements without creating an object
       // but I don't want to change existing code too much
       const src = getCSCObject(row);
       const shp = props.makeShape(props.color, props.size, src);
       const ann = makeAnnotation(row, pos, shp);
       ann.add();
-
-      // plot data
-      if (src.err_ellipse_r0 !== null &&
-          src.err_ellipse_r1 !== null) {
-        r0.push(src.err_ellipse_r0);
-        r1.push(src.err_ellipse_r1);
-      }
-
-      // For hardness ratio, we want to remove undefined values
-      // AND those that are pegged at +1 or -1, since the latter
-      // dominate the data and makes the plot hard to see
-      //
-      if ((src.hard_hm !== null) &&
-          (src.hard_ms !== null) &&
-          (src.hard_hm > -0.999) && (src.hard_hm < 0.999) &&
-          (src.hard_ms > -0.999) && (src.hard_ms < 0.999)) {
-        hrHM.push(src.hard_hm);
-        hrMS.push(src.hard_ms);
-      }
-
-      if ((src.acis_num !== null) && (src.acis_num > 0)) {
-        acisNum.push(src.acis_num);
-      }
-      if ((src.hrc_num !== null) && (src.hrc_num > 0)) {
-        hrcNum.push(src.hrc_num);
-      }
-
-      if (src.significance !== null) {
-        if (src.fluxband === 'broad') {
-          fluxB.push(src.flux);
-          sigB.push(src.significance);
-        } else if (src.fluxband === 'wide') {
-          fluxW.push(src.flux);
-          sigW.push(src.significance);
-        }
-      }
       return ann;
     };
 
@@ -1824,38 +1766,6 @@ var wwt = (function () {
     // remove separation and store the results
     //
     props.annotations = selected.map(d => d[1]);
-
-    // Combine the plot data
-    //
-    const out = {flux_b: null, flux_w: null, hr: null, poserr: null,
-                 obscount: null};
-
-    if (fluxB.length > 0) {
-      out.flux_b = {sig: sigB, flux: fluxB};
-    }
-
-    if (fluxW.length > 0) {
-      out.flux_w = {sig: sigW, flux: fluxW};
-    }
-
-    if (hrHM.length > 0) {
-      out.hr = {hm: hrHM, ms: hrMS};
-    }
-
-    if (r0.length > 0) {
-      const eccen = zip([r0, r1]).map((z) => {
-        const a = z[0];
-        const b = z[1];
-        return Math.sqrt(1 - b * b * 1.0 / (a * a));
-      });
-      out.poserr = {r0: r0, r1: r1, eccentricity: eccen};
-    }
-
-    if ((acisNum.length > 0) || (hrcNum.length > 0)) {
-      out.obscount = {acis: acisNum, hrc: hrcNum};
-    }
-
-    sourcePlotData = out;
 
     // Only draw on the circle if there are any sources
     //
@@ -3224,7 +3134,7 @@ var wwt = (function () {
 
     host.querySelector('#plot-properties')
       .addEventListener('click', () => {
-	wwtplots.plotSources(sourcePlotData);
+	wwtplots.plotSources(catalogProps.csc20);
       }, false);
 
     addToolTipHandler('zoom0');

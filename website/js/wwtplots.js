@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //
 // Create plots for the WWT interface. At present this uses the Plotly
@@ -10,11 +10,11 @@ const wwtplots = (function () {
     const labelify = function(xs) {
         const n = xs.length;
         if (n === 0) {
-            return "(no sources)";
+            return '(no sources)';
         } else if (n === 1) {
-            return "(one source)";
+            return '(one source)';
         } else {
-            return "(" + n.toString() + " sources)";
+            return `(${n} sources)`;
         }
     };
 
@@ -22,7 +22,7 @@ const wwtplots = (function () {
         const out = {x: xs, y: ys, opacity: 0.6,
     		     mode: 'markers', type: 'scatter'
     		    };
-        if (typeof name !== "undefined") {
+        if (typeof name !== 'undefined') {
     	    out.name = name + ' ' + labelify(xs);
         }
         return out;
@@ -45,7 +45,7 @@ const wwtplots = (function () {
                      opacity: 0.6,
 		     // , histnorm: 'percent'
 		    };
-	if (typeof name !== "undefined") {
+	if (typeof name !== 'undefined') {
 	    out.name = name + ' ' + labelify(xs);
 	}
 	return out;
@@ -67,7 +67,7 @@ const wwtplots = (function () {
 	if (have_b) {
 	    // sig = plotData.flux_b.sig.map(Math.log10);
 	    // flux = plotData.flux_b.flux.map(Math.log10);
-	    
+
 	    sig = plotData.flux_b.sig;
 	    flux = plotData.flux_b.flux.map((f) => { return f * 1e16; });
 
@@ -77,7 +77,7 @@ const wwtplots = (function () {
 	if (have_w) {
 	    // sig = plotData.flux_w.sig.map(Math.log10);
 	    // flux = plotData.flux_w.flux.map(Math.log10);
-	    
+
 	    sig = plotData.flux_w.sig;
 	    flux = plotData.flux_w.flux.map((f) => { return f * 1e16; });
 
@@ -91,10 +91,10 @@ const wwtplots = (function () {
 	//
 	let title = 'Aperture-corrected fluxes';
 	if (data.length === 1) {
-	    if (have_b) { title += " (broad)"; }
-	    else        { title += " (wide)"; }
+	    if (have_b) { title += ' (broad)'; }
+	    else        { title += ' (wide)'; }
 	}
-	
+
 	return {data: data,
 		opts: {title: title,
 		       xaxis: {title: 'Significance',
@@ -165,8 +165,8 @@ const wwtplots = (function () {
 
 	let title;
 	if (data.length === 1) {
-	    if (have_acis) { title = "ACIS"; }
-	    else           { title = "HRC"; }
+	    if (have_acis) { title = 'ACIS'; }
+	    else           { title = 'HRC'; }
 	} else {
 	    title = 'Chandra';
 	}
@@ -181,19 +181,125 @@ const wwtplots = (function () {
 	       };
     }
 
-    // Plot the properties of the selected sources
+  // Taken from https://stackoverflow.com/a/10284006
+  //
+  function zip(arrays) {
+    return arrays[0].map(function(_, i){
+      return arrays.map(function(array) { return array[i]; })
+    });
+  }
+
+    function createPlotData(catinfo) {
+
+      // This function has been moved out of the "show sources" code,
+      // and so there are likely chances for improvements and
+      // simplifications.
+      //
+
+      // Plot data
+      const sigB = [];
+      const sigW = [];
+      const fluxB = [];
+      const fluxW = [];
+
+      const hrHM = [];
+      const hrMS = [];
+
+      const acisNum = [];
+      const hrcNum = [];
+
+      const r0 = [];
+      const r1 = [];
+
+      catinfo.annotations.forEach(ann => {
+	const src = wwt.getCSCObject(ann.data);
+
+	if (src.err_ellipse_r0 !== null &&
+            src.err_ellipse_r1 !== null) {
+          r0.push(src.err_ellipse_r0);
+          r1.push(src.err_ellipse_r1);
+	}
+
+	// For hardness ratio, we want to remove undefined values
+	// AND those that are pegged at +1 or -1, since the latter
+	// dominate the data and makes the plot hard to see
+	//
+	if ((src.hard_hm !== null) &&
+            (src.hard_ms !== null) &&
+            (src.hard_hm > -0.999) && (src.hard_hm < 0.999) &&
+            (src.hard_ms > -0.999) && (src.hard_ms < 0.999)) {
+          hrHM.push(src.hard_hm);
+          hrMS.push(src.hard_ms);
+	}
+
+	if ((src.acis_num !== null) && (src.acis_num > 0)) {
+          acisNum.push(src.acis_num);
+	}
+	if ((src.hrc_num !== null) && (src.hrc_num > 0)) {
+          hrcNum.push(src.hrc_num);
+	}
+
+	if (src.significance !== null) {
+          if (src.fluxband === 'broad') {
+            fluxB.push(src.flux);
+            sigB.push(src.significance);
+          } else if (src.fluxband === 'wide') {
+            fluxW.push(src.flux);
+            sigW.push(src.significance);
+          }
+	}
+      });
+
+      // Combine the plot data
+      //
+      const out = {flux_b: null, flux_w: null, hr: null, poserr: null,
+                   obscount: null};
+
+      if (fluxB.length > 0) {
+	out.flux_b = {sig: sigB, flux: fluxB};
+      }
+
+      if (fluxW.length > 0) {
+	out.flux_w = {sig: sigW, flux: fluxW};
+      }
+
+      if (hrHM.length > 0) {
+	out.hr = {hm: hrHM, ms: hrMS};
+      }
+
+      if (r0.length > 0) {
+	const eccen = zip([r0, r1]).map((z) => {
+          const a = z[0];
+          const b = z[1];
+          return Math.sqrt(1 - b * b * 1.0 / (a * a));
+	});
+	out.poserr = {r0: r0, r1: r1, eccentricity: eccen};
+      }
+
+      if ((acisNum.length > 0) || (hrcNum.length > 0)) {
+	out.obscount = {acis: acisNum, hrc: hrcNum};
+      }
+
+      return out;
+    }
+
+    // Plot the properties of the selected sources, given the
+    // catalog information (i.e. the object containing an annotations
+    // field). If an annotation object has the shown field and it is
+    // false then the annotation is skipped.
     //
     //   significance vs flux (b and w separately)
     //   hr (hm vs ms)
     //   r0 vs r1
     //   histogram of acis_num, hrc_num
     //
-    function plotSources(plotData) {
-	if (plotData === null) {
-	    console.log("No sources to plot");
+    function plotSources(catinfo) {
+      if ((catinfo === null) || (catinfo.annotations === null)) {
+	    console.log('No sources to plot');
 	    return;
 	}
 
+        const plotData = createPlotData(catinfo);
 	const p1 = setupFluxPlot(plotData);
 	const p2 = setupPosErrPlot(plotData);
 	const p3 = setupHRPlot(plotData);
@@ -203,9 +309,9 @@ const wwtplots = (function () {
 	//
 	if ((p1 === null) && (p2 === null) && (p3 === null) && (p4 === null)) {
 	    // console.log("No sources with data to plot");
-	    alert("The CSC sources in the selected region do not\n" +
-		  "have properties to plot (they are too faint\n" +
-		  "or have not yet been fully processed.");
+	    alert('The CSC sources in the selected region do not\n' +
+		  'have properties to plot (they are too faint\n' +
+		  'or have not yet been fully processed.');
 	    return;
 	}
 
@@ -219,12 +325,12 @@ const wwtplots = (function () {
 	//
 	// The following is ugly code and needs a re-think.
 	//
-	/***  not needed with Plotly.react?
+	/*  not needed with Plotly.react?
 	Plotly.purge(plot1);
 	Plotly.purge(plot2);
 	Plotly.purge(plot3);
 	Plotly.purge(plot4);
-	***/
+	*/
 
 	let nplots = 0;
 	let defaultPlot = 0;
@@ -235,7 +341,7 @@ const wwtplots = (function () {
 	if (p1 !== null) {
 	    // Plotly.newPlot(plot1, p1.data, p1.opts, genOpts);
 	    Plotly.react(plot1, p1.data, p1.opts, genOpts);
-	    defaultPlot = 1; 
+	    defaultPlot = 1;
 	    plotShown[0] = true;
 	    nplots += 1;
 	}
@@ -320,13 +426,13 @@ const wwtplots = (function () {
 	if (nplots < 2) {
 	    el.style.display = 'none';
 	} else {
-	    function showLabel(flag, plotlbl, plotsel) {
+	    const showLabel = (flag, plotlbl, plotsel) => {
 		const lblstyle = flag ? 'inline' : 'none';
 		document.querySelector('#' + plotlbl).style.display = lblstyle;
 		// var selstyle = flag ? 'inline-block' : 'none';
 		// plotsel.style.display = selstyle;
 	    }
-	    
+
 	    showLabel(plotShown[0], 'plot1lbl', plot1sel);
 	    showLabel(plotShown[1], 'plot2lbl', plot2sel);
 	    showLabel(plotShown[2], 'plot3lbl', plot3sel);
@@ -340,8 +446,6 @@ const wwtplots = (function () {
 
     }
 
-    return { plotSources: plotSources,
+  return { plotSources: plotSources };
 
-           };
-    
 })();
