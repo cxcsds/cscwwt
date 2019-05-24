@@ -37,11 +37,13 @@ const wwtsamp = (function () {
   //     extra information for tracking).
   //
   //
-  function openSAMP(report, trace) {
-    if (sampConnection !== null) { return; }
-
+  function onload(report, trace) {
     sampReport = report;
     sampTrace = trace;
+  }
+
+  function openSAMP() {
+    if (sampConnection !== null) { return; }
 
     // Could create this in global scope, but let's see if we can
     // initialize it the first time it is needed.
@@ -126,6 +128,11 @@ const wwtsamp = (function () {
     // operation).
     //
     // sampConnection = null;
+
+    // Ensure any elements that require SAMP are hidden
+    for (let el of document.querySelectorAll('.requires-samp')) {
+      el.style.display = 'none';
+    }
 
     sampTrace('Unregistered SAMP');
   }
@@ -330,7 +337,8 @@ const wwtsamp = (function () {
             'Stack evt3 for ' + stack);
   }
     
-  return { setup: openSAMP,
+  return { onload: onload,
+	   setup: openSAMP,
            teardown: closeSAMP,
 	   startPolling: startPolling,
 	   stopPolling: stopPolling,
@@ -344,7 +352,10 @@ const wwtsamp = (function () {
            sendStackEvt3: sendStackEvt3,
 
            // For debugging
-           getSAMPConnection: () => { return sampConnection; },
+           getSAMPConnection: () => sampConnection,
+
+	   hasConnected: () => sampConnection !== null,
+	   isRegistered: () => sampIsRegistered,
          };
 
 })();

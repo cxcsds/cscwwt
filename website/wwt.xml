@@ -784,6 +784,12 @@ main#content div.wrap {
 	    <li>Is the boundary of the current constellation (that is,
 	    the constellation which covers the aim point) shown (default
 	    is no)?</li>
+	    <li>
+	      Should the page connect to Virtual Observatory applications
+	      such as TOPCAT and SAOImageDS9 using the
+	      SAMP standard (turning this on causes the page to poll for
+	      a SAMP hub every 5 seconds)?
+	    </li>
 	    <li>What format is used when copying a location to
 	    the clipboard (default is decimal degrees)?</li>
 	  </list>
@@ -1047,6 +1053,14 @@ main#content div.wrap {
 	      <input id="toggleboundaries" name="toggleboundaries"
 		     type="checkbox"/>
 	      <label for="toggleboundaries">Show the boundary of the current constellation</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglesamp" name="togglesamp"
+		     type="checkbox" checked="true"/>
+	      <label for="togglesamp">
+		Connect to Virtual Observatory applications?
+	      </label>
 	    </div>
 
 	    <div>
