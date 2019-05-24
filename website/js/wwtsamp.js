@@ -25,6 +25,8 @@ const wwtsamp = (function () {
   var sampReport = null;
   var sampTrace = null;
 
+  var sampCheckHandler = null;
+
   // The arguments are functions which take a single paremerter and
   // are used
   //   report - to report a message from a SAMP process (e.g.
@@ -35,11 +37,13 @@ const wwtsamp = (function () {
   //     extra information for tracking).
   //
   //
-  function openSAMP(report, trace) {
-    if (sampConnection !== null) { return; }
-
+  function onload(report, trace) {
     sampReport = report;
     sampTrace = trace;
+  }
+
+  function openSAMP() {
+    if (sampConnection !== null) { return; }
 
     // Could create this in global scope, but let's see if we can
     // initialize it the first time it is needed.
@@ -63,10 +67,7 @@ const wwtsamp = (function () {
     //
     const el = document.querySelector('#register-samp');
 
-    // Try to avoid polling too often (in part because it seems to
-    // create a CORS-related error on the console).
-    //
-    sampConnection.onHubAvailability(sampIsAvailable, 5000);
+    startPolling();
     sampConnection.onreg = () => {
       sampIsRegistered = true;
 
@@ -86,6 +87,31 @@ const wwtsamp = (function () {
     }
   }
 
+  // Try to avoid polling too often (in part because it seems to
+  // create a CORS-related error on the console when no hub is
+  // present). Should polling be disabled when connected to a hub,
+  // or should it be kept so that we can perhaps-better-handle the
+  // case of the hub disappearing without sending out shutdown
+  // messages?
+  //
+  function startPolling() {
+    stopPolling();
+    if (sampConnection === null) { return; }
+    sampCheckHandler = sampConnection.onHubAvailability(sampIsAvailable, 5000);
+    sampTrace(`Started SAMP polling: handler ${sampCheckHandler}`);
+  }
+
+  // A user may want to stop polling if they know they are not
+  // using SAMP. Should this unregister/disconnect the SAMP object
+  // too?
+  //
+  function stopPolling() {
+    if (sampCheckHandler === null) { return; }
+    sampTrace(`Stopping SAMP polling: handler ${sampCheckHandler}`);
+    clearInterval(sampCheckHandler);
+    sampCheckHandler = null;
+  }
+
   function registerSAMP() {
     openSAMP();
     if (sampIsRegistered) { return; }
@@ -102,6 +128,11 @@ const wwtsamp = (function () {
     // operation).
     //
     // sampConnection = null;
+
+    // Ensure any elements that require SAMP are hidden
+    for (let el of document.querySelectorAll('.requires-samp')) {
+      el.style.display = 'none';
+    }
 
     sampTrace('Unregistered SAMP');
   }
@@ -306,8 +337,11 @@ const wwtsamp = (function () {
             'Stack evt3 for ' + stack);
   }
     
-  return { setup: openSAMP,
+  return { onload: onload,
+	   setup: openSAMP,
            teardown: closeSAMP,
+	   startPolling: startPolling,
+	   stopPolling: stopPolling,
 
            moveTo: moveTo,
 
@@ -318,7 +352,10 @@ const wwtsamp = (function () {
            sendStackEvt3: sendStackEvt3,
 
            // For debugging
-           getSAMPConnection: () => { return sampConnection; },
+           getSAMPConnection: () => sampConnection,
+
+	   hasConnected: () => sampConnection !== null,
+	   isRegistered: () => sampIsRegistered,
          };
 
 })();

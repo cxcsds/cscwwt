@@ -54,6 +54,7 @@ var wwt = (function () {
   const keyCrosshairs = 'wwt-crosshairs';
   const keyConstellations = 'wwt-constellations';
   const keyBoundaries = 'wwt-boundaries';
+  const keySAMP = 'wwt-samp';
   const keyMilkyWay = 'wwt-milkyway';
   const keyClipboardFormat = 'wwt-clipboardformat';
 
@@ -64,6 +65,7 @@ var wwt = (function () {
 		  keySave, keyLocation, keyFOV, keyForeground,
 		  keyCoordinateGrid,
 		  keyCrosshairs, keyConstellations, keyBoundaries,
+		  keySAMP,
 		  keyMilkyWay, keyClipboardFormat];
 
     keys.forEach(key => {
@@ -630,6 +632,20 @@ var wwt = (function () {
     saveState(keyBoundaries, flag);
   }
 
+  function setSAMP(flag) {
+    if (flag) {
+      if (wwtsamp.hasConnected()) {
+	wwtsamp.startPolling();
+      } else {
+	wwtsamp.setup();
+      }
+    } else {
+      wwtsamp.stopPolling();
+      wwtsamp.teardown();
+    }
+    saveState(keySAMP, flag);
+  }
+
   // How are the toggle items handled?
   //
   // Need to look into when the Milky Way is read in, since if it
@@ -659,6 +675,8 @@ var wwt = (function () {
      change: setConstellations, defval: true},
     {key: keyBoundaries, sel: '#toggleboundaries',
      change: setBoundaries, defval: false},
+    {key: keySAMP, sel: '#togglesamp',
+     change: setSAMP, defval: true},
     {key: null, sel: '#togglebanners',
      change: showBanners, defval: true},
     {key: null, sel: '#togglefullscreen',
@@ -2630,7 +2648,11 @@ var wwt = (function () {
       resetLocation();
       removeSetupBanner();
 
-      wwtsamp.setup(reportUpdateMessage, trace);
+      // Only start up SAMP if the state allows it.
+      const sampState = getState(keySAMP);
+      if ((sampState === null) || (sampState === 'true')) {
+	wwtsamp.setup();
+      }
 
       // setupShowHide('#preselected'); // width changes if show/hide
       setupShowHide('#settings');
@@ -3056,6 +3078,11 @@ var wwt = (function () {
     }
 
     trace('initialize');
+
+    // Pass in useful information to wwtsamp (even if later we turn
+    // off support for SAMP).
+    //
+    wwtsamp.onload(reportUpdateMessage, trace);
 
     toggleOptionalBehavior();
 
