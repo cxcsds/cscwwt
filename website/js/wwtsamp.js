@@ -407,7 +407,7 @@ const wwtsamp = (function () {
   // This routine should never be sent a target of opt-fint.
   //
   //
-  function sendURL(target, mtype, url, desc) {
+  function sendURL(event, target, mtype, url, desc) {
     if (target === 'opt-find') {
       sampTrace(`Internal SAMP error: sendURL target=${target} mtype=${mtype}`);
       return;
@@ -415,7 +415,7 @@ const wwtsamp = (function () {
 
     if (target === 'opt-clipboard') {
       sampTrace('SAMP: copying URL to clipboard');
-      wwt.copyToClipboard(null, url);
+      wwt.copyToClipboard(event, url);
       return;
     }
 
@@ -463,7 +463,7 @@ const wwtsamp = (function () {
   // search determines which ADQL query the user sends
   // target determines where the target should be sent
   //
-  function sendSourcePropertiesNear(ra, dec, fov, search, target) {
+  function sendSourcePropertiesNear(event, ra, dec, fov, search, target) {
     if ((typeof target === 'undefined') || (target === '')) {
       console.log('Internal error: sensSourcePropertiesNear sent empty target');
       return;
@@ -485,20 +485,18 @@ const wwtsamp = (function () {
 
     const rmax = fov * 60.0;  // convert to arcmin
     const url = searchURL.get(ra, dec, rmax);
-    sendURL(target,
-	    'table.load.votable', url,
+    sendURL(event, target, 'table.load.votable', url,
             `CSC 2.0 ${searchURL.label} source properties (cone-search)`);
   }
 
-  function sendSourcePropertiesName(name) {
-
+  function sendSourcePropertiesName(event, name) {
     sampTrace(`SAMP: source properties name ${name}`);
     const url = masterSourcePropertiesByName(name);
-    sendURL('opt-all', 'table.load.votable', url,
+    sendURL(event, 'opt-all', 'table.load.votable', url,
             'CSC 2.0 master-source properties (single source)');
   }
 
-  function sendStackEvt3(stack, stackver, target) {
+  function sendStackEvt3(event, stack, stackver, target) {
     if ((typeof target === 'undefined') || (target === '')) {
       console.log('Internal error: sendStackEvt3 sent empty target');
       return;
@@ -516,7 +514,7 @@ const wwtsamp = (function () {
       `version=cur&filetype=stkevt3&filename=${stack}N${verstr}_evt3.fits`;
 
     console.log(`--> sending image.load.fits for ${url}`);
-    sendURL(target, 'image.load.fits', url,
+    sendURL(event, target, 'image.load.fits', url,
             `Stack evt3 for ${stack}`);
   }
 
