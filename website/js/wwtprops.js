@@ -421,9 +421,9 @@ const wwtprops = (function () {
 	}
       }, false);
 
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (event) => {
 	console.log(`Chosen target: ${selected.target}`);
-	wwtsamp.sendStackEvt3(stack.stackid, stackVersion, selected.target);
+	wwtsamp.sendStackEvt3(event, stack.stackid, stackVersion, selected.target);
       }, false);
     }
 
@@ -999,7 +999,7 @@ const wwtprops = (function () {
 			    'usercontrol icon requires-samp');
       sampImg.id = 'export-samp-source';
       sampImg.addEventListener('click',
-			       () => wwtsamp.sendSourcePropertiesName(src.name),
+			       (event) => wwtsamp.sendSourcePropertiesName(event, src.name),
 			       false);
       sampDiv.appendChild(sampImg);
 
@@ -1254,10 +1254,10 @@ const wwtprops = (function () {
 	}
       }, false);
 
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (event) => {
 	console.log(`Chosen ADQL option: ${selected.choice}`);
 	console.log(`Chosen target: ${selected.target}`);
-	wwtsamp.sendSourcePropertiesNear(ra0, dec0, rmax,
+	wwtsamp.sendSourcePropertiesNear(event, ra0, dec0, rmax,
 					 selected.choice,
 					 selected.target);
       }, false);
