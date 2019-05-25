@@ -620,6 +620,10 @@ option:disabled {
   float: left;
 }
 
+/*
+ * left/top positions are over-ridden based on the mouse event,
+ * left in until confident the new scheme works well
+ */
 .tooltip {
   background: black;
   border: solid 1px white;  /* not 100% sure about this */

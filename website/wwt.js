@@ -2883,10 +2883,20 @@ var wwt = (function () {
 
     tooltipTimers[name] = null;
 
-    el.addEventListener('mouseenter', () => {
+    // Should this be mouseover or mouseenter? If it is only ever
+    // used on img elements I'm not sure if it makes any real
+    // difference.
+    //
+    el.addEventListener('mouseenter', ev => {
       clearToolTipTimer(name);
+      // Delay the entrance so that if the user is just mousing over
+      // everything the tooltip doesn't just flash up and then
+      // disappear.
       const timer = setTimeout(() => {
         tt.style.display = 'inline';
+	if (!positionAtClick(tt, ev)) {
+	  tt.style.display = 'none';
+	}
         const timer2 = setTimeout(() => {
           tt.style.display = 'none';
         }, timeout * 1000);
