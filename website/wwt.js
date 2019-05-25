@@ -154,7 +154,7 @@ var wwt = (function () {
     const dec = wwt.getDec();
     const fov = wwt.get_fov();
 
-    saveState(keyLocation, ra + ',' + dec);
+    saveState(keyLocation, `${ra},${dec}`);
     if ((fov > minFOV) && (fov < maxFOV)) {
       saveState(keyFOV, fov);
     }
@@ -268,9 +268,13 @@ var wwt = (function () {
       saveState(keyClipboardFormat, clipboardFormat);
     }
 
-    if (clipboardFormat === 'degrees') {
+    return convertCoordinate(ra, dec, clipboardFormat);
+  }
+
+  function convertCoordinate(ra, dec, format) {
+    if (format === 'degrees') {
       return `${ra} ${dec}`;
-    } else if (clipboardFormat === 'degrees-d') {
+    } else if (format === 'degrees-d') {
       return `${ra}d ${dec}d`;
     }
 
@@ -285,7 +289,7 @@ var wwt = (function () {
     const decm = i2(dms.minutes);
     const decs = f2(dms.seconds, 1);
 
-    if (clipboardFormat === 'colons') {
+    if (format === 'colons') {
       return `${rah}:${ram}:${ras} ${decd}:${decm}:${decs}`;
     } else {
       // letters
@@ -349,7 +353,7 @@ var wwt = (function () {
     url.hash = '';
     return `${url.href}?ra=${ra}&dec=${dec}&zoom=${zoomStr}&display=${display}`;
   }
-  
+
   function clipBookmark(event) {
     const url = getPageURL();
     if (url === null) { return; }
@@ -454,11 +458,22 @@ var wwt = (function () {
   const decIdx = getCSCColIdx('dec');
 
   // Create an annotation "object" representing a source.
-  // Really should make the add/remove code only call the WWT code once.
+  // Really should make the add/remove code only call the WWT code once
+  // (ie it can know if it is shown or not).
+  //
+  // shp can be null, but this is only intended for display purposes
   //
   function makeAnnotation(data, pos, shp) {
-    return { add: () => wwt.addAnnotation(shp),
-	     remove: () => wwt.removeAnnotation(shp),
+    const toAdd = shp === null
+	  ? () => console.log('INTERNAL ERROR: trying to add null annotation')
+	  : () => wwt.addAnnotation(shp);
+
+    const toRem = shp === null
+	  ? () => console.log('INTERNAL ERROR: trying to remove null annotation')
+	  : () => wwt.removeAnnotation(shp);
+
+    return { add: toAdd,
+	     remove: toRem,
 	     data: data,
 	     ra: pos.ra,
 	     dec: pos.dec,
@@ -606,7 +621,7 @@ var wwt = (function () {
   // Taken from https://stackoverflow.com/a/10284006
   //
   function zip(arrays) {
-    return arrays[0].map(function(_, i){
+    return arrays[0].map(function(_, i) {
       return arrays.map(function(array) { return array[i]; })
     });
   }
@@ -793,7 +808,7 @@ var wwt = (function () {
   function colorUpdate(val) {
     const props = catalogProps.csc20;
 
-    const color = '#' + val;
+    const color = `#${val}`;
     props.color = color;
     if (props.annotations === null) { return; }
     props.annotations.forEach(d => {
@@ -812,7 +827,7 @@ var wwt = (function () {
   //
   function makeColorUpdate(props) {
     return (val) => {
-      const color = '#' + val;
+      const color = `#${val}`;
       props.color = color;
       if (props.annotations === null) { return; }
       props.annotations.forEach(d => {
@@ -885,12 +900,20 @@ var wwt = (function () {
   // The inspiration are systems like stackoverflow's "share this page"
   // interface. Let's see how it goes.
   //
+  // If event is null or doesn't have clientX/Y fielfs, then no attempt
+  // is made to display the action to the user, otherwise the clientX/clientY
+  // fields are used to place the element on the screen.
+  //
   function copyToClipboard(event, str) {
-
     // Copy to the clipboard before trying to be clever, so that we
     // know this has happened (assuming there is support).
     //
     copyToClipboardAction(str);
+    if ((event === null) ||
+	(typeof event.clientX === 'undefined') ||
+	(typeof event.clientY === 'undefined')) {
+      return;
+    }
 
     const host = getHost();
     if (host === null) { return; }
@@ -898,18 +921,18 @@ var wwt = (function () {
     parent.setAttribute('class', 'share');
 
     parent.appendChild(addCloseButton(() => host.removeChild(parent)));
-    
+
     const intro = document.createElement('p');
     intro.appendChild(document.createTextNode('Copied to clipboard:'));
     parent.appendChild(intro);
-    
+
     const text = document.createElement('input');
     text.setAttribute('type', 'text');
     text.setAttribute('value', str);
     parent.appendChild(text);
 
     host.appendChild(parent);
-    
+
     // Position relative to event. The issue is that we have to
     // worry about falling off the screen.
     //
@@ -923,8 +946,8 @@ var wwt = (function () {
     const parentbbox = parent.getBoundingClientRect();
     const hostbbox = parent.parentElement.getBoundingClientRect();
 
-    const xmin = 0;
-    const ymin = 0;
+    // const xmin = 0;
+    // const ymin = 0;
     const xmax = hostbbox.width - parentbbox.width;
     const ymax = hostbbox.height - parentbbox.height;
 
@@ -933,13 +956,13 @@ var wwt = (function () {
       host.removeChild(parent);
       return;
     }
-    
+
     let x = event.clientX;
     let y = event.clientY;
 
     if (x > xmax) { x = xmax; }
     if (y > ymax) { y = ymax; }
-    
+
     parent.style.left = `${x}px`;
     parent.style.top = `${y}px`;
   }
@@ -1092,13 +1115,13 @@ var wwt = (function () {
           (typeof features.geometry === 'undefined') ||
           (typeof features.geometry.type === 'undefined') ||
           (features.geometry.type !== 'MultiPolygon')) {
-        console.log('MW problem with feature ' + f.toString());
+        console.log(`MW problem with feature ${f}`);
         return;
       }
 
       var coords = features.geometry.coordinates;
       if (typeof coords === 'undefined') {
-        console.log('MW no coordinates for feature ' + f.toString());
+        console.log(`MW no coordinates for feature ${f}`);
         return;
       }
       if (coords.length !== 1) {
@@ -1190,7 +1213,7 @@ var wwt = (function () {
   }
 
   function setDisplay(name, display) {
-    const sel = '#' + name;
+    const sel = `#${name}`;
     const el = document.querySelector(sel);
     if (el !== null) {
       el.style.display = display;
@@ -1256,7 +1279,7 @@ var wwt = (function () {
 
     for (var ctr = 1; ctr <= NCHUNK; ctr++) {
       // Try without any cache-busting identifier
-      const url = 'wwtdata/wwt_srcprop.' + ctr.toString() + '.json.gz';
+      const url = `wwtdata/wwt_srcprop.${ctr}.json.gz`;
       const func = makeDownloadData(url, '#togglesources',
 				    'CSC2.0 catalog',
 				    processChunk(ctr));
@@ -1478,7 +1501,7 @@ var wwt = (function () {
   }
 
   function toggleSourceProps(event, elname) {
-    const sel = '#' + elname;
+    const sel = `#${elname}`;
     const el = document.querySelector(sel);
     if (el === null) {
       console.log(`Internal error: unable to find "${elname}"`);
@@ -1633,7 +1656,7 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log('INTERNAL ERROR: unable to change selection mode: ' + e);
+      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
     }
   }
 
@@ -1680,7 +1703,7 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log('INTERNAL ERROR: unable to change selection mode: ' + e);
+      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
     }
 
   }
@@ -1735,7 +1758,7 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log('INTERNAL ERROR: unable to change selection mode: ' + e);
+      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
     }
 
   }
@@ -1908,7 +1931,7 @@ var wwt = (function () {
       const id = eventArgs.get_id();
 
       const pane = document.querySelector('#chs');
-      pane.innerHTML = 'CHS: ' + id;
+      pane.innerHTML = `CHS: ${id}`;
       pane.style.display = 'inline-block';
 
       if (lastAnnotation !== null) {
@@ -2254,7 +2277,7 @@ var wwt = (function () {
     // where there next point will be connected to).
     //
     if (regionCoords.length === 1) {
-      regionMarker = makeCircle(ra0, dec0, 5.0/3600, 1, 'white',
+      regionMarker = makeCircle(ra0, dec0, 5.0 / 3600, 1, 'white',
 				'white', true, 1);
       wwt.addAnnotation(regionMarker);
     }
@@ -2382,7 +2405,7 @@ var wwt = (function () {
       flux: getCSCColIdx('flux'),
       nacis: getCSCColIdx('acis_num'),
       nhrc: getCSCColIdx('hrc_num'),
-      nh: getCSCColIdx('nh_gal'),
+      nh: getCSCColIdx('nh_gal')
     };
 
     wwtprops.addNearestSourceTable(indexes, neighbors);
@@ -2819,14 +2842,14 @@ var wwt = (function () {
     // what does a time out of 0 do?
     if (timeout <= 0) { timeout = 0; }
 
-    const el = document.querySelector('#' + name);
+    const el = document.querySelector(`#${name}`);
     if (el === null) {
       console.log(`Internal error [tooltip]: no element called "${name}"`);
       return;
     }
 
-    const tooltip = name + '-tooltip';
-    const tt = document.querySelector('#' + tooltip);
+    const tooltip = `${name}-tooltip`;
+    const tt = document.querySelector(`#${tooltip}`);
     if (tt === null) {
       console.log(`Internal error [tooltip]: no element called "${tooltip}"`);
       return;
@@ -2882,19 +2905,19 @@ var wwt = (function () {
 
   // '2CXO J061859.6-705831'
   const sourceExample =
-    ["2CXO J061859.6-705831",
+    ['2CXO J061859.6-705831',
      94.74868,
      -70.97541,
      0.93,
      0.61,
      25.5,
-     "FALSE",
-     "FALSE",
+     'FALSE',
+     'FALSE',
      3,
      0,
-     "FALSE",
+     'FALSE',
      2.78,
-     "broad",
+     'broad',
      8.111e-16,
      4.442e-16,
      1.159e-15,
@@ -3190,7 +3213,7 @@ var wwt = (function () {
       trace('found full screen support');
       const container = host.querySelector('#fullscreenoption');
       if (container === null) {
-	consle.log('ERROR: no #fullscreenoption found');
+	console.log('ERROR: no #fullscreenoption found');
       } else {
 	container.style.display = 'block';
       }
@@ -3650,7 +3673,7 @@ var wwt = (function () {
 
     return span;
   }
-  
+
   function reportLookupFailure(msg) {
     hideElement('targetSuccess');
 
@@ -4165,6 +4188,7 @@ var wwt = (function () {
 
     copyToClipboard: copyToClipboard,
     copyCoordinatesToClipboard: copyCoordinatesToClipboard,
+    convertCoordinate: convertCoordinate,
 
     zoomToSource: zoomToSource,
     zoomToStack: zoomToStack,
