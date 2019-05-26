@@ -50,7 +50,7 @@ const wwtprops = (function () {
   // Convert Dec (degrees) to HTML
   function decToHTML(dec) {
     const toks = decToTokens(dec);
-    return `${toks.sign}${toks.degrees}° ${toks.minutes}' ${toks.seconds}"`;
+    return `${toks.sign}${toks.degrees}° ${toks.minutes}' ${toks.seconds}"`; // comment for emacs: ' ;
   }
 
   // This is used in several modules
@@ -326,6 +326,32 @@ const wwtprops = (function () {
     return el;
   }
 
+  // closedown is the function to call when the close button has been
+  // clicked, and it has no arguments.
+  //
+  // It returns div class='main'.
+  //
+  function addControlElements(parent, title, closedown, active) {
+    const controlElements = document.createElement('div');
+    controlElements.classList.add('controlElements');
+    controlElements.classList.add('controlElementsShown');
+
+    parent.appendChild(controlElements);
+
+    const name = document.createElement('span');
+    name.setAttribute('class', 'title');
+    addText(name, title);
+    controlElements.appendChild(name);
+
+    const mainDiv = mkDiv('main');
+
+    controlElements.appendChild(addCloseButton(closedown, active));
+    controlElements.appendChild(addHideShowButton(mainDiv, controlElements, active));
+
+    parent.appendChild(mainDiv);
+    return mainDiv;
+  }
+
   // Create a "pop-up" window with details on the given stack.
   // This fills in the parent structure and determines whether this
   // is an "operational" or "inactive" version (for use or for display
@@ -343,23 +369,10 @@ const wwtprops = (function () {
   //
   function addStackInfoContents(parent, stack, stackVersion, active) {
 
-    const controlElements = document.createElement('div');
-    controlElements.classList.add('controlElements');
-    controlElements.classList.add('controlElementsShown');
-
-    parent.appendChild(controlElements);
-
-    const name = document.createElement('span');
-    name.setAttribute('class', 'title');
-    addText(name, `Stack: ${stack.stackid}`);
-    controlElements.appendChild(name);
-
-    const mainDiv = mkDiv('main');
-
-    controlElements.appendChild(addCloseButton(wwt.clearNearestStack, active));
-    controlElements.appendChild(addHideShowButton(mainDiv, controlElements, active));
-
-    parent.appendChild(mainDiv);
+    const mainDiv = addControlElements(parent,
+				       `Stack: ${stack.stackid}`,
+				       wwt.clearNearestStack,
+				       active);
 
     const binfoDiv = mkDiv('basicinfo');
     mainDiv.appendChild(binfoDiv);
@@ -882,23 +895,10 @@ const wwtprops = (function () {
   //
   function addSourceInfoContents(parent, src, active) {
 
-    const controlElements = document.createElement('div');
-    controlElements.classList.add('controlElements');
-    controlElements.classList.add('controlElementsShown');
-
-    parent.appendChild(controlElements);
-
-    const name = document.createElement('span');
-    name.setAttribute('class', 'title');
-    addText(name, `Source: ${src.name}`);
-    controlElements.appendChild(name);
-
-    const mainDiv = mkDiv('main');
-
-    controlElements.appendChild(addCloseButton(wwt.clearNearestSource, active));
-    controlElements.appendChild(addHideShowButton(mainDiv, controlElements, active));
-
-    parent.appendChild(mainDiv);
+    const mainDiv = addControlElements(parent,
+				       `Source: ${src.name}`,
+				       wwt.clearNearestSource,
+				       active);
 
     const binfoDiv = mkDiv('basicinfo');
     mainDiv.appendChild(binfoDiv);
@@ -962,7 +962,6 @@ const wwtprops = (function () {
     if (active) {
       wwt.addToolTipHandler('export-samp-source');
     }
-
   }
 
   // srcid is the position of the source within catalogData
@@ -977,13 +976,11 @@ const wwtprops = (function () {
   }
 
   function addSourceInfoHelp(src) {
-
     const parent = document.querySelector('#sourceinfoexample');
     if (parent === null) {
       console.log('Internal error: missing #sourceinfoexample');
       return;
     }
-
     addSourceInfoContents(parent, src, false);
   }
 
@@ -1012,19 +1009,6 @@ const wwtprops = (function () {
     const pane = findNearestStackInfo();
     if (pane === null) { return; }
 
-    const controlElements = document.createElement('div');
-    controlElements.classList.add('controlElements');
-    controlElements.classList.add('controlElementsShown');
-
-    pane.appendChild(controlElements);
-
-    const name = document.createElement('span');
-    name.setAttribute('class', 'title');
-    name.innerHTML = 'Nearest stack' + (n > 1 ? 's' : '');
-    controlElements.appendChild(name);
-
-    const main = mkDiv('main');
-
     const close = () => {
       clearNearestStackTable();
 
@@ -1037,13 +1021,13 @@ const wwtprops = (function () {
       });
 
     };
-    controlElements.appendChild(addCloseButton(close));
-    controlElements.appendChild(addHideShowButton(main, controlElements));
-
-    pane.appendChild(main);
+    const mainDiv = addControlElements(pane,
+				       'Nearest stack' + (n > 1 ? 's' : ''),
+				       close,
+				       true);
 
     const tbl = document.createElement('table');
-    main.appendChild(tbl);
+    mainDiv.appendChild(tbl);
 
     const mkElem = (name, value) => {
       const el = document.createElement(name);
@@ -1120,19 +1104,6 @@ const wwtprops = (function () {
     const pane = findNearestSourceInfo();
     if (pane === null) { return; }
 
-    const controlElements = document.createElement('div');
-    controlElements.classList.add('controlElements');
-    controlElements.classList.add('controlElementsShown');
-
-    pane.appendChild(controlElements);
-
-    const name = document.createElement('span');
-    name.setAttribute('class', 'title');
-    name.innerHTML = 'Nearest source' + (n > 1 ? 's' : '');
-    controlElements.appendChild(name);
-
-    const main = mkDiv('main');
-
     const close = () => {
       clearNearestSourceTable()
 
@@ -1145,13 +1116,13 @@ const wwtprops = (function () {
       });
       ***/
     };
-    controlElements.appendChild(addCloseButton(close));
-    controlElements.appendChild(addHideShowButton(main, controlElements));
-
-    pane.appendChild(main);
+    const mainDiv = addControlElements(pane,
+				       'Nearest source' + (n > 1 ? 's' : ''),
+				       close,
+				       true);
 
     const tbl = document.createElement('table');
-    main.appendChild(tbl);
+    mainDiv.appendChild(tbl);
 
     const mkElem = (name, value) => {
       const el = document.createElement(name);
@@ -1281,24 +1252,10 @@ const wwtprops = (function () {
     let parent = findPolygonInfo();
     removeChildren(parent);
 
-    const controlElements = document.createElement('div');
-    controlElements.classList.add('controlElements');
-    controlElements.classList.add('controlElementsShown');
-
-    parent.appendChild(controlElements);
-
-    const name = document.createElement('span');
-    name.setAttribute('class', 'title');
-    addText(name, 'Source selection');
-    controlElements.appendChild(name);
-
-    const mainDiv = mkDiv('main');
-
-    const active = true;
-    controlElements.appendChild(addCloseButton(closePolygonPane, active));
-    controlElements.appendChild(addHideShowButton(mainDiv, controlElements, active));
-
-    parent.appendChild(mainDiv);
+    const mainDiv = addControlElements(parent,
+				       'Source selection',
+				       closePolygonPane,
+				       true);
 
     const pwarn = document.createElement('p');
     addText(pwarn, '*** NOT FULLY FUNCTIONAL YET ***');
