@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //
 // Support SAMP use by the CSC2/WWT interface. This is a wrapper around
@@ -17,9 +17,10 @@ const wwtsamp = (function () {
     // This icon is too large, but better than nothing
     'samp.icon.url': 'http://cxc.harvard.edu/csc2/imgs/csc_logo_navbar.gif'
   };
-    
+
   var sampConnection = null;
   var sampClientTracker = null;
+  var sampHubIsPresent = false;
   var sampIsRegistered = false;
 
   var sampReport = null;
@@ -140,6 +141,8 @@ const wwtsamp = (function () {
   // When do we show the register button
   function sampIsAvailable(flag) {
 
+    sampHubIsPresent = flag;
+
     const style = flag ? 'block' : 'none'; // are any inline-block?
     for (let el of document.querySelectorAll('.requires-samp')) {
       el.style.display = style;
@@ -195,15 +198,14 @@ const wwtsamp = (function () {
       let msg;
       const n = resp.length;
       if (n === 0) {
-        msg = 'No Virtual Observatory application responded to the ' +
-          mtype + ' request!';
+        msg = 'No Virtual Observatory application';
       } else if (n === 1) {
-        msg = 'One application responded to ' +
-          'the ' + mtype + ' request.';
+        msg = 'One application';
       } else {
-        msg = resp.length.toString() + ' applications responded to ' +
-          'the ' + mtype + ' request.';
+        msg = `${resp.length} applications`;
       }
+
+      msg += ` responded to the ${mtype} request.`;
 
       if ((n > 0) && (mtype === 'image.load.fits')) {
         msg += '\nWarning: downloading the stack event file can take a long time!';
@@ -356,6 +358,8 @@ const wwtsamp = (function () {
 
 	   hasConnected: () => sampConnection !== null,
 	   isRegistered: () => sampIsRegistered,
+	   hasHub: () => sampHubIsPresent,
+
          };
 
 })();
