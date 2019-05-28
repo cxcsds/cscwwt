@@ -227,7 +227,7 @@ const wwtprops = (function () {
     const a = document.createElement('a');
     a.setAttribute('href', '#');
     if (callback !== null) {
-      a.addEventListener('click', () => callback(), false);
+      a.addEventListener('click', (event) => callback(event), false);
     }
 
     a.appendChild(document.createTextNode(text));
