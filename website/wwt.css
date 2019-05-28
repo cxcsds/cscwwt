@@ -26,7 +26,7 @@ div#cxcheader {
   background: none;
   border-radius: 0;
   -moz-border-radius: 0;
-  -webkit-border-radius: 0; 
+  -webkit-border-radius: 0;
   padding: 0;
   position: fixed;
 }
@@ -328,7 +328,7 @@ div.controlElements {
     margin-left: -0.5em;
     margin-right: -0.5em;
  ***/
-    
+
     padding-bottom: 0.3em;
     padding-right: 0.3em;
     padding-top: 0.3em;
@@ -898,7 +898,7 @@ div.pane {
   transform: translate(-50%, -50%);
   z-index: 300;
   -webkit-transform: translate(-50%, -50%);
-  
+
 }
 
 #welcome h2 { text-align: center; }

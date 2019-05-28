@@ -5,7 +5,7 @@
 //
 // Toggle between normal- and full-screen displays, where possible,
 // for the WWT/CSC interface.
-// 
+//
 
 const wwtscreen = (function () {
 
