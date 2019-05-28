@@ -91,7 +91,7 @@ const draggable = (function () {
     var x0, y0, toMove;
     var fallback = true;
     const types = event.dataTransfer.types;
-    for (var i=0; i < types.length; i++) {
+    for (var i = 0; i < types.length; i++) {
       if (types[i] === paneMimeType) {
         fallback = false;
         break;

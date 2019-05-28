@@ -1,4 +1,6 @@
-"use strict";
+'use strict';
+
+/* global alert */
 
 //
 // Toggle between normal- and full-screen displays, where possible,
@@ -45,7 +47,7 @@ const wwtscreen = (function () {
 	return;
       }
     }
-    console.log("UNEXPECTED: failed to call startFullScreen");
+    console.log('UNEXPECTED: failed to call startFullScreen');
   }
 
   function stopFullScreen() {
@@ -59,7 +61,7 @@ const wwtscreen = (function () {
 	el[attr]();
 	return; }
     }
-    alert("Eek! Unable to cancel full screen.\nTry hitting Escape.");
+    alert('Eek! Unable to cancel full screen.\nTry hitting Escape.');
   }
 
   /* tracking the status of the full-screen flag is slightly
@@ -94,8 +96,8 @@ const wwtscreen = (function () {
 	   // TODO: should this also clear entering_fullscreen?
 	   clearFullScreen: () => { fullscreen = false; },
 
-	   clearEnteringFullScreen: () => { enteringFullscreen = false; },
+	   clearEnteringFullScreen: () => { enteringFullscreen = false; }
 
          };
-    
+
 })();

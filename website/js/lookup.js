@@ -1,5 +1,7 @@
 'use strict';
 
+/* global XMLHttpRequest */
+
 // Query the LookUP service for converting Astronomical names to
 // RA/Dec values: http://www.strudel.org.uk/lookUP/
 //
@@ -95,5 +97,5 @@ const lookup = (() => {
   }
 
   return { lookupName: lookupName };
-    
+
 })();
