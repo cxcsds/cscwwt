@@ -96,12 +96,6 @@ main#content div.wrap {
             <img id="bigify" alt="Show"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/chevron-circle-up.svg"/>
-	    <div class="tooltip" id="smallify-tooltip">
-	      Hide the control panel.
-	    </div>
-	    <div class="tooltip" id="bigify-tooltip">
-	      Display the control panel.
-	    </div>
           </div>
 
 	  <div class="with-tooltip-static">
@@ -110,9 +104,6 @@ main#content div.wrap {
 		 alt="Register with a SAMP Hub"
 		 onclick="wwtsamp.register()"
 		 src="wwtimg/fa/broadcast-tower.svg"/>
-	    <div class="tooltip" id="register-samp-tooltip">
-	      Register the WWT display with a SAMP Hub.
-	    </div>
 	  </div>
 
 
@@ -121,52 +112,31 @@ main#content div.wrap {
 	  <div class="with-tooltip">
             <img id="zoomout" alt="Zoom Out"
 		 class="usercontrol icon" src="wwtimg/fa/minus-circle.svg"/>
-	    <div class="tooltip" id="zoomout-tooltip">
-	      Zoom out slightly.
-	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="zoomin" alt="Zoom In"
 		 class="usercontrol icon" src="wwtimg/fa/plus-circle.svg"/>
-	    <div class="tooltip" id="zoomin-tooltip">
-	      Zoom in slightly.
-	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="zoomn" alt="Zoom fully in"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/compress-arrows-alt.svg"/>
-	    <div class="tooltip" id="zoomn-tooltip">
-	      Zoom the display to a level appropriate for
-	      individual CSC sources.
-	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="zoom0" alt="Zoom fully out"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/expand-arrows-alt.svg"/>
-	    <div class="tooltip" id="zoom0-tooltip">
-	      Zoom the display out as far as it will go!
-	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="plot-properties"
 		 alt="Plot source properties"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/chart-area.svg"/>
-	    <div class="tooltip" id="plot-properties-tooltip">
-	      Display summary plots of the properties of the
-	      shown CSC sources.
-	    </div>
 	  </div>
 	  <div class="with-tooltip">
             <img id="export-samp" alt="Send via SAMP"
 		 class="usercontrol icon"
 		 src="wwtimg/fa/share.svg"/>
-	    <div class="tooltip" id="export-samp-tooltip">
-	      Send summary properties of shown CSC sources
-	      to virtual-observatory applications.
-	    </div>
 	  </div>
 	</div>
 
@@ -187,24 +157,16 @@ main#content div.wrap {
 				       id="dec_d">&nbsp;</output>°<output class="pos"
 				       id="dec_m">&nbsp;</output>'<output class="pos"
 				       id="dec_s">&nbsp;</output>"
-	    <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
-		 alt="Scissors (cut to clipboard)"
-		 class="icon"/>
+	      <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
+		   alt="Scissors (cut to clipboard)"
+		   class="icon"/>
 	    </p>
-	    <div class="tooltip" id="coordinate-clip-tooltip">
-	      Copy RA and Dec to the clipboard, as decimal degrees.
-	    </div>
 	    <p class="centered">
 	      FOV: <span id="fov"></span>
 	      <img src="wwtimg/fa/bookmark.svg" id="bookmark"
 		   alt="Bookmark this location (copy URL to clipboard)"
 		   class="icon end-of-line"/>
 	    </p>
-	    <div class="tooltip" id="bookmark-tooltip">
-	      Create a URL for the current display (location,
-	      zoom level, and selected wavelength for the background
-	      data) and copy it to the clipboard.
-	    </div>
 	  </div>
 
 	</div>
@@ -224,26 +186,6 @@ main#content div.wrap {
 		   alt="Magnifying glass"
 		   class="icon"/>
 	    </button>
-	    <div class="tooltip" id="targetName-tooltip">
-	      A name can be given (e.g.
-	      <span class="term">Orion cluster</span>
-	      or
-	      <span class="term">M31</span>), which is passed to the
-	      LookUp service, or a location can be given using a comma
-	      to separate the Right Ascension from the Declination.
-	      In this latter case
-	      a limited variety of coordinate formats are supported,
-	      including 
-	      <span class="term">205.842, -14.8367</span>;
-	      <span class="term">13 43 22, -14 50 12</span>;
-	      <span class="term">13:43:22, -14:50:12</span>;
-	      <span class="term">13h 43m 22s, -14d 50m 12s</span>;
-	      and
-	      <span class="term">13h 43m 22s, -14d 50' 12"</span>.
-	    </div>
-	    <div class="tooltip" id="targetFind-tooltip">
-	      Find and move to the given location.
-	    </div>
           </div>
 
 	  <div class="centered">
@@ -403,6 +345,66 @@ main#content div.wrap {
 	  </div>
 	</div> <!-- id=wwtuserbuttons -->
       </div> <!-- id=wwtusercontrol -->
+
+      <!-- tooltips -->
+      <div class="tooltip" id="smallify-tooltip">
+	Hide the control panel.
+      </div>
+      <div class="tooltip" id="bigify-tooltip">
+	Display the control panel.
+      </div>
+      <div class="tooltip" id="register-samp-tooltip">
+	Register the WWT display with a SAMP Hub.
+      </div>
+      <div class="tooltip" id="zoomout-tooltip">
+	Zoom out slightly.
+      </div>
+      <div class="tooltip" id="zoomin-tooltip">
+	Zoom in slightly.
+      </div>
+      <div class="tooltip" id="zoomn-tooltip">
+	Zoom the display to a level appropriate for
+	individual CSC sources.
+      </div>
+      <div class="tooltip" id="zoom0-tooltip">
+	Zoom the display out as far as it will go!
+      </div>
+      <div class="tooltip" id="plot-properties-tooltip">
+	Display summary plots of the properties of the
+	shown CSC sources.
+      </div>
+      <div class="tooltip" id="export-samp-tooltip">
+	Send summary properties of shown CSC sources
+	to virtual-observatory applications.
+      </div>
+      <div class="tooltip" id="coordinate-clip-tooltip">
+	Copy RA and Dec to the clipboard, as decimal degrees.
+      </div>
+      <div class="tooltip" id="bookmark-tooltip">
+	Create a URL for the current display (location,
+	zoom level, and selected wavelength for the background
+	data) and copy it to the clipboard.
+      </div>
+      <div class="tooltip" id="targetName-tooltip">
+	A name can be given (e.g.
+	<span class="term">Orion cluster</span>
+	or
+	<span class="term">M31</span>), which is passed to the
+	LookUp service, or a location can be given using a comma
+	to separate the Right Ascension from the Declination.
+	In this latter case
+	a limited variety of coordinate formats are supported,
+	including
+	<span class="term">205.842, -14.8367</span>;
+	<span class="term">13 43 22, -14 50 12</span>;
+	<span class="term">13:43:22, -14:50:12</span>;
+	<span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	and
+	<span class="term">13h 43m 22s, -14d 50' 12"</span>.
+      </div>
+      <div class="tooltip" id="targetFind-tooltip">
+	Find and move to the given location.
+      </div>
 
       <!-- Inform the user when the stack status has been updated -->
       <div id="stackUpdateStatus"></div>

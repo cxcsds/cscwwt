@@ -869,9 +869,9 @@ var wwt = (function () {
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
 
   // Position the element at the location given in event (clientX/Y).
-  // The default location is +5 in both X and Y, but if this takes the
+  // The default buffer is +5 in both X and Y, but if this takes the
   // element off the screen then switch so that the bottom or right is
-  // positioned -5.
+  // positioned -5. This can be changed with the third argument.
   //
   // If the box is too wide or tall then do not display and return
   // false, otherwise return true.
@@ -880,9 +880,18 @@ var wwt = (function () {
   // not ones that are restricted to a sub-element (e.g. within a panel),
   // and that have 'position: absolute' (not enforced here).
   //
-  function positionAtClick(element, event) {
+  function positionAtClick(element, event, buffer) {
     const host = getHost();
     if (host === null) { return false; }
+
+    if (typeof buffer !== 'undefined') {
+      if (buffer <= 0) {
+	console.log(`Internal error: buffer=${buffer}`);
+	return;
+      }
+    } else {
+      buffer = 5;
+    }
 
     // const hostbbox = element.parentElement.getBoundingClientRect();
     const hostbbox = host.getBoundingClientRect();
@@ -896,8 +905,8 @@ var wwt = (function () {
     // buffer around the event (so that the element doesn't cover the
     // click location).
     //
-    const dx = 5;
-    const dy = 5;
+    const dx = buffer;
+    const dy = buffer;
 
     let x = event.clientX;
     let y = event.clientY;
@@ -2894,7 +2903,8 @@ var wwt = (function () {
       // disappear.
       const timer = setTimeout(() => {
         tt.style.display = 'inline';
-	if (!positionAtClick(tt, ev)) {
+	// TODO: can we convert 1em to a pixel size?
+	if (!positionAtClick(tt, ev, 10)) {
 	  tt.style.display = 'none';
 	}
         const timer2 = setTimeout(() => {
