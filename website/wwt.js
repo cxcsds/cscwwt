@@ -914,7 +914,8 @@ var wwt = (function () {
     // know this has happened (assuming there is support).
     //
     copyToClipboardAction(str);
-    if ((event === null) ||
+    if ((typeof event === 'undefined') ||
+	(event === null) ||
 	(typeof event.clientX === 'undefined') ||
 	(typeof event.clientY === 'undefined')) {
       return;
