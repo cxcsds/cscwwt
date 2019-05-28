@@ -620,6 +620,10 @@ option:disabled {
   float: left;
 }
 
+/*
+ * left/top positions are over-ridden based on the mouse event,
+ * left in until confident the new scheme works well
+ */
 .tooltip {
   background: black;
   border: solid 1px white;  /* not 100% sure about this */
@@ -631,6 +635,7 @@ option:disabled {
   position: absolute;
   text-align: center;
   top: 0.5em;
+  z-index: 150; /* larger than #wwtusercontrol */
 }
 
 #smallify-tooptip , #biggify-tooltip {
@@ -660,6 +665,11 @@ option:disabled {
 
 #targetFind-tooltip {
   top: 1.5em;
+}
+
+#coordinate-clip-tooltip , #bookmark-tooltip {
+  font-family: sans-serif; /* remove monospace font */
+  width: 15em;
 }
 
 #smallify {

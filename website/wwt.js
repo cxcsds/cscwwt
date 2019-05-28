@@ -868,6 +868,65 @@ var wwt = (function () {
   const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
 
+  // Position the element at the location given in event (clientX/Y).
+  // The default buffer is +5 in both X and Y, but if this takes the
+  // element off the screen then switch so that the bottom or right is
+  // positioned -5. This can be changed with the third argument.
+  //
+  // If the box is too wide or tall then do not display and return
+  // false, otherwise return true.
+  //
+  // This is for elements that are positioned on the whole panel,
+  // not ones that are restricted to a sub-element (e.g. within a panel),
+  // and that have 'position: absolute' (not enforced here).
+  //
+  function positionAtClick(element, event, buffer) {
+    const host = getHost();
+    if (host === null) { return false; }
+
+    if (typeof buffer !== 'undefined') {
+      if (buffer <= 0) {
+	console.log(`Internal error: buffer=${buffer}`);
+	return;
+      }
+    } else {
+      buffer = 5;
+    }
+
+    // const hostbbox = element.parentElement.getBoundingClientRect();
+    const hostbbox = host.getBoundingClientRect();
+    const elementbbox = element.getBoundingClientRect();
+
+    // const xmin = 0;
+    // const ymin = 0;
+    const xmax = hostbbox.width - elementbbox.width;
+    const ymax = hostbbox.height - elementbbox.height;
+
+    // buffer around the event (so that the element doesn't cover the
+    // click location).
+    //
+    const dx = buffer;
+    const dy = buffer;
+
+    let x = event.clientX;
+    let y = event.clientY;
+
+    if (x > (xmax - dx)) { x = x - elementbbox.width - dx; }
+    if (y > (ymax - dx)) { y = y - elementbbox.height - dy; }
+
+    // Can determine this before calculating x and y, but err on the
+    // side of caution by checking the value here.
+    //
+    if ((x <= 0) || (y <= 0)) {
+      trace('Unable to place element (too wide or high) so skipping');
+      return false;
+    }
+
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
+    return true;
+  }
+
   // From
   // https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
   // Also comments from
@@ -938,39 +997,9 @@ var wwt = (function () {
     parent.appendChild(text);
 
     host.appendChild(parent);
-
-    // Position relative to event. The issue is that we have to
-    // worry about falling off the screen.
-    //
-    // Are these values available and reliable at this time?
-    //
-    // If the display is too narrow or tall then remove this
-    // element.
-    //
-    // Use getBoundingClientRect or offsetWidth/Height values?
-    //
-    const parentbbox = parent.getBoundingClientRect();
-    const hostbbox = parent.parentElement.getBoundingClientRect();
-
-    // const xmin = 0;
-    // const ymin = 0;
-    const xmax = hostbbox.width - parentbbox.width;
-    const ymax = hostbbox.height - parentbbox.height;
-
-    if ((xmax <= 0) || (ymax <= 0)) {
-      trace('Unable to place share box so skipping');
+    if (!positionAtClick(parent, event)) {
       host.removeChild(parent);
-      return;
     }
-
-    let x = event.clientX;
-    let y = event.clientY;
-
-    if (x > xmax) { x = xmax; }
-    if (y > ymax) { y = ymax; }
-
-    parent.style.left = `${x}px`;
-    parent.style.top = `${y}px`;
   }
 
   // This updates the stackAnnotations dict
@@ -2863,10 +2892,21 @@ var wwt = (function () {
 
     tooltipTimers[name] = null;
 
-    el.addEventListener('mouseenter', () => {
+    // Should this be mouseover or mouseenter? If it is only ever
+    // used on img elements I'm not sure if it makes any real
+    // difference.
+    //
+    el.addEventListener('mouseenter', ev => {
       clearToolTipTimer(name);
+      // Delay the entrance so that if the user is just mousing over
+      // everything the tooltip doesn't just flash up and then
+      // disappear.
       const timer = setTimeout(() => {
         tt.style.display = 'inline';
+	// TODO: can we convert 1em to a pixel size?
+	if (!positionAtClick(tt, ev, 10)) {
+	  tt.style.display = 'none';
+	}
         const timer2 = setTimeout(() => {
           tt.style.display = 'none';
         }, timeout * 1000);
