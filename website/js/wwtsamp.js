@@ -1,5 +1,8 @@
 'use strict';
 
+/* global alert */
+/* global samp, wwt */
+
 //
 // Support SAMP use by the CSC2/WWT interface. This is a wrapper around
 // routines from samp.js and is tightly integrates with wwt.js.
@@ -338,7 +341,7 @@ const wwtsamp = (function () {
     sendURL('image.load.fits', url,
             'Stack evt3 for ' + stack);
   }
-    
+
   return { onload: onload,
 	   setup: openSAMP,
            teardown: closeSAMP,
@@ -358,8 +361,8 @@ const wwtsamp = (function () {
 
 	   hasConnected: () => sampConnection !== null,
 	   isRegistered: () => sampIsRegistered,
-	   hasHub: () => sampHubIsPresent,
+	   hasHub: () => sampHubIsPresent
 
          };
 
-})();
+})();    

@@ -1,5 +1,10 @@
 'use strict';
 
+/* global alert, CustomEvent */
+/* global stack_name_map, obi_map */
+/* global draggable */
+/* global wwt, wwtsamp */
+
 //
 // Display properties about a stack or a source.
 //

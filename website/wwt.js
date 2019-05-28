@@ -1,5 +1,10 @@
 'use strict';
 
+/* global alert, XMLHttpRequest, CustomEvent */
+/* global wwtlib, wwtscreen, wwtprops, wwtplots, wwtsamp */
+/* global draggable, lookup, spinner */
+/* global mw */
+
 /*
  * Based on code from
  * http://www.worldwidetelescope.org/docs/Samples/displaycode.htm?codeExample=WWTWebClientPolyHtml5.html

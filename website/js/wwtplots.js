@@ -1,5 +1,9 @@
 'use strict';
 
+/* global alert */
+/* global Plotly */
+/* global wwt */
+
 //
 // Create plots for the WWT interface. At present this uses the Plotly
 // service.
@@ -419,7 +423,7 @@ const wwtplots = (function () {
 	} else if (defaultPlot === 3) {
 	    plot4area.style.display = 'block';
 	    plot4sel.checked = true;
-	}	    
+	}
 
 	const el = document.querySelector('#plotchoice');
 
