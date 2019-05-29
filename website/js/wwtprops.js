@@ -1293,7 +1293,7 @@ const wwtprops = (function () {
   //   bit 7 - is extended
   //
   // const is_marginal_bit = 1 << 0;
-  const is_true_bit = 1 << 1;
+  // const is_true_bit = 1 << 1;
   const is_acis_bit = 1 << 2;
   const is_hrc_bit = 1 << 3;
   const is_not_variable_bit = 1 << 4;
@@ -1764,17 +1764,17 @@ const wwtprops = (function () {
 			    false);
     }
 
-    addSourceToggles(mainDiv, active, catinfo, counts, to_show_bitmask, pbtn);
-
-    //   - add plot button
-    //   - add menu for SAMP table calls
-    //
-    // Do not bother with data ranges since this is in the plots.
-    // Could have some widgets that let us filter on various columns.
-    //
     const pplot = document.createElement('p');
     pplot.appendChild(pbtn);
     mainDiv.appendChild(pplot);
+
+    // Add source toggles
+    //
+    // TODO: maybe add widgets that let you select on a column - e.g.
+    //       flux - either for plotting (symbol color/size) or as
+    //       a filter
+    //
+    addSourceToggles(mainDiv, active, catinfo, counts, to_show_bitmask, pbtn);
 
     // Add menu for SAMP table calls
     //
