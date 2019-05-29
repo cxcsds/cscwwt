@@ -239,7 +239,7 @@ div.polygoninfopane {
 
 div.stackinfopane div.main , div.sourceinfopane div.main ,
 div.neareststackinfopane div.main , div.nearestsourceinfopane div.main ,
-div.polygoninfopane div.main {
+div.sourceselectionpane div.main , div.polygoninfopane div.main {
   background: rgba(255, 255, 255, 1);
 }
 
