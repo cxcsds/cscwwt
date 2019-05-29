@@ -443,8 +443,8 @@ main#content div.wrap {
 	    after which the button will change to
 	    <span class="example-button">Show CSC2.0 Sources</span>,
 	    which will show all sources close to the current location
-	    and create a window which can be used to
-	    display several plots and send their properties to
+	    and create a window which can be used to subset the sources,
+	    display several plots, and send their properties to
 	    <extlink target="_blank"
 		     href="http://www.ivoa.net/">Virtual Observatory</extlink>
 	    applications - such as
@@ -885,9 +885,9 @@ main#content div.wrap {
 
 	  <p>
 	    When the CSC 2.0 sources are displayed, a panel will appear
-	    which lets you
-	    display summary plots of the displayed
-	    sources or send the source properties for the selected
+	    which lets you subset the selection, by filtering on
+	    several properties, display summary plots of the displayed
+	    sources, or send the source properties for the selected
 	    sources to
 	    <extlink target="_blank"
 		     href="http://www.ivoa.net/">Virtual Observatory</extlink>
