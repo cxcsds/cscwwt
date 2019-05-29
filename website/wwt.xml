@@ -127,17 +127,6 @@ main#content div.wrap {
 		 class="usercontrol icon"
 		 src="wwtimg/fa/expand-arrows-alt.svg"/>
 	  </div>
-	  <div class="with-tooltip">
-            <img id="plot-properties"
-		 alt="Plot source properties"
-		 class="usercontrol icon"
-		 src="wwtimg/fa/chart-area.svg"/>
-	  </div>
-	  <div class="with-tooltip">
-            <img id="export-samp" alt="Send via SAMP"
-		 class="usercontrol icon"
-		 src="wwtimg/fa/share.svg"/>
-	  </div>
 	</div>
 
 	<div>
@@ -369,14 +358,6 @@ main#content div.wrap {
       <div class="tooltip" id="zoom0-tooltip">
 	Zoom the display out as far as it will go!
       </div>
-      <div class="tooltip" id="plot-properties-tooltip">
-	Display summary plots of the properties of the
-	shown CSC sources.
-      </div>
-      <div class="tooltip" id="export-samp-tooltip">
-	Send summary properties of shown CSC sources
-	to virtual-observatory applications.
-      </div>
       <div class="tooltip" id="coordinate-clip-tooltip">
 	Copy RA and Dec to the clipboard, as decimal degrees.
       </div>
@@ -462,14 +443,9 @@ main#content div.wrap {
 	    (<span class="example-button">Load CSC2.0 Sources</span>),
 	    after which the button will change to
 	    <span class="example-button">Show CSC2.0 Sources</span>,
-	    which will show all sources close to the current location.
-	    A set of summary visualizations of the selected
-	    sources can be displayed with the
-	    <img alt="Plot source properties"
-		 class="example-icons icon"
-		 src="wwtimg/fa/chart-area.svg"/>
-	    icon, or their properties 
-	    sent to
+	    which will show all sources close to the current location
+	    and create a window which can be used to
+	    display several plots and send their properties to
 	    <extlink target="_blank"
 		     href="http://www.ivoa.net/">Virtual Observatory</extlink>
 	    applications - such as
@@ -478,14 +454,11 @@ main#content div.wrap {
 	    or
 	    <extlink target="_blank"
 		     href="http://ds9.si.edu/site/Home.html">SAOImageDS9</extlink>
-	    - with the
-            <img alt="Send via SAMP"
-		 class="example-icons icon" src="wwtimg/fa/share.svg"/>
-	    icon (if a
+	    - if a
 	    <extlink target="_blank"
 		     href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
 	    is running on
-	    the same machine as the web browser).
+	    the same machine as the web browser.
 	    The positions of detections from the latest
 	    <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
 	    source catalog</extlink>
@@ -595,22 +568,6 @@ main#content div.wrap {
 	    <dt>
 	      <div class="iconarea">
 		<img class="icon"
-		     alt="Plot source properties"
-		     src="wwtimg/fa/chart-area.svg"/>
-	      </div>
-	    </dt>
-
-	    <dd>
-	      <p>
-		This icon appears when CSC 2.0 sources are displayed.
-		Selecting the icon will display a set of summary plots of
-		the properties of the displayed sources.
-	      </p>
-	    </dd>
-
-	    <dt>
-	      <div class="iconarea">
-		<img class="icon"
 		     alt="Scissors (cut to clipboard)"
 		     src="wwtimg/fa/cut.svg"/>
 	      </div>
@@ -697,14 +654,6 @@ main#content div.wrap {
 		src="wwtimg/fa/share.svg"/>):
 	      </p>
 	      <list>
-		<li>
-		  <p>
-		    It is displayed at the top of the control panel when
-		    the CSC 2.0 sources are shown. Selecting the icon will send
-		    the summary master source properties to any table viewer (such
-		    as TOPCAT or DS9) to support more in-depth analysis.
-		  </p>
-		</li>
 		<li>
 		  <p>
 		    In the stack-information panel, clicking on the icon will
@@ -879,7 +828,9 @@ main#content div.wrap {
 
 	  <p>
 	    If a SAMP hub is running on your machine then you will be
-	    able to send all the master properties for the source to
+	    able to send
+	    <cxclink href="columns/master.html" target="_blank">all
+	    the master properties for the source</cxclink> to
 	    a table viewer by clicking on the "export" icon:
             <img alt="Send via SAMP"
 		 class="icon"
@@ -911,16 +862,6 @@ main#content div.wrap {
             Catalog</cxclink>
             page.
           </p>
-
-	  <p>
-	    These windows - showing stack or source properties - can be
-	    dragged around the display, or minimised, if they
-            obscure parts of the display, with the
-            <img alt="Hide" class="icon"
-		 src="wwtimg/fa/chevron-circle-down.svg"/>
-	    icon.
-
-	  </p>
 
 	  <h3>Chandra and XMM sources</h3>
 
@@ -960,7 +901,32 @@ main#content div.wrap {
 		     onclick="wwt.showBlockElement('credits')"
 		     >credits page</cxclink>.
 	  </p>
-	
+
+	  <p>
+	    When the CSC 2.0 sources are displayed, a panel will appear
+	    which lets you
+	    display summary plots of the displayed
+	    sources or send the source properties for the selected
+	    sources to
+	    <extlink target="_blank"
+		     href="http://www.ivoa.net/">Virtual Observatory</extlink>
+	    applications - such as
+	    <extlink target="_blank"
+		     href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
+	    or
+	    <extlink target="_blank"
+		     href="http://ds9.si.edu/site/Home.html">SAOImageDS9</extlink>
+	    - if a
+	    <extlink target="_blank"
+		     href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
+	    is running on the same machine as the web browser.
+	  </p>
+
+	  <div class="infocontainer">
+	    <div id="sourceselectionexample" class="sourceselectionpane">
+	    </div>
+	  </div>
+
 	  <h3>Using the World Wide Telescope</h3>
 
           <p>
@@ -1214,7 +1180,7 @@ main#content div.wrap {
 		     href="http://www.skymap.com/milkyway_cat.htm">Milky Way
             Outline Catalogs data</extlink>
             by Jose R. Vieira.
-	    The configuration, broadcast, close, plot, reshare, resize,
+	    The configuration, broadcast, close, reshare, resize,
 	    scissors, search, and zoom icons are from the
 	    <extlink target="_blank"
 		     href="https://fontawesome.com/support#fa-opensource">free

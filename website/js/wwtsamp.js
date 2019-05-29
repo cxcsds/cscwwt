@@ -166,6 +166,9 @@ const wwtsamp = (function () {
     alert('Unable to send a Web-SAMP message.\n\nIs a SAMP hub running?');
   }
 
+  // Return the query for a master-source cone search returning the
+  // given cols. It is ordered by flux (descending).
+  //
   // hard code a 'basic source properties' like query
   // using a cone search
   //
@@ -175,11 +178,86 @@ const wwtsamp = (function () {
   // ra and dec values (e.g. a simple >=/<= check) as this is what
   // CSCView does, but I haven't checked how it handles near the poles.
   //
+  function masterQueryNear(ra, dec, rmax, cols) {
+    return `http://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&version=cur&query=select%20distinct%20${cols.join(',')}%20from%20master_source%20where%20dbo.cone_distance%28ra,dec,${ra},${dec}%29%3C%3D${rmax}%20order%20by%20flux_aper_b%20desc,%20flux_aper_w%20desc`;
+  }
+
+  // Master Source: Basic Summary
+  //
+  function masterSourceBasicNear(ra, dec, rmax) {
+    const cols = ['name', 'ra', 'dec',
+		  'err_ellipse_r0', 'err_ellipse_r1', 'err_ellipse_ang',
+		  'significance', 'likelihood_class',
+		  'conf_flag', 'sat_src_flag',
+		  'streak_src_flag',
+		  'flux_aper_b', 'flux_aper_lolim_b', 'flux_aper_hilim_b',
+		  'flux_aper_w', 'flux_aper_lolim_w', 'flux_aper_hilim_w'];
+    return masterQueryNear(ra, dec, rmax, cols);
+  }
+
+  // Master Source: Summary
+  //
   function masterSourcePropertiesNear(ra, dec, rmax) {
-    return 'http://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&version=cur&query=select%20distinct%20name,%20ra,%20dec,%20err_ellipse_r0,%20err_ellipse_r1,%20err_ellipse_ang,%20significance,%20likelihood,%20likelihood_class,%20conf_flag,%20extent_flag,%20sat_src_flag,%20streak_src_flag,%20var_flag,%20flux_aper_b,%20flux_aper_lolim_b,%20flux_aper_hilim_b,%20flux_aper_w,%20flux_aper_lolim_w,%20flux_aper_hilim_w,%20hard_hm,%20hard_hm_lolim,%20hard_hm_hilim,%20hard_ms,%20hard_ms_lolim,%20hard_ms_hilim,%20var_intra_index_b,%20var_intra_index_w,%20var_inter_index_b,%20var_inter_index_w,%20acis_time,%20hrc_time%20from%20master_source%20where%20dbo.cone_distance%28ra,dec,' +
-            ra.toString() + ',' + dec.toString() +
-            '%29%3C%3D' + rmax.toString() +
-            '%20order%20by%20flux_aper_b%20desc,%20flux_aper_w%20desc';
+    const cols = ['name', 'ra', 'dec',
+		  'err_ellipse_r0', 'err_ellipse_r1', 'err_ellipse_ang',
+		  'significance', 'likelihood', 'likelihood_class',
+		  'conf_flag', 'extent_flag', 'sat_src_flag',
+		  'streak_src_flag', 'var_flag',
+		  'flux_aper_b', 'flux_aper_lolim_b', 'flux_aper_hilim_b',
+		  'flux_aper_w', 'flux_aper_lolim_w', 'flux_aper_hilim_w',
+		  'hard_hm', 'hard_hm_lolim', 'hard_hm_hilim',
+		  'hard_ms', 'hard_ms_lolim', 'hard_ms_hilim',
+		  'var_intra_index_b', 'var_intra_index_w',
+		  'var_inter_index_b', 'var_inter_index_w',
+		  'acis_time', 'hrc_time'];
+    return masterQueryNear(ra, dec, rmax, cols);
+  }
+
+  // Master Source: Photometry
+  //
+  function masterSourcePhotometryNear(ra, dec, rmax) {
+    const cols = ['name', 'ra', 'dec',
+		  'err_ellipse_r0', 'err_ellipse_r1', 'err_ellipse_ang',
+		  'significance', 'likelihood', 'likelihood_class',
+		  'conf_flag', 'sat_src_flag', 'streak_src_flag',
+		  'flux_aper_b', 'flux_aper_lolim_b', 'flux_aper_hilim_b',
+		  'flux_aper_h', 'flux_aper_lolim_h', 'flux_aper_hilim_h',
+		  'flux_aper_m', 'flux_aper_lolim_m', 'flux_aper_hilim_m',
+		  'flux_aper_s', 'flux_aper_lolim_s', 'flux_aper_hilim_s',
+		  'flux_aper_u', 'flux_aper_lolim_u', 'flux_aper_hilim_u',
+		  'flux_aper_w', 'flux_aper_lolim_w', 'flux_aper_hilim_w',
+		  'flux_powlaw_aper_b', 'flux_powlaw_aper_lolim_b', 'flux_powlaw_aper_hilim_b',
+		  'flux_powlaw_aper_w', 'flux_powlaw_aper_lolim_w', 'flux_powlaw_aper_hilim_w',
+		  'flux_bb_aper_b', 'flux_bb_aper_lolim_b', 'flux_bb_aper_hilim_b',
+		  'flux_bb_aper_w', 'flux_bb_aper_lolim_w', 'flux_bb_aper_hilim_w',
+		  'flux_brems_aper_b', 'flux_brems_aper_lolim_b', 'flux_brems_aper_hilim_b',
+		  'flux_brems_aper_w', 'flux_brems_aper_lolim_w', 'flux_brems_aper_hilim_w'];
+    return masterQueryNear(ra, dec, rmax, cols);
+  }
+
+  // Master Source: Variability
+  //
+  function masterSourceVariabilityNear(ra, dec, rmax) {
+    const cols = ['name', 'ra', 'dec',
+		  'err_ellipse_r0', 'err_ellipse_r1', 'err_ellipse_ang',
+		  'significance', 'likelihood', 'likelihood_class',
+		  'conf_flag', 'dither_warning_flag',
+		  'sat_src_flag', 'streak_src_flag', 'var_flag',
+		  'flux_aper_b', 'flux_aper_lolim_b', 'flux_aper_hilim_b',
+		  'flux_aper_w', 'flux_aper_lolim_w', 'flux_aper_hilim_w',
+		  'var_intra_index_b', 'var_intra_index_h',
+		  'var_intra_index_m', 'var_intra_index_s',
+		  'var_intra_index_u', 'var_intra_index_w',
+		  'var_intra_prob_b', 'var_intra_prob_h',
+		  'var_intra_prob_m', 'var_intra_prob_s',
+		  'var_intra_prob_u', 'var_intra_prob_w',
+		  'var_inter_index_b', 'var_inter_index_h',
+		  'var_inter_index_m', 'var_inter_index_s',
+		  'var_inter_index_u', 'var_inter_index_w',
+		  'var_inter_prob_b', 'var_inter_prob_h',
+		  'var_inter_prob_m', 'var_inter_prob_s',
+		  'var_inter_prob_u', 'var_inter_prob_w'];
+    return masterQueryNear(ra, dec, rmax, cols);
   }
 
   // I was going to return a subset of data, but let's see what returning
@@ -293,6 +371,20 @@ const wwtsamp = (function () {
 
   }
 
+  // We support a limited choice of searches, matching the Master Source
+  // searches in CSCView around May 2019:
+  //    basic       - Basic Summary
+  //    summary     - Summary
+  //    photometry  - Photometry
+  //    variability - Variability
+  //
+  const masterSearches = {
+    basic: {get: masterSourceBasicNear, label: 'basic summary'},
+    summary: {get: masterSourcePropertiesNear, label: 'summary'},
+    photometry: {get: masterSourcePhotometryNear, label: 'photometric'},
+    variability: {get: masterSourceVariabilityNear, label: 'variability'}
+  };
+
   // Send the 'currently displayed' source properties via SAMP. This
   // actually sends a cone search that should match the filter used
   // to display the sources.
@@ -300,24 +392,31 @@ const wwtsamp = (function () {
   // ra, dec, and fov are in decimal degrees, and fov is
   // converted to a search radius.
   //
-  function sendSourcePropertiesNear(ra, dec, fov) {
+  function sendSourcePropertiesNear(ra, dec, fov, search) {
 
-    sampTrace('SAMP: source properties near ' + ra + ' ' + dec + ' r= ' + fov);
+    let searchURL = typeof search === 'undefined' ?
+      masterSearches.basic : masterSearches[search];
+    if (typeof searchURL === 'undefined') {
+      sampTrace(`ERROR: sendSourcePropertiesNear sent search=${search}`);
+      searchURL = masterSearches.basic;
+    }
+
+    sampTrace(`SAMP: master search=${search}`);
+    sampTrace(`SAMP: source properties near ${ra} ${dec} r= ${fov}`);
     if ((ra === null) || (dec === null) || (fov === null)) {
       console.log('Internal error: missing location');
       return;
     }
 
     const rmax = fov * 60.0;  // convert to arcmin
-    const url = masterSourcePropertiesNear(ra, dec, rmax);
+    const url = searchURL.get(ra, dec, rmax);
     sendURL('table.load.votable', url,
-            'CSC 2.0 basic source properties (cone-search)');
+            `CSC 2.0 ${searchURL.label} source properties (cone-search)`);
   }
 
   function sendSourcePropertiesName(name) {
 
-    sampTrace('SAMP: source properties name ' + name);
-
+    sampTrace(`SAMP: source properties name ${name}`);
     const url = masterSourcePropertiesByName(name);
     sendURL('table.load.votable', url,
             'CSC 2.0 master-source properties (single source)');
@@ -325,7 +424,7 @@ const wwtsamp = (function () {
 
   function sendStackEvt3(stack, stackver) {
 
-    sampTrace('SAMP: stack=' + stack + ' ver=' + stackver.toString());
+    sampTrace(`SAMP: stack=${stack} ver=${stackver}`);
 
     // simple for now
     let verstr;
@@ -334,12 +433,11 @@ const wwtsamp = (function () {
     else                     { verstr = stackver.toString(); }
 
     const url = 'http://cda.harvard.edu/csccli/retrieveFile?' +
-      'version=cur&filetype=stkevt3&filename=' + stack + 'N' +
-      verstr + '_evt3.fits';
+      `version=cur&filetype=stkevt3&filename=${stack}N${verstr}_evt3.fits`;
 
-    console.log('--> sending image.load.fits for ' + url);
+    console.log(`--> sending image.load.fits for ${url}`);
     sendURL('image.load.fits', url,
-            'Stack evt3 for ' + stack);
+            `Stack evt3 for ${stack}`);
   }
 
   return { onload: onload,
@@ -365,4 +463,4 @@ const wwtsamp = (function () {
 
          };
 
-})();    
+})();

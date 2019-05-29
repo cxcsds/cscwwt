@@ -3,7 +3,7 @@
 /* global alert, CustomEvent */
 /* global stack_name_map, obi_map */
 /* global draggable */
-/* global wwt, wwtsamp */
+/* global wwt, wwtsamp, wwtplots */
 
 //
 // Display properties about a stack or a source.
@@ -605,6 +605,10 @@ const wwtprops = (function () {
     return findPane('sourceinfo', {right: '2em', top: '3em'}, true);
   }
 
+  function findSourceSelection() {
+    return findPane('sourceselection', {right: '2em', bottom: '3em'}, true);
+  }
+
   function findStackInfo() {
     return findPane('stackinfo', {right: '2em', top: '3em'}, true);
   }
@@ -780,7 +784,7 @@ const wwtprops = (function () {
 	}
 	stext += '.';
       } else {
-	stext= 'Source detection was affected by saturation.';
+	stext = 'Source detection was affected by saturation.';
       }
       addPara(parent, stext);
     }
@@ -992,6 +996,181 @@ const wwtprops = (function () {
   function clearSourceInfo() {
     clearElement('#sourceinfo');
     wwt.removeToolTipHandler('export-samp-source');
+  }
+
+  // Add the export-to-samp options.
+  //
+  // If active is false then this is taken to be for the help page,
+  // so we skip the requires-samp class so it is always shown.
+  //
+  function createExportSourceProperties(active, ra0, dec0, rmax) {
+
+    // Argh: the timer that checks for SAMP sets the display to
+    // none or block, but we are using flex for the contents, so
+    // need nested divs (or a different approach, but this is quicker to
+    // hack).
+    //
+    const div = document.createElement('div');
+    if (active) {
+      div.setAttribute('class', 'requires-samp');
+    }
+
+    const div2 = document.createElement('div');
+    div2.setAttribute('class', 'samp-export-list');
+
+    const btn = document.createElement('button');
+    btn.id = 'export-samp';
+    btn.setAttribute('class', 'button');
+    btn.setAttribute('type', 'button');
+    addText(btn, 'Send via SAMP');
+
+    const sel = document.createElement('select');
+    sel.id = 'export-samp-choice';
+    sel.setAttribute('name', 'export-samp-choice');
+    sel.setAttribute('class', 'button');
+
+    const opts = [{value: 'basic', label: 'Basic Summary'},
+		  {value: 'summary', label: 'Summary'},
+		  {value: 'photometry', label: 'Photometric'},
+		  {value: 'variability', label: 'Variability'}];
+    opts.forEach(opt => {
+      const option = document.createElement('option');
+      option.setAttribute('value', opt.value);
+      addText(option, opt.label);
+      sel.appendChild(option);
+    });
+
+    const lbl = document.createElement('label');
+    lbl.setAttribute('for', 'export-samp-choice');
+    addText(lbl, 'Master-source properties to return.');
+
+    const bdiv = document.createElement('div');
+    bdiv.appendChild(btn);
+
+    const sdiv = document.createElement('div');
+    sdiv.appendChild(sel);
+    sdiv.appendChild(lbl);
+
+    div2.appendChild(bdiv);
+    div2.appendChild(sdiv);
+    div.appendChild(div2);
+
+    const selected = {choice: 'basic'};
+    if (active) {
+      sel.addEventListener('change', ev => {
+	selected.choice = ev.target.value;
+      }, false);
+
+      btn.addEventListener('click', () => {
+	console.log(`Chosen ADQL option: ${selected.choice}`);
+	wwtsamp.sendSourcePropertiesNear(ra0, dec0, rmax, selected.choice);
+      }, false);
+    }
+
+    // If we know that SAMP is available then no need to wait for
+    // the periodic refresh.
+    //
+    if (active && wwtsamp.isRegistered()) {
+      div.style.display = 'block';
+    }
+
+    return div;
+  }
+
+  // Create the "you've selectected elevnty-million sources,
+  // now what" pane. I assume there will need to be a version for
+  // the help page.
+  //
+  function addSourceSelectionInfo(parent, ra0, dec0, rmax, catinfo, active) {
+    if ((catinfo === null) || (catinfo.annotations === null)) {
+      console.log('INTERNAL ERROR: addSourceSelection sent catinfo[.annotations]=null');
+      return;
+    }
+    const nsrc = catinfo.annotations.length;
+    if (nsrc < 1) {
+      console.log('INTERNAL ERROR: addSourceSelection sent empty srcs');
+      return;
+    }
+
+    const mainDiv = addControlElements(parent,
+				       'CSC 2.0 sources',
+				       wwt.hideSources,
+				       active);
+
+    const p = document.createElement('p');
+    mainDiv.appendChild(p);
+
+    let rlabel = '';
+    if (rmax >= 1.0) {
+      rlabel = `${rmax.toFixed(1)}°`;
+    } else if (rmax >= (1.0 / 60.0)) {
+      rlabel = `${(rmax * 60).toFixed(1)}'`; // for emacs: '
+    } else {
+      rlabel = `${(rmax * 3600).toFixed(1)}"`; // for emacs: "
+    }
+
+    // TODO: add a "add to clipboard" icon?
+    //
+    const pos = wwt.convertCoordinate(ra0, dec0, 'letters', true);
+
+    // TODO: number needs to be editable (for when the selection
+    //       happens)
+    //
+    const lbl = nsrc === 1 ?
+	  'You have selected one source' :
+	  `You have selected ${nsrc} sources`;
+    addText(p, lbl);
+    addText(p, ` within ${rlabel} of `);
+    p.insertAdjacentHTML('beforeend', pos);
+    addText(p, '.');
+
+    // Create the button
+    //
+    const pbtn = document.createElement('button');
+    pbtn.id = 'display-source-plot';
+    pbtn.setAttribute('class', 'button');
+    pbtn.setAttribute('type', 'button');
+    addText(pbtn, 'Plot source properties');
+    if (active) {
+      pbtn.addEventListener('click',
+			    () => wwtplots.plotSources(catinfo),
+			    false);
+    }
+
+    //   - add plot button
+    //   - add menu for SAMP table calls
+    //
+    // Do not bother with data ranges since this is in the plots.
+    // Could have some widgets that let us filter on various columns.
+    //
+    const pplot = document.createElement('p');
+    pplot.appendChild(pbtn);
+    mainDiv.appendChild(pplot);
+
+    const psamp = createExportSourceProperties(active, ra0, dec0, rmax);
+    mainDiv.appendChild(psamp);
+
+    parent.style.display = 'block';
+  }
+
+  function addSourceSelection(ra, dec, rmax, catinfo) {
+    const parent = findSourceSelection();
+    if (parent === null) { return; }
+    addSourceSelectionInfo(parent, ra, dec, rmax, catinfo, true);
+  }
+
+  function addSourceSelectionHelp(ra, dec, rmax, catinfo) {
+    const parent = document.querySelector('#sourceselectionexample');
+    if (parent === null) {
+      console.log('Internal error: missing #sourceselectionexample');
+      return;
+    }
+    addSourceSelectionInfo(parent, ra, dec, rmax, catinfo, false);
+  }
+
+  function clearSourceSelection() {
+    clearElement('#sourceselection');
+    // wwt.removeToolTipHandler('export-samp-source');
   }
 
   // Convert a separation in degrees to a "nice" string.
@@ -1333,6 +1512,10 @@ const wwtprops = (function () {
 	   addSourceInfo: addSourceInfo,
 	   addSourceInfoHelp: addSourceInfoHelp,
 	   clearSourceInfo: clearSourceInfo,
+
+	   addSourceSelection: addSourceSelection,
+	   addSourceSelectionHelp: addSourceSelectionHelp,
+	   clearSourceSelection: clearSourceSelection,
 
 	   addNearestStackTable: addNearestStackTable,
 	   addNearestSourceTable: addNearestSourceTable,
