@@ -2167,9 +2167,15 @@ var wwt = (function () {
   // fields that toStore needs (getPos is called once per item,
   // so can be used to increase a counter if required).
   //
+  // If the xs elements contain a shown field, then we skip
+  // elements for which this field is false. This is to support
+  // the "toggle subsets of the display" functionality.
+  //
   function findNearestTo(ra0, dec0, maxSep, xs, getPos, toStore) {
     const store = [];
     xs.forEach(a => {
+      if ((typeof a.shown !== 'undefined') && !a.shown) { return; }
+
       const pos = getPos(a);
       const sep = separation(ra0, dec0, pos.ra, pos.dec);
       if (sep <= maxSep) {

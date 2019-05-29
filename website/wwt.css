@@ -236,6 +236,10 @@ div.polygoninfopane {
   z-index: 200;
 }
 
+/* do we want to include
+  div.sourceselectionpane div.main
+  here? not sure, as may want the toggle-button setting to be solid
+*/
 
 div.stackinfopane div.main , div.sourceinfopane div.main ,
 div.neareststackinfopane div.main , div.nearestsourceinfopane div.main ,

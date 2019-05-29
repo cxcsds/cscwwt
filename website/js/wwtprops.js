@@ -1279,6 +1279,204 @@ const wwtprops = (function () {
 
   }
 
+  // For each flag there's a bit which is 1 if displayed, 0 if not
+  // displayed. This means that "variability" has two bits, one for
+  // variable sources and one for not variable.
+  //
+  //   bit 0 - is MARGINAL detection
+  //   bit 1 - is TRUE detection
+  //   bit 2 - ACIS
+  //   bit 3 - HRC
+  //   bit 4 - not variable
+  //   bit 5 - is variable
+  //   bit 6 - not extended
+  //   bit 7 - is extended
+  //
+  const is_marginal_bit = 1 << 0;
+  const is_true_bit = 1 << 1;
+  const is_acis_bit = 1 << 2;
+  const is_hrc_bit = 1 << 3;
+  const is_not_variable_bit = 1 << 4;
+  const is_variable_bit = 1 << 5;
+  const is_not_extended_bit = 1 << 6;
+  const is_extended_bit = 1 << 7;
+
+  const toggleFields = ['acis', 'hrc', 'variable', 'not-variable'];
+
+  // What flags are set for this source? The structure contains
+  // redundant information (e.g. variable/not variable).
+  //
+  // no way to set marginal, true, or extended bits yet.
+  //
+  function get_src_flags(src) {
+    return {'acis': src['acis_num'] > 0,
+	    'hrc': src['hrc_num'] > 0,
+	    'variable': src['var_flag'] === 'TRUE',
+	    'not-variable': src['var_flag'] !== 'TRUE'};
+  }
+
+  // Update the UI with the latest state.
+  //   toggles contains references to all the toggles/labels
+  //   bitinfo
+  //
+  // The idea is that the standard annotation object has been enhanced
+  // with two fields - bitmask and shown - which give the bits the
+  // source is sensitive to, and whether it is currently shown or not.
+  //
+  // When a bit is toggled off, loop through this list and hide
+  // all those sources whose bitmask contains the bit and are not
+  // already hidden.
+  //
+  // When a bit is toggled on, loop through this list and show
+  // all those whose bitmask contains the bit and are not already
+  // shown.
+  //
+  // The original annotations list is recreated during this loop,
+  // adding those anotations that are shown. Alternatively the
+  // existing nearest-source code could be enhanced to recognize
+  // the shown flag and so we wouldn't need to change the annotation
+  // field here. This is a TODO.
+  //
+  // For now the idea is that toggling an option turns on or off
+  // that option - so it will change the number of sources in the
+  // other classes. A later update *may* add more-nuanced options,
+  // possisbly following the ADS UI with its faceted browsing (i.e.
+  // letting the user say what sort of choice the filter is).
+  //
+  function updateSourceToggles(catinfo, toggles, bitinfo, toggled, newstate) {
+
+    // This shouldn't happen, but short-circuit things if it ever does.
+    //
+    const bitval = toggles[toggled].bitmask;
+    /***
+
+	With the current way that the state is handled, it is not clear
+	that this restriction is helpful (seen once case where it is not)
+
+    const bitset = (bitval & bitinfo.showing) != 0;
+    if ((newstate && bitset) || (!newstate && !bitset)) {
+      console.log(`Surprise: toggle ${toggled} to ${newstate} is aleady in ${bitinfo.showing}`);
+      return;
+    }
+    ***/
+
+    // If newstate is false then we remove sources for which bitval
+    // is set.
+    //
+    // If newstate is true then we add the source if the bitval is
+    // set AND the source bitmask does not match with any of the
+    // excluded toggles (only for sources that are not already added).
+    //
+    const is_ann_shown = (acc, ann) => acc | ann.shown;
+    const had_sources = catinfo.annotations.reduce(is_ann_shown, false);
+
+    if (newstate) {
+
+      // We skip sources which match excl_bitmask, since the UI says
+      // that these sources are not to be included. However, we only
+      // does this when there is at least one field set. If all the
+      // toggles are unset then this would exclude all sources, so
+      // you would never be able to add any back (and we check on
+      // this by looking to see if there were any sources displayed).
+      //
+      let excl_bitmask = 0;
+      toggleFields.forEach(field => {
+	if (field === toggled || !(field in toggles)) { return; }
+	const toggle = toggles[field];
+	if (toggle.input.checked) { return; }
+	excl_bitmask |= toggle.bitmask;
+      });
+      console.log(`DBG: excl_bitmask = ${excl_bitmask}`);
+
+      // Adding sources
+      catinfo.annotations.forEach(ann => {
+	if (ann.shown) {
+	  return;
+	}
+	if ((ann.bitmask & bitval) === 0) { return; }
+	if (had_sources && (ann.bitmask & excl_bitmask) !== 0) { return; }
+
+	ann.shown = true;
+	ann.add();
+      });
+
+    } else {
+      // Removing sources
+      catinfo.annotations.forEach(ann => {
+	if (!ann.shown) { return; }
+	if ((ann.bitmask & bitval) !== 0) {
+	  ann.shown = false;
+	  ann.remove();
+	  return;
+	}
+      });
+    }
+
+    // Count up and re-calculate the bitmask. This could be done
+    // above but separate out for now as it is not expected to be
+    // an expensive computation.
+    //
+    // We only count up those fields which we care about
+    //
+    const counts = {};
+    const countFields = [];
+    toggleFields.forEach(field => {
+      if (field in toggles) {
+	counts[field] = 0;
+	countFields.push(field);
+      }
+    });
+
+    let bitmask = 0;
+    catinfo.annotations.forEach(ann => {
+      if (!ann.shown) { return; }
+
+      bitmask |= ann.bitmask;
+
+      const src = wwt.getCSCObject(ann.data);
+      const flags = get_src_flags(src);
+
+      countFields.forEach(field => {
+	if (flags[field]) { counts[field] += 1; }
+      });
+    });
+
+    console.log(`Toggle ${toggled} to ${newstate}: bitmask=${bitinfo.showing} -> ${bitmask}`);
+    bitinfo.showing = bitmask;
+
+    // Update the toggles: text and settings
+    //
+    // We only change the setting if the count === maxcounts (i.e. all
+    // sources are shown), or count === 0 (no sources are shown), since
+    // we do not want to change a field which is "partly" shown. The
+    // UI here is confused, since there is a difference in appearance when
+    // removing a category than when adding one (the former won't remove
+    // toggled-on but the latter won't add toggled-on for partial bins).
+    //
+    countFields.forEach(field => {
+      const toggle = toggles[field];
+      const count = counts[field];
+
+      const all_shown = count === toggle.maxcounts;
+
+      if (all_shown) {
+	toggle.input.checked = true;
+      } else if (count === 0) {
+	toggle.input.checked = false;
+      }
+
+      let label =
+	`${field} (` +
+		   (all_shown ?
+		    `${count} sources` :
+		    `${count} of ${toggle.maxcounts} sources`) +
+		   ')';
+
+      removeChildren(toggle.label);
+      addText(toggle.label, label);
+    });
+  }
+
   // Add the export-to-samp options.
   //
   function createExportSourceProperties(active, ra0, dec0, rmax) {
@@ -1379,6 +1577,72 @@ const wwtprops = (function () {
     return div;
   }
 
+  // Add in the toggles for the source properties
+  //
+  function addSourceToggles(parent, catinfo, counts, to_show_bitmask) {
+    if (to_show_bitmask === 0) {
+      console.log("INTERNAL ERROR: no source properties to toggle!");
+      return;
+    }
+
+    const div = mkDiv('options');
+    parent.appendChild(div);
+
+    // What is the current selection?
+    //
+    const bitinfo = {showing: to_show_bitmask};
+
+    const toggles = {acis: {bitmask: is_acis_bit, maxcounts: 0,
+			    input: null, label: null},
+		     hrc: {bitmask: is_hrc_bit, maxcounts: 0,
+			   input: null, label: null},
+		     variable: {bitmask: is_variable_bit, maxcounts: 0,
+				input: null, label: null},
+		     'not-variable': {bitmask: is_not_variable_bit,
+				      maxcounts: 0,
+				      input: null, label: null}
+		    };
+
+    // Do we add the toggle?
+    //
+    toggleFields.forEach(flag => {
+      if (counts[flag] === 0) {
+	console.log(`Note: skipping toggle ${flag} as no matches`);
+	delete toggles[flag];
+	return;
+      }
+
+      toggles[flag].maxcounts = counts[flag];
+
+      const cbox = mkDiv('checkbox');
+
+      const name = `toggle-${flag}`;
+      const input = document.createElement('input');
+      input.setAttribute('id', name);
+      input.setAttribute('name', name);
+      input.setAttribute('type', 'checkbox');
+      input.checked = true;
+
+      const label = document.createElement('label');
+      label.setAttribute('for', name);
+
+      addText(label, `${flag} (${counts[flag]} sources)`);
+
+      const toggle = (event) => {
+	updateSourceToggles(catinfo, toggles, bitinfo, flag,
+			    event.target.checked);
+      };
+      input.addEventListener('click', ev => toggle(ev), false);
+
+      div.appendChild(cbox);
+      cbox.appendChild(input);
+      cbox.appendChild(label);
+
+      toggles[flag].input = input;
+      toggles[flag].label = label;
+    });
+  }
+
   // Create the "you've selectected elevnty-million sources,
   // now what" pane. I assume there will need to be a version for
   // the help page.
@@ -1426,6 +1690,34 @@ const wwtprops = (function () {
     p.insertAdjacentHTML('beforeend', pos);
     addText(p, '.');
 
+    // We add in the bitmask to the source information rather than
+    // creating a separate array. Should this really be calculated
+    // when the data is loaded (so only done once)?
+    // We also add in a 'shown' field for use when toggling the display.
+    //
+    const bits = {'acis': is_acis_bit, 'hrc': is_hrc_bit,
+		  'variable': is_variable_bit,
+		  'not-variable': is_not_variable_bit};
+    const counts = {'acis': 0, 'hrc': 0, 'variable': 0, 'not-variable': 0};
+
+    let to_show_bitmask = 0;
+    catinfo.annotations.forEach(d => {
+      // Use the object interface until decide what data we want.
+      const src = wwt.getCSCObject(d.data);
+      const flags = get_src_flags(src);
+
+      let bitmask = 0;
+      toggleFields.forEach(flag => {
+	if (!flags[flag]) { return; }
+	bitmask |= bits[flag];
+	counts[flag] += 1;
+      });
+
+      d.shown = true;
+      d.bitmask = bitmask;
+      to_show_bitmask |= bitmask;
+    });
+
     // Add plot button.
     //
     const pbtn = document.createElement('button');
@@ -1438,6 +1730,8 @@ const wwtprops = (function () {
 			    () => wwtplots.plotSources(catinfo),
 			    false);
     }
+
+    addSourceToggles(mainDiv, catinfo, counts, to_show_bitmask);
 
     //   - add plot button
     //   - add menu for SAMP table calls
