@@ -1343,7 +1343,10 @@ const wwtprops = (function () {
   // possisbly following the ADS UI with its faceted browsing (i.e.
   // letting the user say what sort of choice the filter is).
   //
-  function updateSourceToggles(catinfo, toggles, bitinfo, toggled, newstate) {
+  // pbtn is to be disabled if no sources shown, otherwise enabled.
+  //
+  function updateSourceToggles(catinfo, toggles, pbtn,
+			       bitinfo, toggled, newstate) {
 
     // This shouldn't happen, but short-circuit things if it ever does.
     //
@@ -1428,8 +1431,10 @@ const wwtprops = (function () {
     });
 
     let bitmask = 0;
+    let nsrc = 0;
     catinfo.annotations.forEach(ann => {
       if (!ann.shown) { return; }
+      nsrc += 1;
 
       bitmask |= ann.bitmask;
 
@@ -1475,6 +1480,18 @@ const wwtprops = (function () {
       removeChildren(toggle.label);
       addText(toggle.label, label);
     });
+
+    // Disable or enable the plot button; could include the number of
+    // sources?
+    //
+    pbtn.disabled = (nsrc === 0);
+    removeChildren(pbtn);
+    if (nsrc > 0) {
+      addText(pbtn, `Plot source properties (${nsrc} sources)`);
+    } else {
+      // What label to use?
+      addText(pbtn, 'Plot source properties');
+    }
   }
 
   // Add the export-to-samp options.
@@ -1577,9 +1594,10 @@ const wwtprops = (function () {
     return div;
   }
 
-  // Add in the toggles for the source properties
+  // Add in the toggles for the source properties. If there are no
+  // sources (after a toggle) then disable pbtn, otherwise enable it.
   //
-  function addSourceToggles(parent, catinfo, counts, to_show_bitmask) {
+  function addSourceToggles(parent, catinfo, counts, to_show_bitmask, pbtn) {
     if (to_show_bitmask === 0) {
       console.log("INTERNAL ERROR: no source properties to toggle!");
       return;
@@ -1629,7 +1647,7 @@ const wwtprops = (function () {
       addText(label, `${flag} (${counts[flag]} sources)`);
 
       const toggle = (event) => {
-	updateSourceToggles(catinfo, toggles, bitinfo, flag,
+	updateSourceToggles(catinfo, toggles, pbtn, bitinfo, flag,
 			    event.target.checked);
       };
       input.addEventListener('click', ev => toggle(ev), false);
@@ -1731,7 +1749,7 @@ const wwtprops = (function () {
 			    false);
     }
 
-    addSourceToggles(mainDiv, catinfo, counts, to_show_bitmask);
+    addSourceToggles(mainDiv, catinfo, counts, to_show_bitmask, pbtn);
 
     //   - add plot button
     //   - add menu for SAMP table calls
