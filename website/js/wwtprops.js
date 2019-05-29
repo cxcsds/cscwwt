@@ -998,6 +998,85 @@ const wwtprops = (function () {
     wwt.removeToolTipHandler('export-samp-source');
   }
 
+  // Add an option element to the select instance. At the moment only
+  // plain text can be used as the contents.
+  //
+  function addOption(sel, value, label) {
+    const option = document.createElement('option');
+    option.setAttribute('value', value);
+    addText(option, label);
+    sel.appendChild(option);
+  }
+
+  // Create an option list of SAMP clients. The user uses this to
+  // decide where the message is sent. The options are
+  //
+  //    -- select target --      if unselected argument is true
+  //    copy to clipboard        valid even if no SAMP hub is present
+  //    all                      requires hub
+  //    find clients             requires hub but not registered
+  //    client name ...          requires hub and regisgtered
+  //
+  // This list is updated by refreshSAMPClientList.
+  //
+  // To differentiate between a general option (e.g. copy to clipboard)
+  // and a client name, the values are opt-<value> or client-<name>,
+  // other than the 'select target' option, which is empty.
+  //
+  function createSAMPClientList(id, mtype, unselected) {
+    const sel = document.createElement('select');
+    sel.id = id;
+    sel.setAttribute('name', id);
+    sel.setAttribute('class', 'button');
+    sel.setAttribute('data-clientlist-mtype', mtype);
+    sel.setAttribute('data-clientlist-unselected', unselected);
+
+    if (unselected) {
+      addOption(sel, '', '-- select target --');
+    }
+
+    addOption(sel, 'opt-clipboard', 'copy to clipboard');
+
+    refreshSAMPClientList(sel);
+    return sel;
+  }
+
+  // Re-create the optional contents of the SAMP client list selector.
+  //
+  function refreshSAMPClientList(sel) {
+    const mtype = sel.getAttribute('data-clientlist-mtype');
+    const unselected = sel.getAttribute('data-clientlist-unselected');
+    if ((mtype === null) || (unselected === null)) {
+      console.log(`Internal error: not SAMP clientlist ${sel}`);
+      return;
+    }
+
+    // Would removing from the end of the list be any better for the DOM?
+    //
+    const oldOptions = sel.querySelectorAll('option');
+    const startClear = 1 + (unselected === 'true' ? 1 : 0);
+    for (var i = startClear; i < oldOptions.length; i++) {
+      removeChildren(oldOptions[i]);
+      sel.removeChild(oldOptions[i]);
+    }
+
+    const hasHub = wwtsamp.hasHub();
+    const isRegistered = wwtsamp.isRegistered();
+
+    if (hasHub) {
+      addOption(sel, 'opt-all', 'all');
+
+      if (isRegistered) {
+	wwtsamp.respondsTo(mtype).forEach(client => {
+	  addOption(sel, `client-${client.id}`, client.name);
+	});
+      } else {
+	// The 'find clients' functionality is not currently supported
+	// addOption(sel, 'opt-find', 'find clients');
+      }
+    }
+  }
+
   // Add the export-to-samp options.
   //
   // If active is false then this is taken to be for the help page,
@@ -1010,10 +1089,35 @@ const wwtprops = (function () {
     // need nested divs (or a different approach, but this is quicker to
     // hack).
     //
+
+    /*** NOTES
+    TODO: expand requires-samp with a data attribute giving the mtype,
+    so can check if there are any clients that match the data and
+    a data url giving the id of the element to update with the links
+    (a select/input set up) [this latter is optional]
+
+    Note: once a SAMP connection has been updated the availablity check
+    stops running (restarts once the connection stops, I *believe*). So
+    this list will not get updated, unless hook into the client tracker
+    to update the list whenever a client is added/removed
+
+    if have cipy-to-clipboard action (for the url) then we can always display
+    the samp area.
+
+    TODO: perhaps want
+
+        EXPORT   |  What:   <options>
+          TO     |  Where:  <options>
+
+    ***/
+
+    const clientListId = 'export-clientlist-sources';
+    const mtype = 'table.load.votable';
+
     const div = document.createElement('div');
-    if (active) {
-      div.setAttribute('class', 'requires-samp');
-    }
+    // div.setAttribute('class', 'requires-samp');
+    div.setAttribute('data-samp-mtype', mtype);
+    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
 
     const div2 = document.createElement('div');
     div2.setAttribute('class', 'samp-export-list');
@@ -1022,7 +1126,10 @@ const wwtprops = (function () {
     btn.id = 'export-samp';
     btn.setAttribute('class', 'button');
     btn.setAttribute('type', 'button');
-    addText(btn, 'Send via SAMP');
+    addText(btn, 'Export to ...');
+
+    // Do we want a label for this widget?
+    const clientList = createSAMPClientList(clientListId, mtype, false);
 
     const sel = document.createElement('select');
     sel.id = 'export-samp-choice';
@@ -1034,10 +1141,7 @@ const wwtprops = (function () {
 		  {value: 'photometry', label: 'Photometric'},
 		  {value: 'variability', label: 'Variability'}];
     opts.forEach(opt => {
-      const option = document.createElement('option');
-      option.setAttribute('value', opt.value);
-      addText(option, opt.label);
-      sel.appendChild(option);
+      addOption(sel, opt.value, opt.label);
     });
 
     const lbl = document.createElement('label');
@@ -1046,6 +1150,7 @@ const wwtprops = (function () {
 
     const bdiv = document.createElement('div');
     bdiv.appendChild(btn);
+    bdiv.appendChild(clientList);
 
     const sdiv = document.createElement('div');
     sdiv.appendChild(sel);
@@ -1055,22 +1160,32 @@ const wwtprops = (function () {
     div2.appendChild(sdiv);
     div.appendChild(div2);
 
-    const selected = {choice: 'basic'};
+    // What query do we send (choice) and where to (target)?
+    //
+    const selected = {choice: 'basic', target: 'opt-clipboard'};
+
     if (active) {
       sel.addEventListener('change', ev => {
 	selected.choice = ev.target.value;
       }, false);
 
+      clientList.addEventListener('change', ev => {
+	selected.target = ev.target.value;
+      }, false);
+
       btn.addEventListener('click', () => {
 	console.log(`Chosen ADQL option: ${selected.choice}`);
-	wwtsamp.sendSourcePropertiesNear(ra0, dec0, rmax, selected.choice);
+	console.log(`Chosen target: ${selected.target}`);
+	wwtsamp.sendSourcePropertiesNear(ra0, dec0, rmax,
+					 selected.choice,
+					 selected.target);
       }, false);
     }
 
     // If we know that SAMP is available then no need to wait for
-    // the periodic refresh.
+    // the periodic refresh. This is going to go away.
     //
-    if (active && wwtsamp.isRegistered()) {
+    if (active) {
       div.style.display = 'block';
     }
 
@@ -1124,7 +1239,7 @@ const wwtprops = (function () {
     p.insertAdjacentHTML('beforeend', pos);
     addText(p, '.');
 
-    // Create the button
+    // Add plot button.
     //
     const pbtn = document.createElement('button');
     pbtn.id = 'display-source-plot';
@@ -1147,6 +1262,8 @@ const wwtprops = (function () {
     pplot.appendChild(pbtn);
     mainDiv.appendChild(pplot);
 
+    // Add menu for SAMP table calls
+    //
     const psamp = createExportSourceProperties(active, ra0, dec0, rmax);
     mainDiv.appendChild(psamp);
 
