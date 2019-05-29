@@ -360,13 +360,42 @@ const wwtsamp = (function () {
 
   // Should we also send an ID?
   //
-  function sendURL(mtype, url, desc) {
+  // target can be
+  //    opt-clipboard
+  //    opt-all
+  //    opt-find
+  //    client-<client id>
+  //
+  // For now treat opt-find as opt-all.
+  //
+  // Limited checking of the target field.
+  //
+  function sendURL(target, mtype, url, desc) {
+    if (target === 'opt-clipboard') {
+      sampTrace('SAMP: copying URL to clipboard');
+      wwt.copyToClipboard(null, url);
+      return;
+    } else if (target === 'opt-find') {
+      console.log('*** WARNING *** opt-find -> opt-all');
+      target = 'opt-all';
+    }
 
     openSAMP();
-
     sampConnection.runWithConnection((conn) => {
       const msg = new samp.Message(mtype, {url: url, name: desc});
-      conn.notifyAll([msg], handleSAMPResponse(mtype));
+
+      if (target === 'opt-all') {
+	sampTrace(`SAMP ${mtype} query to all clients`);
+	conn.notifyAll([msg], handleSAMPResponse(mtype));
+
+      } else if (target.startsWith('client-')) {
+	const client = target.slice(7);
+	sampTrace(`SAMP ${mtype} query to client: ${client}`);
+	conn.notify([client, msg], handleSAMPResponse(mtype));
+
+      } else {
+	sampTrace(`SAMP WARNING: invalid target=${target}`);
+      }
     }, reportSAMPError);
 
   }
@@ -392,7 +421,14 @@ const wwtsamp = (function () {
   // ra, dec, and fov are in decimal degrees, and fov is
   // converted to a search radius.
   //
-  function sendSourcePropertiesNear(ra, dec, fov, search) {
+  // search determines which ADQL query the user sends
+  // target determines where the target should be sent
+  //
+  function sendSourcePropertiesNear(ra, dec, fov, search, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sensSourcePropertiesNear sent empty target');
+      return;
+    }
 
     let searchURL = typeof search === 'undefined' ?
       masterSearches.basic : masterSearches[search];
@@ -410,7 +446,8 @@ const wwtsamp = (function () {
 
     const rmax = fov * 60.0;  // convert to arcmin
     const url = searchURL.get(ra, dec, rmax);
-    sendURL('table.load.votable', url,
+    sendURL(target,
+	    'table.load.votable', url,
             `CSC 2.0 ${searchURL.label} source properties (cone-search)`);
   }
 
@@ -418,7 +455,7 @@ const wwtsamp = (function () {
 
     sampTrace(`SAMP: source properties name ${name}`);
     const url = masterSourcePropertiesByName(name);
-    sendURL('table.load.votable', url,
+    sendURL('opt-all', 'table.load.votable', url,
             'CSC 2.0 master-source properties (single source)');
   }
 
@@ -436,8 +473,40 @@ const wwtsamp = (function () {
       `version=cur&filetype=stkevt3&filename=${stack}N${verstr}_evt3.fits`;
 
     console.log(`--> sending image.load.fits for ${url}`);
-    sendURL('image.load.fits', url,
+    sendURL('opt-all', 'image.load.fits', url,
             `Stack evt3 for ${stack}`);
+  }
+
+  // Return information on any SAMP clients that respond to the
+  // given mtype. There is no attempt to check a valid mtype.
+  //
+  // If we are not registered with a SAMP hub then returns null,
+  // otherwise a list (may be empty) of clients, where each
+  // client has fields id and name.
+  //
+  function respondsTo(mtype) {
+    if ((sampConnection === null) || !sampIsRegistered) { return null; }
+
+    // Is this the best way to do this?
+    //
+    sampTrace(`SAMP: querying for [${mtype}] clients`);
+
+    // Rely on the callable client knowing this- i.e. we do not
+    // have to call getSubscribedClients.
+    //
+    const clientNames = [];
+    const cc = sampConnection.callableClient;
+    for (var clid in cc.ids) {
+      if (mtype in cc.subs[clid]) {
+	const clName = cc.getName(clid);
+	clientNames.push({id: clid, name: clName});
+      }
+    }
+
+    // Could group by client name (in case multiple copies are
+    // running).
+    //
+    return clientNames;
   }
 
   return { onload: onload,
@@ -459,8 +528,9 @@ const wwtsamp = (function () {
 
 	   hasConnected: () => sampConnection !== null,
 	   isRegistered: () => sampIsRegistered,
-	   hasHub: () => sampHubIsPresent
+	   hasHub: () => sampHubIsPresent,
 
+	   respondsTo: respondsTo
          };
 
 })();

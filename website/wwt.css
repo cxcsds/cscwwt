@@ -808,8 +808,9 @@ div.settingspane .main + p {
 }
 ***/
 
-div.sourceselectionpane div.main p:first-child {
-  margin-top: 0;
+div.sourceselectionpane div.main p {
+  margin-bottom: 0.1em;
+  margin-top: 0.1em;
 }
 
 div.flowable p:first-child {
