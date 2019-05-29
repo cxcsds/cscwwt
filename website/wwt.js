@@ -1,7 +1,7 @@
 'use strict';
 
 /* global alert, XMLHttpRequest, CustomEvent */
-/* global wwtlib, wwtscreen, wwtprops, wwtplots, wwtsamp */
+/* global wwtlib, wwtscreen, wwtprops, wwtsamp */
 /* global draggable, lookup, spinner */
 /* global mw */
 
@@ -273,10 +273,13 @@ var wwt = (function () {
       saveState(keyClipboardFormat, clipboardFormat);
     }
 
-    return convertCoordinate(ra, dec, clipboardFormat);
+    return convertCoordinate(ra, dec, clipboardFormat, false);
   }
 
-  function convertCoordinate(ra, dec, format) {
+  // Set allowHTML to true to allow HTML in the returned string,
+  // although this only (currently) is used by format=letters
+  //
+  function convertCoordinate(ra, dec, format, allowHTML) {
     if (format === 'degrees') {
       return `${ra} ${dec}`;
     } else if (format === 'degrees-d') {
@@ -298,8 +301,9 @@ var wwt = (function () {
       return `${rah}:${ram}:${ras} ${decd}:${decm}:${decs}`;
     } else {
       // letters
-      return `${rah}h${ram}m${ras}s ${decd}°${decm}'${decs}"`;
-      // fix emacs: need an extra '
+      const token = l => allowHTML ? `<sup>${l}</sup>` : l;
+      const rastr = `${rah}${token('h')}${ram}${token('m')}${ras}${token('s')}`;
+      return `${rastr} ${decd}°${decm}'${decs}"`; // fix emacs: need an extra '
     }
   }
 
@@ -1709,11 +1713,7 @@ var wwt = (function () {
         'Show CSC2.0 Sources';
     }
 
-    const sampEl = document.querySelector('#export-samp');
-    sampEl.classList.remove('requires-samp');
-    sampEl.style.display = 'none';
-
-    ['plot-properties', 'sourceprops', 'plot'].forEach(hideElement);
+    ['sourceprops', 'plot'].forEach(hideElement);
 
     // Not 100% convinced whether we want this
     // wwtprops.clearSourceInfo();
@@ -1741,6 +1741,11 @@ var wwt = (function () {
       console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
     }
 
+    // Hide the source window. Note that this can be called when
+    // explicitly calling the window (that is, it may already be
+    // closed).
+    //
+    wwtprops.clearSourceSelection();
   }
 
   function _hideSources() {
@@ -1772,12 +1777,6 @@ var wwt = (function () {
     document.querySelector('#togglesources').innerHTML =
       'Hide CSC2.0 Sources';
 
-    // Let the "is SAMP enabled" check sort out the display of this
-    document.querySelector('#export-samp')
-      .classList.add('requires-samp');
-
-    showBlockElement('plot-properties');
-
     const sel = document.querySelector('#selectionmode');
     for (var idx = 0; idx < sel.options.length; idx++) {
       const opt = sel.options[idx];
@@ -1796,6 +1795,11 @@ var wwt = (function () {
       console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
     }
 
+    // Show the 'source window'.
+    //
+    wwtprops.addSourceSelection(sourceRA, sourceDec, sourceFOV,
+				catalogProps.csc20);
+
   }
 
   var sourceCircle = undefined;
@@ -1803,7 +1807,7 @@ var wwt = (function () {
   var sourceDec = undefined;
   var sourceFOV = undefined;
 
-  // Display the sources and create the data needed for the plots
+  // Display the sources
   //
   function _showSources() {
     const ra0 = 15.0 * wwt.getRA(); // convert from hours
@@ -2975,6 +2979,25 @@ var wwt = (function () {
      -0.4716,
      0.203];
 
+  // base on sourceExample
+  //
+  const raExample = 94.74868;
+  const decExample = -70.97541;
+  const rExample = 30.0 / 3600.0;
+
+  // define as a function because
+  //   a) it's complicated enough to benefit from a function
+  //   b) need access to information that is not guaranteed to be
+  //      available when the code is first processed (I think).
+  //
+  function makeSourceSelectionExample() {
+    const csc20 = catalogProps.csc20;
+    const pos = csc20.getPos(sourceExample);
+    return {
+      annotations: [makeAnnotation(sourceExample, pos, null)]
+    };
+  }
+
   // Returns the handler function used to hide or show the
   // resizeusercontrol area.
   //
@@ -3171,7 +3194,10 @@ var wwt = (function () {
 
     inputStackData = obsdata;
 
-    // Add in the example stack and source panes to the help page
+    // Add in the example panes to the help page
+
+    wwtprops.addSourceSelectionHelp(raExample, decExample, rExample,
+				    makeSourceSelectionExample());
     wwtprops.addStackInfoHelp(stackExample);
     wwtprops.addSourceInfoHelp(getCSCObject(sourceExample));
 
@@ -3221,24 +3247,12 @@ var wwt = (function () {
     host.querySelector('#bookmark')
       .addEventListener('click', (event) => { clipBookmark(event); }, false);
 
-    // SAMP button
+    // Tool tips
     //
-    host.querySelector('#export-samp')
-      .addEventListener('click', () => {
-        wwtsamp.sendSourcePropertiesNear(sourceRA, sourceDec, sourceFOV);
-      }, false);
-
-    host.querySelector('#plot-properties')
-      .addEventListener('click', () => {
-	wwtplots.plotSources(catalogProps.csc20);
-      }, false);
-
     addToolTipHandler('zoom0');
     addToolTipHandler('zoomn');
     addToolTipHandler('zoomin');
     addToolTipHandler('zoomout');
-    addToolTipHandler('export-samp');
-    addToolTipHandler('plot-properties');
 
     addToolTipHandler('smallify');
     addToolTipHandler('bigify');
