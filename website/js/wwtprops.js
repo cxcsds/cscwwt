@@ -1292,14 +1292,14 @@ const wwtprops = (function () {
   //   bit 6 - not extended
   //   bit 7 - is extended
   //
-  const is_marginal_bit = 1 << 0;
+  // const is_marginal_bit = 1 << 0;
   const is_true_bit = 1 << 1;
   const is_acis_bit = 1 << 2;
   const is_hrc_bit = 1 << 3;
   const is_not_variable_bit = 1 << 4;
   const is_variable_bit = 1 << 5;
-  const is_not_extended_bit = 1 << 6;
-  const is_extended_bit = 1 << 7;
+  // const is_not_extended_bit = 1 << 6;
+  // const is_extended_bit = 1 << 7;
 
   const toggleFields = ['acis', 'hrc', 'variable', 'not-variable'];
 
@@ -1410,7 +1410,6 @@ const wwtprops = (function () {
 	if ((ann.bitmask & bitval) !== 0) {
 	  ann.shown = false;
 	  ann.remove();
-	  return;
 	}
       });
     }
@@ -1597,9 +1596,10 @@ const wwtprops = (function () {
   // Add in the toggles for the source properties. If there are no
   // sources (after a toggle) then disable pbtn, otherwise enable it.
   //
-  function addSourceToggles(parent, catinfo, counts, to_show_bitmask, pbtn) {
+  function addSourceToggles(parent, active, catinfo, counts,
+			    to_show_bitmask, pbtn) {
     if (to_show_bitmask === 0) {
-      console.log("INTERNAL ERROR: no source properties to toggle!");
+      console.log('INTERNAL ERROR: no source properties to toggle!');
       return;
     }
 
@@ -1646,11 +1646,15 @@ const wwtprops = (function () {
 
       addText(label, `${flag} (${counts[flag]} sources)`);
 
-      const toggle = (event) => {
-	updateSourceToggles(catinfo, toggles, pbtn, bitinfo, flag,
-			    event.target.checked);
-      };
-      input.addEventListener('click', ev => toggle(ev), false);
+      if (active) {
+	const toggle = (event) => {
+	  updateSourceToggles(catinfo, toggles, pbtn, bitinfo, flag,
+			      event.target.checked);
+	};
+	input.addEventListener('click', ev => toggle(ev), false);
+      } else {
+	input.disabled = true;
+      }
 
       div.appendChild(cbox);
       cbox.appendChild(input);
@@ -1749,7 +1753,7 @@ const wwtprops = (function () {
 			    false);
     }
 
-    addSourceToggles(mainDiv, catinfo, counts, to_show_bitmask, pbtn);
+    addSourceToggles(mainDiv, active, catinfo, counts, to_show_bitmask, pbtn);
 
     //   - add plot button
     //   - add menu for SAMP table calls
