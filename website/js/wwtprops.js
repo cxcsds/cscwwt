@@ -1306,7 +1306,9 @@ const wwtprops = (function () {
 		  {value: 'photometry', label: 'Photometric'},
 		  {value: 'variability', label: 'Variability'}];
     opts.forEach(opt => {
-      addOption(adqlList, opt.value, opt.label);
+      // Add 'Master Source' prefix to match CSCView but will it
+      // use up too-much space on the screen?
+      addOption(adqlList, opt.value, `Master Source ${opt.label}`);
     });
 
     const lbl1 = document.createElement('label');
