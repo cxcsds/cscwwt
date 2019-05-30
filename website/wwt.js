@@ -35,9 +35,11 @@ var wwt = (function () {
   //     - show nearest stacks
   //     - show nearest sources
   //
-  // We flip these all to true if run on the test server.
+  // We flip these all to true if run on the test server (TEMPORARILY
+  // DISABLED).
+  //
   let displayCHS = false;
-  let displayCSC11 = false;
+  let displayCSC11 = true;
   let displayPolygonSelect = false;
   let displayNearestStacks = false;
   let displayNearestSources = false;
@@ -3121,6 +3123,7 @@ var wwt = (function () {
 
     // Hard-code behavior for the test server
     //
+    /** TEMPORARILY DISABLED
     const origin = loc.origin;
     if (typeof origin !== 'undefined' && origin.indexOf('cxc-dmz-prev') > 0) {
       displayPolygonSelect = true;
@@ -3129,6 +3132,7 @@ var wwt = (function () {
       displayNearestStacks = true;
       displayNearestSources = true;
     }
+    **/
 
     // Only ever support turning on an option, not off.
     displayPolygonSelect = displayPolygonSelect || params.has('polygon');
