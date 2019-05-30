@@ -397,14 +397,14 @@ const wwtprops = (function () {
     // is selected) rather than hard-coding the default value here
     // (in case the defult is changed in the future)?
     //
-    const selected = {target: 'opt-clipboard'};
+    const selected = {target: wwtsamp.TARGET_CLIPBOARD};
 
     if (active) {
       // NOTE: we special case the handling of target=opt-find,
       //       as this means register and then repopulate the field.
       //
       clientList.addEventListener('change', ev => {
-	if (ev.target.value === 'opt-find') {
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
 	  wwtsamp.register();
 	  // No point in refreshing the list, as the registration is
 	  // done asynchronously, so we don't know when to update.
@@ -468,14 +468,14 @@ const wwtprops = (function () {
     // is selected) rather than hard-coding the default value here
     // (in case the defult is changed in the future)?
     //
-    const selected = {target: 'opt-clipboard'};
+    const selected = {target: wwtsamp.TARGET_CLIPBOARD};
 
     if (active) {
       // NOTE: we special case the handling of target=opt-find,
       //       as this means register and then repopulate the field.
       //
       clientList.addEventListener('change', ev => {
-	if (ev.target.value === 'opt-find') {
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
 	  wwtsamp.register();
 	  // No point in refreshing the list, as the registration is
 	  // done asynchronously, so we don't know when to update.
@@ -1144,7 +1144,7 @@ const wwtprops = (function () {
       addOption(sel, '', '-- select target --');
     }
 
-    addOption(sel, 'opt-clipboard', 'copy to clipboard');
+    addOption(sel, wwtsamp.TARGET_CLIPBOARD, 'copy to clipboard');
 
     refreshSAMPClientList(sel);
     return sel;
@@ -1152,11 +1152,16 @@ const wwtprops = (function () {
 
   // Re-create the optional contents of the SAMP client list selector.
   //
-  // TODO:
-  //   - can we save/restore the selected item when the list is changed?
-  //     at the moment it swaps back to 'copy to clipboard', but if
-  //     a user has selected 'topcat' and then sees this disappear because
-  //     ds9 has just registered, they may not notice this change.
+  // The list contents are only updated if there is a change. This is
+  // separate from the selected option, which is changed to highlight
+  // the SAMP option if possible:
+  //   - if SAMP is unavailable, then select 'copy to clipboard'
+  //   - if SAMP is available
+  //     - if the previously-selected client is still available
+  //       then use it (this EXCLUDES 'copy to clipboard', as otherwise
+  //       we won't pick up a new value)
+  //     - if there is only one registered client, pick that
+  //     - otherwise select 'All clients'
   //
   function refreshSAMPClientList(sel) {
     const mtype = sel.getAttribute('data-clientlist-mtype');
@@ -1171,7 +1176,7 @@ const wwtprops = (function () {
 
     // Do we need to refresh the list?
     //
-    // Note that clientNames is null if we are not registered with a hub.
+    // Note that clients is null if we are not registered with a hub.
     //
     const hasHub = wwtsamp.hasHub();
     const isRegistered = wwtsamp.isRegistered();
@@ -1180,23 +1185,33 @@ const wwtprops = (function () {
     // See the comments to createSAMPClientList for the logic (the
     // aim is to only provide an option when it is meaningfull).
     //
+    // Also decide the "new" default selection here (although it
+    // may not be used), and store the value rather than the label.
+    // The use of strings here is not ideal.
+    //
     const newOptions = [];
-    const allOption = makeOption('opt-all', 'All clients');
+    const allOption = makeOption(wwtsamp.TARGET_ALL, 'All clients');
+    let defValue = null;
     if (hasHub) {
+      defValue = wwtsamp.TARGET_ALL;
       if (isRegistered) {
 	// should not be null here, but just in case
 	if ((clients !== null) && (clients.length > 0)) {
 	  if (clients.length > 1) {
 	    newOptions.push(allOption);
+	  } else {
+	    defValue = wwtsamp.targetClient(clients[0]);
 	  }
 	  clients.forEach(client => {
-	    newOptions.push(makeOption(`client-${client.id}`, client.name));
+	    newOptions.push(makeOption(wwtsamp.targetClient(client), client.name));
 	  });
 	}
       } else {
 	newOptions.push(allOption);
-	newOptions.push(makeOption('opt-find', 'Find clients'));
+	newOptions.push(makeOption(wwtsamp.TARGET_FIND, 'Find clients'));
       }
+    } else {
+      defValue = wwtsamp.TARGET_CLIPBOARD;
     }
 
     let i;
@@ -1214,14 +1229,43 @@ const wwtprops = (function () {
       }
     }
 
-    // Would removing from the end of the list be any better for the DOM?
+    // What is the currently-selected option? We replace "copy to clipboard"
+    // by defValue if found (although defValue may be "copy to clipboard").
     //
-    for (i = startClear; i < oldOptions.length; i++) {
-      removeChildren(oldOptions[i]);
-      sel.removeChild(oldOptions[i]);
+    let selOpt = sel.querySelector('option:checked');
+    let selectedValue = null;
+    if (selOpt !== null) {
+      if (selOpt.value !== wwtsamp.TARGET_CLIPBOARD) {
+	selectedValue = selOpt.value;
+      }
+    }
+    if (selectedValue === null) {
+      selectedValue = defValue;
+    }
+
+    for (i = oldOptions.length; i >= startClear; i--) {
+	sel.remove(i);
     }
 
     newOptions.forEach(opt => sel.appendChild(opt));
+
+    // If we can, use the previous selection. Requery the DOM just
+    // to make it easier to follow.
+    //
+    let qstr = selectedValue === '' ? 'option[value=""]'
+	: `option[value=${selectedValue}]`;
+    selOpt = sel.querySelector(qstr);
+    if (selOpt !== null) {
+      selOpt.selected = true;
+    } else {
+      qstr = `option[value=${defValue}]`;
+      selOpt = sel.querySelector(qstr);
+      if (selOpt !== null) {
+	selOpt.selected = true;
+      } else {
+	sel.querySelector('option').selected = true;
+      }
+    }
 
     // Try to ensure any handlers for this widget get fired in case there
     // has been a change in the selected item.
@@ -1303,7 +1347,7 @@ const wwtprops = (function () {
     // is selected) rather than hard-coding the default values here
     // (in case the defults are changed in the future)?
     //
-    const selected = {choice: 'basic', target: 'opt-clipboard'};
+    const selected = {choice: 'basic', target: wwtsamp.TARGET_CLIPBOARD};
 
     if (active) {
       adqlList.addEventListener('change', ev => {
@@ -1314,7 +1358,7 @@ const wwtprops = (function () {
       //       as this means register and then repopulate the field.
       //
       clientList.addEventListener('change', ev => {
-	if (ev.target.value === 'opt-find') {
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
 	  wwtsamp.register();
 	  // No point in refreshing the list, as the registration is
 	  // done asynchronously, so we don't know when to update.
