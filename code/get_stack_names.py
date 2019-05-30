@@ -3,14 +3,16 @@
 """
 Usage:
 
-  python get_evtnames.py infile
+  python get_stack_names.py infile [stkevt3|sensity]
 
 Aim:
 
-Query csccli to return the "name" of the stack event files - that
+Query csccli to return the "name" of the stack data files - that
 is, the file name needed to query the csccli to get the data product.
 
 infile must have a stack column
+
+The options are stkevt3 or sensity - which means b or w band.
 
 """
 
@@ -21,9 +23,22 @@ from six.moves import urllib
 import json
 
 
-def report_evtname(stack):
+def get_url(stack, proptype):
 
-    url = 'http://cda.harvard.edu/csccli/browse?version=cur&packageset={}%2Fstkevt3'.format(stack)
+    url = 'http://cda.harvard.edu/csccli/browse?version=cur&packageset={}%2F{}'.format(stack, proptype)
+    if proptype == 'sensity':
+        url += '%2F'
+        if stack.startswith('hrc'):
+            url += 'w'
+        else:
+            url += 'b'
+
+    return url
+
+
+def report_filename(stack, proptype):
+
+    url = get_url(stack, proptype)
 
     try:
         resp = urllib.request.urlopen(url).read()
@@ -48,11 +63,24 @@ def report_evtname(stack):
     sys.stdout.flush()
 
 
+def usage():
+    sys.stderr.write("Usage: {} ".format(sys.argv[0]))
+    sys.stderr.write("stackfile [stkevt3|sensity]\n")
+    sys.exit(1)
+
+
 if __name__ == "__main__":
 
-    if len(sys.argv) != 2:
-        sys.stderr.write("Usage: {} stacks\n".format(sys.argv[0]))
-        sys.exit(1)
+    nargs = len(sys.argv)
+    if nargs < 2 or nargs > 3:
+        usage()
+
+    if nargs == 2:
+        proptype = 'stkevt3'
+    elif sys.argv[2] in ['stkevt3', 'sensity']:
+        proptype = sys.argv[2]
+    else:
+        usage()
 
     infile = sys.argv[1] + "[cols stack]"
 
@@ -63,4 +91,4 @@ if __name__ == "__main__":
 
     print("# stack filename")
     for stk in cr.get_column('stack').values:
-        report_evtname(stk)
+        report_filename(stk, proptype)
