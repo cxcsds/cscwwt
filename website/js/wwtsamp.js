@@ -419,6 +419,25 @@ const wwtsamp = (function () {
 
   }
 
+  const TARGET_CLIPBOARD = 'opt-clipboard';
+  const TARGET_FIND = 'opt-find';
+  const TARGET_ALL = 'opt-all';
+
+  // What is the label used to identify this client (this is the value
+  // field in the option tag, which we deconstruct with findTargetClient).
+  // The input is the client structure (it must have an id field).
+  //
+  function targetClient(client) {
+    return `client-${client.id}`;
+  }
+
+  // Given a value from an option, return the client id. It is an error
+  // if it is not a client target.
+  //
+  function findTargetClient(value) {
+    return value.slice(7);
+  }
+
   // Should we also send an ID?
   //
   // target can be
@@ -426,16 +445,16 @@ const wwtsamp = (function () {
   //    opt-all
   //    client-<client id>
   //
-  // This routine should never be sent a target of opt-fint.
+  // This routine should never be sent a target of opt-find.
   //
   //
   function sendURL(event, target, mtype, url, desc) {
-    if (target === 'opt-find') {
+    if (target === TARGET_FIND) {
       sampTrace(`Internal SAMP error: sendURL target=${target} mtype=${mtype}`);
       return;
     }
 
-    if (target === 'opt-clipboard') {
+    if (target === TARGET_CLIPBOARD) {
       sampTrace('SAMP: copying URL to clipboard');
       wwt.copyToClipboard(event, url);
       return;
@@ -445,12 +464,12 @@ const wwtsamp = (function () {
     sampConnection.runWithConnection((conn) => {
       const msg = new samp.Message(mtype, {url: url, name: desc});
 
-      if (target === 'opt-all') {
+      if (target === TARGET_ALL) {
 	sampTrace(`SAMP ${mtype} query to all clients`);
 	conn.notifyAll([msg], handleSAMPResponseAll(mtype));
 
       } else if (target.startsWith('client-')) {
-	const client = target.slice(7);
+	const client = findTargetClient(target);
 	sampTrace(`SAMP ${mtype} query to client: ${client}`);
 	conn.notify([client, msg], handleSAMPResponse(mtype));
 
@@ -593,7 +612,11 @@ const wwtsamp = (function () {
 	   isRegistered: () => sampIsRegistered,
 	   hasHub: () => sampHubIsPresent,
 
-	   respondsTo: respondsTo
+	   respondsTo: respondsTo,
+	   targetClient: targetClient,
+	   TARGET_CLIPBOARD: TARGET_CLIPBOARD,
+	   TARGET_FIND: TARGET_FIND,
+	   TARGET_ALL: TARGET_ALL
          };
 
 })();
