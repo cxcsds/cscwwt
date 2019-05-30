@@ -3,7 +3,7 @@
 /* global alert, CustomEvent */
 /* global stack_name_map, obi_map */
 /* global draggable */
-/* global wwt, wwtsamp */
+/* global wwt, wwtsamp, wwtplots */
 
 //
 // Display properties about a stack or a source.
@@ -206,14 +206,6 @@ const wwtprops = (function () {
     return p;
   }
 
-  // Add a tooltip para element.
-  //
-  function addToolTip(parent, id, text) {
-    const p = addPara(parent, text);
-    p.id = id;
-    p.setAttribute('class', 'tooltip');
-  }
-
   // Add a span item with the given class name which is a link
   // element with link text and the given call back when clicked.
   //
@@ -357,6 +349,150 @@ const wwtprops = (function () {
     return mainDiv;
   }
 
+  // Add in the SAMP export button for the stack info panel.
+  //
+  function addSendStackEvtFile(active, parent, stack, stackVersion) {
+    if (stackVersion === null) { return; }
+
+    const clientListId = 'export-clientlist-stkevt';
+    const mtype = 'image.load.fits';
+
+    const div = document.createElement('div');
+    div.setAttribute('class', 'samp-export-list');
+    div.setAttribute('data-samp-mtype', mtype);
+    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
+
+    const btn = document.createElement('button');
+    btn.id = 'export-samp-stkevt';
+    btn.setAttribute('class', 'button');
+    btn.setAttribute('type', 'button');
+    addText(btn, 'Export ...');
+
+    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+
+    const lbl = document.createElement('label');
+    lbl.setAttribute('for', clientList.id);
+    addText(lbl, 'Where:');
+
+    const bdiv = document.createElement('div');
+    bdiv.appendChild(btn);
+
+    const sdiv = document.createElement('div');
+    sdiv.setAttribute('class', 'grid-2-cols');
+
+    // Need to wrap in div do can use with grid CSS
+    const addWrap = el => {
+      const div = document.createElement('div');
+      div.appendChild(el);
+      sdiv.appendChild(div);
+    };
+
+    addWrap(lbl);
+    addWrap(clientList);
+
+    div.appendChild(bdiv);
+    div.appendChild(sdiv);
+
+    // Should this settings be generated from the DOM (i.e. what
+    // is selected) rather than hard-coding the default value here
+    // (in case the defult is changed in the future)?
+    //
+    const selected = {target: wwtsamp.TARGET_CLIPBOARD};
+
+    if (active) {
+      // NOTE: we special case the handling of target=opt-find,
+      //       as this means register and then repopulate the field.
+      //
+      clientList.addEventListener('change', ev => {
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
+	  wwtsamp.register();
+	  // No point in refreshing the list, as the registration is
+	  // done asynchronously, so we don't know when to update.
+	} else {
+	  selected.target = ev.target.value;
+	}
+      }, false);
+
+      btn.addEventListener('click', (event) => {
+	console.log(`Chosen target: ${selected.target}`);
+	wwtsamp.sendStackEvt3(event, stack.stackid, stackVersion, selected.target);
+      }, false);
+    }
+
+    parent.appendChild(div);
+  }
+
+  // Add in the SAMP export button for the single-source panel.
+  //
+  function addSendSourcePropertiesName(active, parent, src) {
+    const clientListId = 'export-clientlist-sourcename';
+    const mtype = 'table.load.votable';
+
+    const div = document.createElement('div');
+    div.setAttribute('class', 'samp-export-list');
+    div.setAttribute('data-samp-mtype', mtype);
+    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
+
+    const btn = document.createElement('button');
+    btn.id = 'export-samp-stkevt';
+    btn.setAttribute('class', 'button');
+    btn.setAttribute('type', 'button');
+    addText(btn, 'Export ...');
+
+    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+
+    const lbl = document.createElement('label');
+    lbl.setAttribute('for', clientList.id);
+    addText(lbl, 'Where:');
+
+    const bdiv = document.createElement('div');
+    bdiv.appendChild(btn);
+
+    const sdiv = document.createElement('div');
+    sdiv.setAttribute('class', 'grid-2-cols');
+
+    // Need to wrap in div do can use with grid CSS
+    const addWrap = el => {
+      const div = document.createElement('div');
+      div.appendChild(el);
+      sdiv.appendChild(div);
+    };
+
+    addWrap(lbl);
+    addWrap(clientList);
+
+    div.appendChild(bdiv);
+    div.appendChild(sdiv);
+
+    // Should this settings be generated from the DOM (i.e. what
+    // is selected) rather than hard-coding the default value here
+    // (in case the defult is changed in the future)?
+    //
+    const selected = {target: wwtsamp.TARGET_CLIPBOARD};
+
+    if (active) {
+      // NOTE: we special case the handling of target=opt-find,
+      //       as this means register and then repopulate the field.
+      //
+      clientList.addEventListener('change', ev => {
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
+	  wwtsamp.register();
+	  // No point in refreshing the list, as the registration is
+	  // done asynchronously, so we don't know when to update.
+	} else {
+	  selected.target = ev.target.value;
+	}
+      }, false);
+
+      btn.addEventListener('click', (event) => {
+	console.log(`Chosen target: ${selected.target}`);
+	wwtsamp.sendSourcePropertiesName(event, selected.target, src.name);
+      }, false);
+    }
+
+    parent.appendChild(div);
+  }
+
   // Create a "pop-up" window with details on the given stack.
   // This fills in the parent structure and determines whether this
   // is an "operational" or "inactive" version (for use or for display
@@ -396,33 +532,6 @@ const wwtprops = (function () {
     // Location of stack
     //
     nDiv.appendChild(addLocation(stack.pos[0], stack.pos[1], active));
-
-    // TEST SAMP: send stack event file
-    //
-    if (stackVersion !== null) {
-      const sampDiv = mkDiv('samp');
-      nDiv.appendChild(sampDiv);
-
-      const sampImg = mkImg('Send via SAMP',
-			    'wwtimg/fa/share.svg',
-			    null, null,
-			    'usercontrol icon requires-samp');
-      sampImg.id = 'export-samp-stkevt3';
-      sampImg.addEventListener('click',
-			       () => wwtsamp.sendStackEvt3(stack.stackid,
-							   stackVersion),
-			       false);
-      sampDiv.appendChild(sampImg);
-
-      // TODO: tool-tip handling of this doesn't seem to work
-      //       INVESTIGATE
-      //
-      const tooltip = 'Send the stack event3 file to ' +
-	    'virtual-observatory applications (this can be slow).'
-      addToolTip(sampDiv, 'export-samp-stkevt3-tooltip', tooltip);
-
-      wwt.addToolTipHandler('export-samp-stkevt3');
-    }
 
     // Target name (if available)
     //
@@ -552,6 +661,10 @@ const wwtprops = (function () {
       }
     }
 
+    // SAMP: send stack event file
+    //
+    addSendStackEvtFile(active, mainDiv, stack, stackVersion);
+
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
     //
@@ -603,6 +716,10 @@ const wwtprops = (function () {
 
   function findSourceInfo() {
     return findPane('sourceinfo', {right: '2em', top: '3em'}, true);
+  }
+
+  function findSourceSelection() {
+    return findPane('sourceselection', {right: '2em', bottom: '3em'}, true);
   }
 
   function findStackInfo() {
@@ -659,7 +776,9 @@ const wwtprops = (function () {
       return;
     }
 
-    addStackInfoContents(parent, stack, null, false);
+    // Need a version value for the SAMP button to appear, but doesn't
+    // really matter what it is.
+    addStackInfoContents(parent, stack, 20, false);
   }
 
   // Hide the element, remove its children, and return it.
@@ -679,9 +798,6 @@ const wwtprops = (function () {
 
   function clearStackInfo() {
     clearElement('#stackinfo');
-    // This handler may not have been created, so do not report
-    // if it can't be found.
-    wwt.removeToolTipHandler('export-samp-stkevt3', false);
   }
 
   // How to display the given "measured" or "calculated"
@@ -780,7 +896,7 @@ const wwtprops = (function () {
 	}
 	stext += '.';
       } else {
-	stext= 'Source detection was affected by saturation.';
+	stext = 'Source detection was affected by saturation.';
       }
       addPara(parent, stext);
     }
@@ -909,7 +1025,7 @@ const wwtprops = (function () {
     mainDiv.appendChild(binfoDiv);
 
     addSpanLink(binfoDiv, 'clipboard',
-		'Copy source name to clipboard',
+		'Copy name to clipboard',
 		active ? (event) => wwt.copyToClipboard(event, src.name) : null);
 
     const span = document.createElement('span');
@@ -933,40 +1049,14 @@ const wwtprops = (function () {
     //
     nDiv.appendChild(addLocation(src.ra, src.dec, active));
 
-    // TODO: this should only be done for sources we have
-    //       processed (e.g. have a nH), shouldn't it?
-    //
-    if (active) {
-      const sampDiv = mkDiv('samp');
-      nDiv.appendChild(sampDiv);
-
-      const sampImg = mkImg('Send via SAMP',
-			    'wwtimg/fa/share.svg',
-			    null, null,
-			    'usercontrol icon requires-samp');
-      sampImg.id = 'export-samp-source';
-      sampImg.addEventListener('click',
-			       () => wwtsamp.sendSourcePropertiesName(src.name),
-			       false);
-      sampDiv.appendChild(sampImg);
-
-      // TODO: tool-tip handling of this doesn't seem to work
-      //       INVESTIGATE <is this true here?>
-      //
-      const tooltip = 'Send the source properties to ' +
-	'virtual-observatory applications.';
-      addToolTip(sampDiv, 'export-samp-source-tooltip', tooltip);
-    }
-
     // finished adding to nDiv
     addSourceProperties(mainDiv, src, active);
 
-    parent.style.display = 'block';
+    // SAMP: send source properties
+    //
+    addSendSourcePropertiesName(active, mainDiv, src);
 
-    // The location of the tooltip isn't ideal here
-    if (active) {
-      wwt.addToolTipHandler('export-samp-source');
-    }
+    parent.style.display = 'block';
   }
 
   // srcid is the position of the source within catalogData
@@ -991,7 +1081,399 @@ const wwtprops = (function () {
 
   function clearSourceInfo() {
     clearElement('#sourceinfo');
-    wwt.removeToolTipHandler('export-samp-source');
+  }
+
+  // Add an option element to the select instance. At the moment only
+  // plain text can be used as the contents.
+  //
+  function makeOption(value, label) {
+    const option = document.createElement('option');
+    option.setAttribute('value', value);
+    addText(option, label);
+    return option;
+  }
+
+  function addOption(sel, value, label) {
+    sel.appendChild(makeOption(value, label));
+  }
+
+  // Create an option list of SAMP clients. The user uses this to
+  // decide where the message is sent. The options are
+  //
+  // *) currently unused
+  //
+  //    -- select target --      if unselected argument is true
+  //        would need to disable/enable button when set/changed
+  //
+  // *) always present
+  //
+  //    copy to clipboard
+  //
+  // *) hub present but not registered
+  //
+  //    all
+  //    find clients
+  //
+  // *) registered with hub and at least one client accepts the mtype
+  //
+  //    all                      if multiple clients
+  //    client name 1
+  //    ...
+  //    client name n
+  //
+  // This list is updated by refreshSAMPClientList.
+  //
+  // To differentiate between a general option (e.g. copy to clipboard)
+  // and a client name, the values are opt-<value> or client-<name>,
+  // other than the 'select target' option, which is empty.
+  //
+  function createSAMPClientList(active, id, mtype, unselected) {
+    const sel = document.createElement('select');
+    if (active) {
+      sel.id = id;
+      sel.setAttribute('name', id);
+    } else {
+      sel.id = `${id}-example`;
+      sel.setAttribute('name', `${id}-example`);
+    }
+    sel.setAttribute('class', 'button');
+    sel.setAttribute('data-clientlist-mtype', mtype);
+    sel.setAttribute('data-clientlist-unselected', unselected);
+
+    if (unselected) {
+      addOption(sel, '', '-- select target --');
+    }
+
+    addOption(sel, wwtsamp.TARGET_CLIPBOARD, 'copy to clipboard');
+
+    refreshSAMPClientList(sel);
+    return sel;
+  }
+
+  // Re-create the optional contents of the SAMP client list selector.
+  //
+  // The list contents are only updated if there is a change. This is
+  // separate from the selected option, which is changed to highlight
+  // the SAMP option if possible:
+  //   - if SAMP is unavailable, then select 'copy to clipboard'
+  //   - if SAMP is available
+  //     - if the previously-selected client is still available
+  //       then use it (this EXCLUDES 'copy to clipboard', as otherwise
+  //       we won't pick up a new value)
+  //     - if there is only one registered client, pick that
+  //     - otherwise select 'All clients'
+  //
+  function refreshSAMPClientList(sel) {
+    const mtype = sel.getAttribute('data-clientlist-mtype');
+    const unselected = sel.getAttribute('data-clientlist-unselected');
+    if ((mtype === null) || (unselected === null)) {
+      console.log(`Internal error: not SAMP clientlist ${sel}`);
+      return;
+    }
+
+    const oldOptions = sel.querySelectorAll('option');
+    const startClear = 1 + (unselected === 'true' ? 1 : 0);
+
+    // Do we need to refresh the list?
+    //
+    // Note that clients is null if we are not registered with a hub.
+    //
+    const hasHub = wwtsamp.hasHub();
+    const isRegistered = wwtsamp.isRegistered();
+    const clients = wwtsamp.respondsTo(mtype);
+
+    // See the comments to createSAMPClientList for the logic (the
+    // aim is to only provide an option when it is meaningfull).
+    //
+    // Also decide the "new" default selection here (although it
+    // may not be used), and store the value rather than the label.
+    // The use of strings here is not ideal.
+    //
+    const newOptions = [];
+    const allOption = makeOption(wwtsamp.TARGET_ALL, 'All clients');
+    let defValue = null;
+    if (hasHub) {
+      defValue = wwtsamp.TARGET_ALL;
+      if (isRegistered) {
+	// should not be null here, but just in case
+	if ((clients !== null) && (clients.length > 0)) {
+	  if (clients.length > 1) {
+	    newOptions.push(allOption);
+	  } else {
+	    defValue = wwtsamp.targetClient(clients[0]);
+	  }
+	  clients.forEach(client => {
+	    newOptions.push(makeOption(wwtsamp.targetClient(client), client.name));
+	  });
+	}
+      } else {
+	newOptions.push(allOption);
+	newOptions.push(makeOption(wwtsamp.TARGET_FIND, 'Find clients'));
+      }
+    } else {
+      defValue = wwtsamp.TARGET_CLIPBOARD;
+    }
+
+    let i;
+    if (oldOptions.length === newOptions.length + startClear) {
+      let flag = true;
+      for (i = startClear; flag && (i < newOptions.length); i++) {
+	const oldO = oldOptions[i + startClear];
+	const newO = newOptions[i];
+	const same = ((oldO.value === newO.value) &&
+		      (oldO.innerText === newO.innerText));
+	flag &= same;
+      }
+      if (flag) {
+	return;
+      }
+    }
+
+    // What is the currently-selected option? We replace "copy to clipboard"
+    // by defValue if found (although defValue may be "copy to clipboard").
+    //
+    let selOpt = sel.querySelector('option:checked');
+    let selectedValue = null;
+    if (selOpt !== null) {
+      if (selOpt.value !== wwtsamp.TARGET_CLIPBOARD) {
+	selectedValue = selOpt.value;
+      }
+    }
+    if (selectedValue === null) {
+      selectedValue = defValue;
+    }
+
+    for (i = oldOptions.length; i >= startClear; i--) {
+	sel.remove(i);
+    }
+
+    newOptions.forEach(opt => sel.appendChild(opt));
+
+    // If we can, use the previous selection. Requery the DOM just
+    // to make it easier to follow.
+    //
+    let qstr = selectedValue === '' ? 'option[value=""]'
+	: `option[value=${selectedValue}]`;
+    selOpt = sel.querySelector(qstr);
+    if (selOpt !== null) {
+      selOpt.selected = true;
+    } else {
+      qstr = `option[value=${defValue}]`;
+      selOpt = sel.querySelector(qstr);
+      if (selOpt !== null) {
+	selOpt.selected = true;
+      } else {
+	sel.querySelector('option').selected = true;
+      }
+    }
+
+    // Try to ensure any handlers for this widget get fired in case there
+    // has been a change in the selected item.
+    //
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      console.log(`INTERNAL ERROR: unable to trigger change for SAMP client list ${sel.id}`);
+    }
+
+  }
+
+  // Add the export-to-samp options.
+  //
+  function createExportSourceProperties(active, ra0, dec0, rmax) {
+    const clientListId = 'export-clientlist-sources';
+    const mtype = 'table.load.votable';
+
+    const div = document.createElement('div');
+    div.setAttribute('class', 'samp-export-list');
+    div.setAttribute('data-samp-mtype', mtype);
+    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
+
+    const btn = document.createElement('button');
+    btn.id = 'export-samp';
+    btn.setAttribute('class', 'button');
+    btn.setAttribute('type', 'button');
+    addText(btn, 'Export ...');
+
+    const adqlList = document.createElement('select');
+    adqlList.id = 'export-samp-choice';
+    adqlList.setAttribute('name', adqlList.id);
+    adqlList.setAttribute('class', 'button');
+
+    const opts = [{value: 'basic', label: 'Basic Summary'},
+		  {value: 'summary', label: 'Summary'},
+		  {value: 'photometry', label: 'Photometric'},
+		  {value: 'variability', label: 'Variability'}];
+    opts.forEach(opt => {
+      addOption(adqlList, opt.value, opt.label);
+    });
+
+    const lbl1 = document.createElement('label');
+    lbl1.setAttribute('for', adqlList.id);
+    addText(lbl1, 'What:');
+
+    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+
+    const lbl2 = document.createElement('label');
+    lbl2.setAttribute('for', clientList.id);
+    addText(lbl2, 'Where:');
+
+    const bdiv = document.createElement('div');
+    bdiv.appendChild(btn);
+
+    const sdiv = document.createElement('div');
+    sdiv.setAttribute('class', 'grid-2-cols');
+
+    // Need to wrap in div do can use with grid CSS
+    const addWrap = el => {
+      const div = document.createElement('div');
+      div.appendChild(el);
+      sdiv.appendChild(div);
+    };
+
+    addWrap(lbl1);
+    addWrap(adqlList);
+
+    addWrap(lbl2);
+    addWrap(clientList);
+
+    div.appendChild(bdiv);
+    div.appendChild(sdiv);
+
+    // What query do we send (choice) and where to (target)?
+    //
+    // Should these settings be generated from the DOM (i.e. what
+    // is selected) rather than hard-coding the default values here
+    // (in case the defults are changed in the future)?
+    //
+    const selected = {choice: 'basic', target: wwtsamp.TARGET_CLIPBOARD};
+
+    if (active) {
+      adqlList.addEventListener('change', ev => {
+	selected.choice = ev.target.value;
+      }, false);
+
+      // NOTE: we special case the handling of target=opt-find,
+      //       as this means register and then repopulate the field.
+      //
+      clientList.addEventListener('change', ev => {
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
+	  wwtsamp.register();
+	  // No point in refreshing the list, as the registration is
+	  // done asynchronously, so we don't know when to update.
+	} else {
+	  selected.target = ev.target.value;
+	}
+      }, false);
+
+      btn.addEventListener('click', (event) => {
+	console.log(`Chosen ADQL option: ${selected.choice}`);
+	console.log(`Chosen target: ${selected.target}`);
+	wwtsamp.sendSourcePropertiesNear(event, ra0, dec0, rmax,
+					 selected.choice,
+					 selected.target);
+      }, false);
+    }
+
+    return div;
+  }
+
+  // Create the "you've selectected elevnty-million sources,
+  // now what" pane. I assume there will need to be a version for
+  // the help page.
+  //
+  function addSourceSelectionInfo(parent, ra0, dec0, rmax, catinfo, active) {
+    if ((catinfo === null) || (catinfo.annotations === null)) {
+      console.log('INTERNAL ERROR: addSourceSelection sent catinfo[.annotations]=null');
+      return;
+    }
+    const nsrc = catinfo.annotations.length;
+    if (nsrc < 1) {
+      console.log('INTERNAL ERROR: addSourceSelection sent empty srcs');
+      return;
+    }
+
+    const mainDiv = addControlElements(parent,
+				       'CSC 2.0 sources',
+				       wwt.hideSources,
+				       active);
+
+    const p = document.createElement('p');
+    mainDiv.appendChild(p);
+
+    let rlabel = '';
+    if (rmax >= 1.0) {
+      rlabel = `${rmax.toFixed(1)}°`;
+    } else if (rmax >= (1.0 / 60.0)) {
+      rlabel = `${(rmax * 60).toFixed(1)}'`; // for emacs: '
+    } else {
+      rlabel = `${(rmax * 3600).toFixed(1)}"`; // for emacs: "
+    }
+
+    // TODO: add a "add to clipboard" icon?
+    //
+    const pos = wwt.convertCoordinate(ra0, dec0, 'letters', true);
+
+    // TODO: number needs to be editable (for when the selection
+    //       happens)
+    //
+    const lbl = nsrc === 1 ?
+	  'You have selected one source' :
+	  `You have selected ${nsrc} sources`;
+    addText(p, lbl);
+    addText(p, ` within ${rlabel} of `);
+    p.insertAdjacentHTML('beforeend', pos);
+    addText(p, '.');
+
+    // Add plot button.
+    //
+    const pbtn = document.createElement('button');
+    pbtn.id = 'display-source-plot';
+    pbtn.setAttribute('class', 'button');
+    pbtn.setAttribute('type', 'button');
+    addText(pbtn, 'Plot source properties');
+    if (active) {
+      pbtn.addEventListener('click',
+			    () => wwtplots.plotSources(catinfo),
+			    false);
+    }
+
+    //   - add plot button
+    //   - add menu for SAMP table calls
+    //
+    // Do not bother with data ranges since this is in the plots.
+    // Could have some widgets that let us filter on various columns.
+    //
+    const pplot = document.createElement('p');
+    pplot.appendChild(pbtn);
+    mainDiv.appendChild(pplot);
+
+    // Add menu for SAMP table calls
+    //
+    const psamp = createExportSourceProperties(active, ra0, dec0, rmax);
+    mainDiv.appendChild(psamp);
+
+    parent.style.display = 'block';
+  }
+
+  function addSourceSelection(ra, dec, rmax, catinfo) {
+    const parent = findSourceSelection();
+    if (parent === null) { return; }
+    addSourceSelectionInfo(parent, ra, dec, rmax, catinfo, true);
+  }
+
+  function addSourceSelectionHelp(ra, dec, rmax, catinfo) {
+    const parent = document.querySelector('#sourceselectionexample');
+    if (parent === null) {
+      console.log('Internal error: missing #sourceselectionexample');
+      return;
+    }
+    addSourceSelectionInfo(parent, ra, dec, rmax, catinfo, false);
+  }
+
+  function clearSourceSelection() {
+    clearElement('#sourceselection');
   }
 
   // Convert a separation in degrees to a "nice" string.
@@ -1334,6 +1816,10 @@ const wwtprops = (function () {
 	   addSourceInfoHelp: addSourceInfoHelp,
 	   clearSourceInfo: clearSourceInfo,
 
+	   addSourceSelection: addSourceSelection,
+	   addSourceSelectionHelp: addSourceSelectionHelp,
+	   clearSourceSelection: clearSourceSelection,
+
 	   addNearestStackTable: addNearestStackTable,
 	   addNearestSourceTable: addNearestSourceTable,
 	   clearNearestStackTable: clearNearestStackTable,
@@ -1341,6 +1827,8 @@ const wwtprops = (function () {
 
 	   addPolygonPane: addPolygonPane,
 	   closePolygonPane: closePolygonPane,
+
+	   refreshSAMPClientList: refreshSAMPClientList,
 
 	   raToTokens: raToTokens,
 	   decToTokens: decToTokens,

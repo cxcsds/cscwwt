@@ -170,12 +170,12 @@ output#dec_d { width: 2em; }
 output#ra_s { width: 3.5em; }
 output#dec_s { width: 2.5em; }
 
-/* Since the stack and source info boxes appear in the help area,
+/* Since the stack, source, and source selection panes appear in the help area,
  * do not apply all settings in this section, as some are left for
  * div#xxxinfo or later rules. Examples include the cursor and
  * position settings
  */
-div.stackinfopane , div.sourceinfopane ,
+div.stackinfopane , div.sourceinfopane , div.sourceselectionpane,
 div.neareststackinfopane , div.nearestsourceinfopane ,
 div.polygoninfopane {
   background: rgba(255, 255, 255, 0.6);
@@ -183,15 +183,11 @@ div.polygoninfopane {
   padding: 0;
 }
 
-div#stackinfo , div#sourceinfo {
+div#stackinfo , div#sourceinfo , div#sourceselection {
   cursor: move;
   display: none;
   overflow: auto;  /* scroll bar looks ugly when shown */
   position: absolute;
-  /* positions applied as inline styles
-  right: 2em;
-  top: 3em;
- */
   z-index: 200;
 }
 
@@ -205,9 +201,13 @@ div.stackinfopane {
 
 div.sourceinfopane {
   /* background: rgba(255, 255, 255, 1); */
-
   max-height: 700px;
   max-width: 700px;
+}
+
+/* what's the best way to stop making this pane too wide */
+div.sourceselectionpane {
+  max-width: 20em;
 }
 
 /*
@@ -226,31 +226,20 @@ div.infocontainer {
 
 
 /* based on .stackinfopane/.sourceinfopane */
-/* Would like this centered, but bottom-left is okay to start with
- */
-div.neareststackinfopane , div.nearestsourceinfopane {
-  /* bottom: 0.5em; */
+
+div.neareststackinfopane , div.nearestsourceinfopane ,
+div.polygoninfopane {
   cursor: move;
   display: none;
-  /* left: 0.5em; */
   overflow: auto;  /* scroll bar looks ugly when shown */
   position: absolute;
   z-index: 200;
 }
 
-div.polygoninfopane {
-  /* bottom: 0.5em; */
-  cursor: move;
-  display: none;
-  /* right: 0.5em; */
-  overflow: auto;
-  position: absolute;
-  z-index: 200;
-}
 
 div.stackinfopane div.main , div.sourceinfopane div.main ,
 div.neareststackinfopane div.main , div.nearestsourceinfopane div.main ,
-div.polygoninfopane div.main {
+div.sourceselectionpane div.main , div.polygoninfopane div.main {
   background: rgba(255, 255, 255, 1);
 }
 
@@ -275,17 +264,23 @@ div.coords {
   flex: auto;
 }
 
-/* due to rule specificity, need some explicit matches and not just rely
- * on .requires-samp.
- */
-.requires-samp ,
-img#export-samp-source , img#export-samp-stkevt3 {
+.requires-samp {
   display: none;
 }
 
 div.samp {
   text-align: right;  /* does this center the image? */
   flex: auto;
+}
+
+div.samp-export-list {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+}
+
+div.samp-export-list div:first-child {
+  margin-right: 0.5em;
 }
 
 /* note: using a table for layout as easy to do */
@@ -587,7 +582,7 @@ option:disabled {
   float: left;
 }
 
-#zoomn, #zoom0, #zoomin, #zoomout, #export-samp {
+#zoomn, #zoom0, #zoomin, #zoomout {
 }
 
 .usercontrol {
@@ -650,14 +645,6 @@ option:disabled {
   width: 18em;
 }
 
-#export-samp-tooltip {
-  width: 26em;
-}
-
-#plot-properties-tooltip {
-  width: 26em;
-}
-
 #targetName-tooltip {
   top: 2em;
   width: 15em;
@@ -680,14 +667,6 @@ option:disabled {
 }
 
 #register-samp {
-  display: none;
-}
-
-#export-samp {
-  display: none;
-}
-
-#plot-properties {
   display: none;
 }
 
@@ -826,6 +805,20 @@ div.settingspane .main + p {
 }
 ***/
 
+div.sourceselectionpane div.main p:first-child {
+  margin-top: 0;
+}
+
+div.sourceselectionpane div.main p {
+  margin-bottom: 0.1em;
+  margin-top: 0.1em;
+}
+
+div.sourceselectionpane div.main div.options {
+  margin-bottom: 0.5em;
+  margin-top: 0.5em;
+}
+
 div.flowable p:first-child {
   margin-top: 0;
 }
@@ -847,6 +840,13 @@ div.gridable {
   display: grid;
   grid-gap: 0.2em;
   grid-template-columns: repeat(5, 8em);
+}
+
+div.grid-2-cols {
+  align-items: center;
+  display: grid;
+  grid-gap: 0.2em;
+  grid-template-columns: auto auto;
 }
 
 #fullscreenoption {
