@@ -1187,7 +1187,6 @@ const wwtprops = (function () {
     //
     // Also decide the "new" default selection here (although it
     // may not be used), and store the value rather than the label.
-    // The use of strings here is not ideal.
     //
     const newOptions = [];
     const allOption = makeOption(wwtsamp.TARGET_ALL, 'All clients');
@@ -1217,7 +1216,7 @@ const wwtprops = (function () {
     let i;
     if (oldOptions.length === newOptions.length + startClear) {
       let flag = true;
-      for (i = startClear; flag && (i < newOptions.length); i++) {
+      for (i = 0; flag && (i < newOptions.length); i++) {
 	const oldO = oldOptions[i + startClear];
 	const newO = newOptions[i];
 	const same = ((oldO.value === newO.value) &&
@@ -1306,7 +1305,9 @@ const wwtprops = (function () {
 		  {value: 'photometry', label: 'Photometric'},
 		  {value: 'variability', label: 'Variability'}];
     opts.forEach(opt => {
-      addOption(adqlList, opt.value, opt.label);
+      // Add 'Master Source' prefix to match CSCView but will it
+      // use up too-much space on the screen?
+      addOption(adqlList, opt.value, `Master Source ${opt.label}`);
     });
 
     const lbl1 = document.createElement('label');

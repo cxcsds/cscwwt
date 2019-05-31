@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+SEE get_stack_names.py instead
+
 """
 Usage:
 
@@ -19,6 +21,9 @@ from six.moves import urllib
 import time
 
 import pycrates
+
+import json
+
 
 # TIMEFORMAT_OUT = '%Y-%m-%d %H:%M'
 
@@ -42,7 +47,12 @@ def make_stack_url(stack, props):
 
 
 def make_query(url):
-    """Query CSC and parse the response."""
+    """Query CSC and parse the response.
+
+    It is REQUIRED that there be only one filetype (e.g. sensity)
+    in the response. This means that '/sensity' or
+    '/sensity/b,/sensity/s' are invalid queries.
+    """
 
     try:
         ans = urllib.request.urlopen(url).read()
@@ -50,7 +60,27 @@ def make_query(url):
         sys.stderr.write("ERROR: failed query {}\n{}".format(url, ue))
         return None
 
-    raise NotImplementedError
+    # oh, let's be all python3-ey
+    jcts = json.loads(resp.decode('utf8'))
+    out = {}
+    for ans in jcts:
+        try:
+            filename = ans['filename']
+            filetype = ans['filetype']
+        except KeyError as le:
+            sys.stderr.write("Error: query missing - {}\n".format(ke))
+            return None
+
+        if filetype in out:
+            sys.stderr.write("MULTIPLE {} keys\n".format(filetype))
+
+        out[filetype] = filename
+
+    if len(out) == 0:
+        sys.stderr.write("No data from query\n")
+        return None
+
+    return out
 
 
 def find_stack_filenames(infile, props):
@@ -82,14 +112,22 @@ def find_stack_filenames(infile, props):
     for stack in stacks:
 
         url = make_stack_url(stack, props)
-        print(url)
+        ans = make_query(url)
+        if ans is None:
+            continue
 
-        raise NotImplementedError
+        out[stack] = ans
 
     # Should this get converted to ISO 8661 (or whatever) format?
     out['lastupdate'] = time.asctime()
 
-    raise NotImplementedError
+    print(json.dumps(out))
+
+
+def usage(progname):
+    sys.stderr.write("Usage: {} stkfile props\n".format(progname))
+    sys.exit(1)
+
 
 if __name__ == "__main__":
 
