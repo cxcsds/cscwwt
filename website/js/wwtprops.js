@@ -1187,7 +1187,6 @@ const wwtprops = (function () {
     //
     // Also decide the "new" default selection here (although it
     // may not be used), and store the value rather than the label.
-    // The use of strings here is not ideal.
     //
     const newOptions = [];
     const allOption = makeOption(wwtsamp.TARGET_ALL, 'All clients');
@@ -1217,7 +1216,7 @@ const wwtprops = (function () {
     let i;
     if (oldOptions.length === newOptions.length + startClear) {
       let flag = true;
-      for (i = startClear; flag && (i < newOptions.length); i++) {
+      for (i = 0; flag && (i < newOptions.length); i++) {
 	const oldO = oldOptions[i + startClear];
 	const newO = newOptions[i];
 	const same = ((oldO.value === newO.value) &&
