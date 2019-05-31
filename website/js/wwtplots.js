@@ -243,11 +243,12 @@ const wwtplots = (function () {
           hrcNum.push(src.hrc_num);
 	}
 
+	// Support old and new labelling
 	if (src.significance !== null) {
-          if (src.fluxband === 'broad') {
+          if ((src.fluxband === 0) || (src.fluxband === 'broad')) {
             fluxB.push(src.flux);
             sigB.push(src.significance);
-          } else if (src.fluxband === 'wide') {
+          } else if ((src.fluxband === 1) || (src.fluxband === 'wide')) {
             fluxW.push(src.flux);
             sigW.push(src.significance);
           }

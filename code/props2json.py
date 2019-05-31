@@ -35,6 +35,11 @@ RA and Dec are limited to 4 and 5 decimal places, to save some space
 (this should be sub-arcsecond accuracy). This saves less than 1% space
 so actually don't do it.
 
+There is some attempt to "save" space by
+
+  - changing boolean fields from 'FALSE'/'TRUE' to 0/1
+  - changing the band field from ''/'broad'/'wide' to -1/0/1
+
 """
 
 
@@ -164,17 +169,20 @@ def update_store(store, converters, ncols, l, pre):
 
     # extract flux values here, not in loop
     if fb != '':
-        band = 'broad'
+        # band = 'broad'
+        band = 0
         flux = rowdata['flux_aper_b']
         fluxlo = rowdata['flux_aper_lolim_b']
         fluxhi = rowdata['flux_aper_hilim_b']
     elif fw != '':
-        band = 'wide'
+        # band = 'wide'
+        band = 1
         flux = rowdata['flux_aper_w']
         fluxlo = rowdata['flux_aper_lolim_w']
         fluxhi = rowdata['flux_aper_hilim_w']
     else:
-        band = ''
+        # band = ''
+        band = -1
         flux = ''
         fluxlo = ''
         fluxhi = ''
@@ -290,6 +298,17 @@ def add_unprocessed_sources(store, pre):
     print("There are {} unprocessed sources".format(nmiss))
 
 
+# Convert FALSE and TRUE to 0 and 1 respectively
+def convert_to_bool(v):
+    v = v.strip()
+    if v == 'FALSE':
+        return 0
+    elif v == 'TRUE':
+        return 1
+    else:
+        raise ValueError("FLAG = <{}>".format(v))
+
+
 def convert_to_int(v):
     v = v.strip()
     if v == '':
@@ -305,13 +324,16 @@ def convert_to_float(v):
     return float(v)
 
 
-def make_converter(dtype):
+def make_converter(name, dtype):
 
-    # The spaces may be important in the strings, bit don't think
+    # The spaces may be important in the strings, but don't think
     # they are for my use case, so remove them.
     #
     if dtype == 'string':
-        return lambda v: v.strip()
+        if name.endswith('_flag'):
+            return convert_to_bool
+        else:
+            return lambda v: v.strip()
     elif dtype == 'integer':
         return convert_to_int
     elif dtype == 'float':
@@ -352,7 +374,7 @@ def read_tsv(infile, pre):
                 assert name not in store['metadata']
                 store['metadata'][name] = hdr
                 store['order'].append(name)
-                converters[name] = make_converter(hdr['datatype'])
+                converters[name] = make_converter(name, hdr['datatype'])
                 continue
 
             if in_header:

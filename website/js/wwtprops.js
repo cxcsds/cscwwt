@@ -867,6 +867,24 @@ const wwtprops = (function () {
     addRow(parent, 'Upper confidence limit', hival, 'labellimit');
   }
 
+  // What is the label to use for the given band. This is needed to
+  // support the "compression" in the data, where 0 indicates
+  // broad and 1 is wide. -1 is mapped to "".
+  // Also supports the old version
+  //
+  function getFluxBand(fluxband) {
+    if (fluxband === 0) {
+      return 'broad';
+    } else if (fluxband === 1) {
+      return 'wide';
+    } else if (fluxband === -1) {
+      return '';
+    } else {
+      // Assume "old format" data
+      return fluxband;
+    }
+  }
+
   // Add the table of source properties (if they exist) to the
   // given element.
   //
@@ -886,8 +904,9 @@ const wwtprops = (function () {
       return;
     }
 
-    const confused = src.conf_flag !== 'FALSE';
-    const saturated = src.sat_src_flag !== 'FALSE';
+    // Support new and old labelling (1 or TRUE)
+    const confused = (src.conf_flag === 1) || (src.conf_flag === 'TRUE');
+    const saturated = (src.sat_src_flag === 1) || (src.sat_src_flag === 'TRUE');
 
     if (confused || saturated) {
       let stext;
@@ -903,7 +922,7 @@ const wwtprops = (function () {
       addPara(parent, stext);
     }
 
-    if (src.var_flag !== 'FALSE') {
+    if ((src.var_flag === 1) || (src.var_flag === 'TRUE')) {
       addPara(parent,
 	      'Source is variable (within or between observations).');
     }
@@ -936,10 +955,12 @@ const wwtprops = (function () {
 	   'Galactic n<sub>H</sub> column density',
 	   src.nh_gal + ' × 10²⁰ cm⁻²');
 
-    if (src.fluxband !== '') {
+    // Support old and new system)
+    const hasFluxes = ['broad', 'wide', 0, 1];
+    if (hasFluxes.indexOf(src.fluxband) > -1) {
       addErrorRows(tbody,
 		   'columns/fluxes.html#apphotflux',
-		   `Aperture-corrected flux (${src.fluxband} band)`,
+		   `Aperture-corrected flux (${getFluxBand(src.fluxband)} band)`,
 		   `${src.flux} erg cm⁻² s⁻¹`,
 		   src.flux_lolim,
 		   src.flux_hilim,
@@ -1617,7 +1638,7 @@ const wwtprops = (function () {
     const mkButton = (flag) => {
       const btn = document.createElement('input');
       btn.setAttribute('type', 'checkbox');
-      btn.checked = flag === 'TRUE';
+      btn.checked = (flag === 1) || (flag === 'TRUE');
       btn.disabled = true;
 
       const td = document.createElement('td');
@@ -1664,7 +1685,7 @@ const wwtprops = (function () {
 
       trow.appendChild(mkButton(src[varIdx]));
 
-      trow.appendChild(mkElem('td', src[bandIdx]));
+      trow.appendChild(mkElem('td', getFluxBand(src[bandIdx])));
       trow.appendChild(mkElem('td', src[fluxIdx]));
       trow.appendChild(mkElem('td', src[nhIdx]));
     });
