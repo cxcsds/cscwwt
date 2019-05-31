@@ -547,7 +547,7 @@ const wwtsamp = (function () {
       return;
     }
 
-    sampTrace(`SAMP: stack=${stack} ver=${stackver} target=${target}`);
+    sampTrace(`SAMP: stkevt3 stack=${stack} ver=${stackver} target=${target}`);
 
     // simple for now
     let verstr;
@@ -561,6 +561,34 @@ const wwtsamp = (function () {
     console.log(`--> sending image.load.fits for ${url}`);
     sendURL(event, target, 'image.load.fits', url,
             `Stack evt3 for ${stack}`);
+  }
+
+  // Send the sensitivity image: note that we pick the b or w band
+  // depending on the stack id.
+  //
+  function sendStackSensity(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackSensity sent empty target');
+      return;
+    }
+
+    sampTrace(`SAMP: sensity stack=${stack} ver=${stackver} target=${target}`);
+
+    // simple for now
+    let verstr;
+    if (stackver < 10)       { verstr = '00' + stackver.toString(); }
+    else if (stackver < 100) { verstr = '0' + stackver.toString(); }
+    else                     { verstr = stackver.toString(); }
+
+    const band = stack.startsWith('acis') ? 'b' : 'w';
+
+    const url = 'http://cda.harvard.edu/csccli/retrieveFile?' +
+	  `version=cur&filetype=sensity&filename=${stack}N${verstr}_` +
+	  `${band}_sens3.fits`;
+
+    console.log(`--> sending image.load.fits for ${url}`);
+    sendURL(event, target, 'image.load.fits', url,
+            `Stack ${band}-band sensitivity image for ${stack}`);
   }
 
   // Return information on any SAMP clients that respond to the
@@ -608,6 +636,7 @@ const wwtsamp = (function () {
            sendSourcePropertiesNear: sendSourcePropertiesNear,
            sendSourcePropertiesName: sendSourcePropertiesName,
            sendStackEvt3: sendStackEvt3,
+	   sendStackSensity: sendStackSensity,
 
            // For debugging
            getSAMPConnection: () => sampConnection,

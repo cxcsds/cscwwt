@@ -3,38 +3,34 @@
 """
 Usage:
 
-  ./parse_evtnames.py output-of-get_evtnames.py [default-version]
+  ./parse_stack_names.py stkevt3|sensity output-of-get_stack_names.py
 
 Aim:
 
 Construct a JSON file mapping from stack id to version number. The
-default value is taken to be 20, unless explicitly listed. This is
-used
-
-a) to save space
-b) to handle cases where we are missing the mapping data
-   (under the assumption that 20 is still valid)
+assumption is that one version number is going to dominate the
+counts, so we only have to give versions for stacks that don't
+meet this version.
 
 """
 
 import sys
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import json
 
 
-def convert(infile, default_version, filetype='stkevt3'):
+def convert(filetype, infile):
 
     # Force an ordering to avoid un-needed reloads (by web browser)
     out = OrderedDict()
     out['filetype'] = filetype
     out['versions'] = OrderedDict()
 
-    # Parse into the full structure, and only later handle the
-    # default version
+    # Grab the file name and extract the version number.
     #
-    ndef = 0
+    versions = defaultdict(int)
     with open(infile, 'r') as fh:
         for l in fh.readlines():
             l = l.strip()
@@ -57,17 +53,21 @@ def convert(infile, default_version, filetype='stkevt3'):
             except TypeError:
                 assert False, filename
 
-            # Is an integer smaller than a 3-character string - for
-            # our purposes it should be.
-            #
             out['versions'][stack] = ver
 
-            if ver == default_version:
-                ndef += 1
+            versions[ver] += 1
 
-    if ndef == 0:
-        raise ValueError("No matches to default version={}".format(devault_version))
+    # What is the default version
+    vs = sorted(list(versions.items()), key=lambda x: x[1], reverse=True)
+    assert len(vs) > 0
+    default_version = vs[0][0]
+    ndef = vs[0][1]
 
+    # Output to stderr so not included in output
+    sys.stderr.write("Version breakdown\n")
+    for v, c in vs:
+        sys.stderr.write("  version= {:3d}  count= {}\n".format(v, c))
+    
     out['default_version'] = default_version
     out['ndefault_version'] = ndef
     delete = []
@@ -83,20 +83,17 @@ def convert(infile, default_version, filetype='stkevt3'):
 
 
 def usage(progname):
-    sys.stderr.write("Usage: {} infile [default-value]\n".format(progname))
+    sys.stderr.write("Usage: {} ".format(progname))
+    sys.stderr.write("stkevt3|sensity infile\n")
     sys.exit(1)
 
 
 if __name__ == "__main__":
 
     nargs = len(sys.argv)
-    if (nargs < 2) or (nargs > 3):
+    if nargs != 3:
         usage(sys.argv[0])
 
-    defver = 20
-    if nargs == 3:
-        defver = int(sys.argv[2])
-        if (defver < 1) or (defver > 999):
-            raise ValueError("Invalid defver={}".format(sys.argv[2]))
-
-    convert(sys.argv[1], defver)
+    filetype = sys.argv[1]
+    infile = sys.argv[2]
+    convert(filetype, infile)

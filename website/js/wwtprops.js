@@ -438,29 +438,66 @@ const wwtprops = (function () {
 
   // Add in the SAMP export button for the stack info panel.
   //
-  function addSendStackEvtFile(active, parent, stack, stackVersion) {
-    if (stackVersion === null) { return; }
+  // evtVersion and sensVersion are the version numbers of the stkevt3 and
+  // sensity files, respectively.
+  //
+  function addSendStackEvtFile(active, parent, stack, evtVersion, sensVersion) {
+    if ((evtVersion === null) && (sensVersion === null)) { return; }
 
     const clientListId = 'export-clientlist-stkevt';
     const mtype = 'image.load.fits';
 
-    // What is being exported?
-    //
-    const whatEl = document.createElement('span');
-    addText(whatEl, 'Stack event file');
-
     // What information is tracked?
     //
-    const selected = {target: wwtsamp.TARGET_CLIPBOARD};
+    const selected = {target: wwtsamp.TARGET_CLIPBOARD, choice: null};
+
+    // What is being exported? This could be a "scalar" or multiple items.
+    //
+    const band = stack.stackid.startsWith('acis') ? 'broad' : 'wide';
+
+    const opts = [{value: 'stkevt3', label: 'Stack event file'},
+		  {value: 'sensity',
+		   label: `Stack ${band}-band sensitivity image`}];
+    let whatEl;
+    if ((evtVersion !== null) && (sensVersion !== null)) {
+      whatEl = document.createElement('select');
+      whatEl.id = 'export-stack-choice';
+      whatEl.setAttribute('name', whatEl.id);
+      whatEl.setAttribute('class', 'button');
+      opts.forEach(opt => { addOption(whatEl, opt.value, opt.label); });
+      selected.choice = opts[0].value;
+    } else if (evtVersion !== null) {
+      whatEl = document.createElement('span');
+      addText(whatEl, opts[0].label);
+      selected.choice = opts[0].value;
+    } else {
+      whatEl = document.createElement('span');
+      addText(whatEl, opts[1].label);
+      selected.choice = opts[1].value;
+    }
 
     const els = createSAMPExport(active, mtype, 'export-samp-stkevt',
 				 clientListId, whatEl, selected);
 
     if (active) {
+      if (whatEl.id !== '') {
+	whatEl.addEventListener('change', ev => {
+	  selected.choice = ev.target.value;
+	}, false);
+      }
+
       els.button.addEventListener('click', (event) => {
+	console.log(`Chosen option: ${selected.choice}`);
 	console.log(`Chosen target: ${selected.target}`);
-	wwtsamp.sendStackEvt3(event, stack.stackid, stackVersion,
-			      selected.target);
+	if (selected.choice === 'stkevt3') {
+	  wwtsamp.sendStackEvt3(event, stack.stackid, evtVersion,
+				selected.target);
+	} else if (selected.choice === 'sensity') {
+	  wwtsamp.sendStackSensity(event, stack.stackid, sensVersion,
+				   selected.target);
+	} else {
+	  console.log('INTERNAL ERROR: unsupported option');
+	}
       }, false);
     }
 
@@ -508,9 +545,12 @@ const wwtprops = (function () {
   //          expected to be empty and have a class of stackinfopane
   // stack - object, stack details
   // stackVersion - null or the stack version
+  // sensityVersion - null or the sensity version
   // active - boolean, if true then links and handlers are used
   //
-  function addStackInfoContents(parent, stack, stackVersion, active) {
+  function addStackInfoContents(parent, stack,
+				stackVersion, sensityVersion,
+				active) {
 
     const mainDiv = addControlElements(parent,
 				       `Stack: ${stack.stackid}`,
@@ -665,7 +705,7 @@ const wwtprops = (function () {
 
     // SAMP: send stack event file
     //
-    addSendStackEvtFile(active, mainDiv, stack, stackVersion);
+    addSendStackEvtFile(active, mainDiv, stack, stackVersion, sensityVersion);
 
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
@@ -743,29 +783,42 @@ const wwtprops = (function () {
 		    {right: '0.5em', bottom: '0.5em'}, true);
   }
 
+  // Extract the version number for the given stack, if the table is
+  // loaded, otherwise return null.
+  //
+  function getVersion(versionTable, stackid) {
+    if (versionTable === null) {
+      return null;
+    }
+
+    if (stackid in versionTable.versions) {
+      return versionTable.versions[stackid];
+    }
+
+    if ('default_version' in versionTable) {
+      return versionTable.default_version;
+    }
+
+    /* This should not happen, unless the code hasn't picked up the
+     * new JSON file, so there is no default_version field.
+     * Which means that using the filetype field of versionTable is
+     * not expected to provide a useful answer.
+     */
+    const lbl = 'WARNING: stackVersion is undefined for ' +
+	  `${stackid} (${versionTable.filetype})`;
+    console.log(lbl);
+    return null;
+  }
+
   // Add the info for this stack to the main screen.
   //
-  function addStackInfo(stack, stackEventVersions) {
+  function addStackInfo(stack, stackEventVersions, stackSensityVersions) {
     const parent = findStackInfo();
     if (parent === null) { return; }
 
-    let stackVersion = null;
-    if (stackEventVersions !== null) {
-      if (stack.stackid in stackEventVersions.versions) {
-	stackVersion = stackEventVersions.versions[stack.stackid];
-      } else {
-	stackVersion = stackEventVersions.default_version;
-      }
-      /* This should not happen, unless the code hasn't picked up the
-       * new JSON file, so there is no default_version field.
-       */
-      if (typeof stackVersion === 'undefined') {
-	console.log(`WARNING: stackVersion is undefined for ${stack.stackid}`);
-	stackVersion = null;
-      }
-    }
-
-    addStackInfoContents(parent, stack, stackVersion, true);
+    const stackVersion = getVersion(stackEventVersions, stack.stackid);
+    const sensityVersion = getVersion(stackSensityVersions, stack.stackid);
+    addStackInfoContents(parent, stack, stackVersion, sensityVersion, true);
   }
 
   // Add the info for this stack to the help pane; this is an
@@ -778,9 +831,9 @@ const wwtprops = (function () {
       return;
     }
 
-    // Need a version value for the SAMP button to appear, but doesn't
+    // Need version values for the SAMP button to appear, but doesn't
     // really matter what it is.
-    addStackInfoContents(parent, stack, 20, false);
+    addStackInfoContents(parent, stack, 20, 22, false);
   }
 
   // Hide the element, remove its children, and return it.

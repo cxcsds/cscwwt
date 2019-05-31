@@ -1353,12 +1353,17 @@ var wwt = (function () {
 					   processXMMData);
 
   // Load in (asynchronously) the mapping between stack name and the
-  // version number of the stack event file available in the archive.
+  // version number of the stack event file/sensitivity map
+  // available in the archive.
   //
   var stackEventVersions = null;
+  var stackSensityVersions = null;
   const loadStackEventVersions = makeDownloadData('wwtdata/version.stkevt3.json',
 						  null, null,
 						  (d) => { stackEventVersions = d; });
+  const loadStackSensityVersions = makeDownloadData('wwtdata/version.sensity.json',
+						  null, null,
+						  (d) => { stackSensityVersions = d; });
 
   // Create the function to show the catalog.
   //   properties is the catalogProps.catalog field
@@ -2254,7 +2259,7 @@ var wwt = (function () {
     const fovs = stackAnnotations[stack0.stackid];
     fovs.forEach(fov => nearestFovs.push(changeFov(fov, true, 'cyan', 4)));
 
-    wwtprops.addStackInfo(stack0, stackEventVersions);
+    wwtprops.addStackInfo(stack0, stackEventVersions, stackSensityVersions);
 
     if (seps.length === 0) { return; }
 
@@ -2671,6 +2676,7 @@ var wwt = (function () {
       // sent via Web-SAMP, but leave in for now.
       //
       loadStackEventVersions();
+      loadStackSensityVersions();
       downloadEnsData();
 
       // TODO: should this only be changed once the ready function has
