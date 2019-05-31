@@ -349,6 +349,93 @@ const wwtprops = (function () {
     return mainDiv;
   }
 
+  // Add in the 'Export' button and options for SAMP/clipboard.
+  //
+  //   active is true if this is the live (not help) version
+  //   mtype is the mtype of the ADQL query
+  //   buttonId is the id for the button
+  //   clientListId is the id for the drop-down menu (SAMP client list)
+  //   whatEl is the element describing "what" is being exported
+  //     (if it has an id then the "what:" text label is linked to it)
+  //   selected should have a target field (it is updated by the client
+  //     list when a user changes the entry); only used if active is true
+  //
+  // Returns the div containing everything, the target-list element,
+  // and the button as an object (fields are 'container', 'list', 'button').
+  //
+  function createSAMPExport(active, mtype, buttonId, clientListId,
+			    whatEl, selected) {
+    const div = document.createElement('div');
+    div.setAttribute('class', 'samp-export-list');
+    div.setAttribute('data-samp-mtype', mtype);
+    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
+
+    const btn = document.createElement('button');
+    btn.id = buttonId;
+    btn.setAttribute('class', 'button');
+    btn.setAttribute('type', 'button');
+    addText(btn, 'Export ...');
+
+    const lbl1 = document.createElement('label');
+    if (whatEl.id !== '') {
+      lbl1.setAttribute('for', whatEl.id);
+    }
+    addText(lbl1, 'What:');
+
+    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+
+    const lbl2 = document.createElement('label');
+    lbl2.setAttribute('for', clientList.id);
+    addText(lbl2, 'Where:');
+
+    const bdiv = document.createElement('div');
+    bdiv.appendChild(btn);
+
+    const sdiv = document.createElement('div');
+    sdiv.setAttribute('class', 'grid-2-cols');
+
+    // Need to wrap in div do can use with grid CSS
+    const addWrap = el => {
+      const wdiv = document.createElement('div');
+      wdiv.appendChild(el);
+      sdiv.appendChild(wdiv);
+    };
+
+    addWrap(lbl1);
+    addWrap(whatEl);
+
+    addWrap(lbl2);
+    addWrap(clientList);
+
+    div.appendChild(bdiv);
+    div.appendChild(sdiv);
+
+    if (active) {
+      // NOTE:
+      //
+      // If TARGET_FIND is selected then the target is still changed,
+      // even though downstream code will treat this as a no-op. This
+      // is because the registration and then UI updates to include the
+      // clients can take a significant amount of time, during which
+      // the user can select the export button. Without changing the
+      // field then this would likely cause the TARGET_CLIPBOARD
+      // action to fire, which is a bit confusing (seen during user
+      // testing). It is also confusing to have the button do nothing,
+      // but possibly less confusing. One option would be to disable
+      // the button until the update has been done, but leave that
+      // for now as tricky to get right.
+      //
+      clientList.addEventListener('change', ev => {
+	selected.target = ev.target.value;
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
+	  wwtsamp.register(); // This is an asynchronous action
+	}
+      }, false);
+    }
+
+    return {container: div, list: clientList, button: btn};
+  }
+
   // Add in the SAMP export button for the stack info panel.
   //
   function addSendStackEvtFile(active, parent, stack, stackVersion) {
@@ -357,69 +444,27 @@ const wwtprops = (function () {
     const clientListId = 'export-clientlist-stkevt';
     const mtype = 'image.load.fits';
 
-    const div = document.createElement('div');
-    div.setAttribute('class', 'samp-export-list');
-    div.setAttribute('data-samp-mtype', mtype);
-    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
+    // What is being exported?
+    //
+    const whatEl = document.createElement('span');
+    addText(whatEl, 'Stack event file');
 
-    const btn = document.createElement('button');
-    btn.id = 'export-samp-stkevt';
-    btn.setAttribute('class', 'button');
-    btn.setAttribute('type', 'button');
-    addText(btn, 'Export ...');
-
-    const clientList = createSAMPClientList(active, clientListId, mtype, false);
-
-    const lbl = document.createElement('label');
-    lbl.setAttribute('for', clientList.id);
-    addText(lbl, 'Where:');
-
-    const bdiv = document.createElement('div');
-    bdiv.appendChild(btn);
-
-    const sdiv = document.createElement('div');
-    sdiv.setAttribute('class', 'grid-2-cols');
-
-    // Need to wrap in div do can use with grid CSS
-    const addWrap = el => {
-      const div = document.createElement('div');
-      div.appendChild(el);
-      sdiv.appendChild(div);
-    };
-
-    addWrap(lbl);
-    addWrap(clientList);
-
-    div.appendChild(bdiv);
-    div.appendChild(sdiv);
-
-    // Should this settings be generated from the DOM (i.e. what
-    // is selected) rather than hard-coding the default value here
-    // (in case the defult is changed in the future)?
+    // What information is tracked?
     //
     const selected = {target: wwtsamp.TARGET_CLIPBOARD};
 
-    if (active) {
-      // NOTE: we special case the handling of target=opt-find,
-      //       as this means register and then repopulate the field.
-      //
-      clientList.addEventListener('change', ev => {
-	if (ev.target.value === wwtsamp.TARGET_FIND) {
-	  wwtsamp.register();
-	  // No point in refreshing the list, as the registration is
-	  // done asynchronously, so we don't know when to update.
-	} else {
-	  selected.target = ev.target.value;
-	}
-      }, false);
+    const els = createSAMPExport(active, mtype, 'export-samp-stkevt',
+				 clientListId, whatEl, selected);
 
-      btn.addEventListener('click', (event) => {
+    if (active) {
+      els.button.addEventListener('click', (event) => {
 	console.log(`Chosen target: ${selected.target}`);
-	wwtsamp.sendStackEvt3(event, stack.stackid, stackVersion, selected.target);
+	wwtsamp.sendStackEvt3(event, stack.stackid, stackVersion,
+			      selected.target);
       }, false);
     }
 
-    parent.appendChild(div);
+    parent.appendChild(els.container);
   }
 
   // Add in the SAMP export button for the single-source panel.
@@ -428,69 +473,26 @@ const wwtprops = (function () {
     const clientListId = 'export-clientlist-sourcename';
     const mtype = 'table.load.votable';
 
-    const div = document.createElement('div');
-    div.setAttribute('class', 'samp-export-list');
-    div.setAttribute('data-samp-mtype', mtype);
-    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
+    // What is being exported?
+    //
+    const whatEl = document.createElement('span');
+    addText(whatEl, 'All master-source properties');
 
-    const btn = document.createElement('button');
-    btn.id = 'export-samp-stkevt';
-    btn.setAttribute('class', 'button');
-    btn.setAttribute('type', 'button');
-    addText(btn, 'Export ...');
-
-    const clientList = createSAMPClientList(active, clientListId, mtype, false);
-
-    const lbl = document.createElement('label');
-    lbl.setAttribute('for', clientList.id);
-    addText(lbl, 'Where:');
-
-    const bdiv = document.createElement('div');
-    bdiv.appendChild(btn);
-
-    const sdiv = document.createElement('div');
-    sdiv.setAttribute('class', 'grid-2-cols');
-
-    // Need to wrap in div do can use with grid CSS
-    const addWrap = el => {
-      const div = document.createElement('div');
-      div.appendChild(el);
-      sdiv.appendChild(div);
-    };
-
-    addWrap(lbl);
-    addWrap(clientList);
-
-    div.appendChild(bdiv);
-    div.appendChild(sdiv);
-
-    // Should this settings be generated from the DOM (i.e. what
-    // is selected) rather than hard-coding the default value here
-    // (in case the defult is changed in the future)?
+    // What information is tracked?
     //
     const selected = {target: wwtsamp.TARGET_CLIPBOARD};
 
-    if (active) {
-      // NOTE: we special case the handling of target=opt-find,
-      //       as this means register and then repopulate the field.
-      //
-      clientList.addEventListener('change', ev => {
-	if (ev.target.value === wwtsamp.TARGET_FIND) {
-	  wwtsamp.register();
-	  // No point in refreshing the list, as the registration is
-	  // done asynchronously, so we don't know when to update.
-	} else {
-	  selected.target = ev.target.value;
-	}
-      }, false);
+    const els = createSAMPExport(active, mtype, 'export-samp-sourcename',
+				 clientListId, whatEl, selected);
 
-      btn.addEventListener('click', (event) => {
+    if (active) {
+      els.button.addEventListener('click', (event) => {
 	console.log(`Chosen target: ${selected.target}`);
 	wwtsamp.sendSourcePropertiesName(event, selected.target, src.name);
       }, false);
     }
 
-    parent.appendChild(div);
+    parent.appendChild(els.container);
   }
 
   // Create a "pop-up" window with details on the given stack.
@@ -1284,17 +1286,8 @@ const wwtprops = (function () {
     const clientListId = 'export-clientlist-sources';
     const mtype = 'table.load.votable';
 
-    const div = document.createElement('div');
-    div.setAttribute('class', 'samp-export-list');
-    div.setAttribute('data-samp-mtype', mtype);
-    div.setAttribute('data-samp-clientlist', `#${clientListId}`);
-
-    const btn = document.createElement('button');
-    btn.id = 'export-samp';
-    btn.setAttribute('class', 'button');
-    btn.setAttribute('type', 'button');
-    addText(btn, 'Export ...');
-
+    // What is being exported?
+    //
     const adqlList = document.createElement('select');
     adqlList.id = 'export-samp-choice';
     adqlList.setAttribute('name', adqlList.id);
@@ -1310,65 +1303,19 @@ const wwtprops = (function () {
       addOption(adqlList, opt.value, `Master Source ${opt.label}`);
     });
 
-    const lbl1 = document.createElement('label');
-    lbl1.setAttribute('for', adqlList.id);
-    addText(lbl1, 'What:');
-
-    const clientList = createSAMPClientList(active, clientListId, mtype, false);
-
-    const lbl2 = document.createElement('label');
-    lbl2.setAttribute('for', clientList.id);
-    addText(lbl2, 'Where:');
-
-    const bdiv = document.createElement('div');
-    bdiv.appendChild(btn);
-
-    const sdiv = document.createElement('div');
-    sdiv.setAttribute('class', 'grid-2-cols');
-
-    // Need to wrap in div do can use with grid CSS
-    const addWrap = el => {
-      const div = document.createElement('div');
-      div.appendChild(el);
-      sdiv.appendChild(div);
-    };
-
-    addWrap(lbl1);
-    addWrap(adqlList);
-
-    addWrap(lbl2);
-    addWrap(clientList);
-
-    div.appendChild(bdiv);
-    div.appendChild(sdiv);
-
-    // What query do we send (choice) and where to (target)?
+    // What information is tracked?
     //
-    // Should these settings be generated from the DOM (i.e. what
-    // is selected) rather than hard-coding the default values here
-    // (in case the defults are changed in the future)?
-    //
-    const selected = {choice: 'basic', target: wwtsamp.TARGET_CLIPBOARD};
+    const selected = {target: wwtsamp.TARGET_CLIPBOARD, choice: 'basic'};
+
+    const els = createSAMPExport(active, mtype, 'export-samp',
+				 clientListId, adqlList, selected);
 
     if (active) {
       adqlList.addEventListener('change', ev => {
 	selected.choice = ev.target.value;
       }, false);
 
-      // NOTE: we special case the handling of target=opt-find,
-      //       as this means register and then repopulate the field.
-      //
-      clientList.addEventListener('change', ev => {
-	if (ev.target.value === wwtsamp.TARGET_FIND) {
-	  wwtsamp.register();
-	  // No point in refreshing the list, as the registration is
-	  // done asynchronously, so we don't know when to update.
-	} else {
-	  selected.target = ev.target.value;
-	}
-      }, false);
-
-      btn.addEventListener('click', (event) => {
+      els.button.addEventListener('click', (event) => {
 	console.log(`Chosen ADQL option: ${selected.choice}`);
 	console.log(`Chosen target: ${selected.target}`);
 	wwtsamp.sendSourcePropertiesNear(event, ra0, dec0, rmax,
@@ -1377,7 +1324,7 @@ const wwtprops = (function () {
       }, false);
     }
 
-    return div;
+    return els.container;
   }
 
   // Create the "you've selectected elevnty-million sources,
