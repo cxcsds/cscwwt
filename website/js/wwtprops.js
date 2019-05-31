@@ -411,28 +411,24 @@ const wwtprops = (function () {
     div.appendChild(sdiv);
 
     if (active) {
-      // NOTE: we special case the handling of TARGET_FIND,
-      //       as this means register and then repopulate the field.
-      //       The user-experience here isn't ideal, as there can be a
-      //       delay in registering with the hub and then re-populating
-      //       the list, with little-to-no feedback to the user.
+      // NOTE:
+      //
+      // If TARGET_FIND is selected then the target is still changed,
+      // even though downstream code will treat this as a no-op. This
+      // is because the registration and then UI updates to include the
+      // clients can take a significant amount of time, during which
+      // the user can select the export button. Without changing the
+      // field then this would likely cause the TARGET_CLIPBOARD
+      // action to fire, which is a bit confusing (seen during user
+      // testing). It is also confusing to have the button do nothing,
+      // but possibly less confusing. One option would be to disable
+      // the button until the update has been done, but leave that
+      // for now as tricky to get right.
       //
       clientList.addEventListener('change', ev => {
+	selected.target = ev.target.value;
 	if (ev.target.value === wwtsamp.TARGET_FIND) {
-	  wwtsamp.register();
-
-	  // No point in refreshing the list, as the registration is
-	  // done asynchronously, so we don't know when to update, but
-	  // the SAMP refresh code will pick this up eventually.
-	  //
-	  // If the user selects the export button during this time then
-	  // we could change the target field to 'TARGET_FIND' since
-	  // this should mean the button is effectively a no-op (or
-	  // perhaps disable it), or leave at the last value, which is
-	  // probably copy-to-clipboard.
-	  //
-	} else {
-	  selected.target = ev.target.value;
+	  wwtsamp.register(); // This is an asynchronous action
 	}
       }, false);
     }

@@ -438,19 +438,23 @@ const wwtsamp = (function () {
     return value.slice(7);
   }
 
-  // Should we also send an ID?
+  // Given a URL, tell the user about it (via SAMP or copy-to-clipboard).
   //
   // target can be
-  //    opt-clipboard
-  //    opt-all
+  //    TARGET_CLIPBOARD
+  //    TARGET_ALL
   //    client-<client id>
   //
-  // This routine should never be sent a target of opt-find.
-  //
+  // If sent TARGET_FIND then return without doing anything. This is
+  // to support the use case of: User has selected the 'find-targets'
+  // option, and then selected the export button while the registration
+  // and update is taking place, which can take a significant amount of
+  // time as it may require user interaction to register with the hub,
+  // and then polling of the hub to update the UI.
   //
   function sendURL(event, target, mtype, url, desc) {
     if (target === TARGET_FIND) {
-      sampTrace(`Internal SAMP error: sendURL target=${target} mtype=${mtype}`);
+      sampTrace(`Skipping: sendURL target=${target} mtype=${mtype}`);
       return;
     }
 
