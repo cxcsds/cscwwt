@@ -568,6 +568,36 @@ const wwtsamp = (function () {
     sendStackFile(event, target, 'evt3', 'stkevt3', stack, stackver, 'evt3');
   }
 
+  // Send the exposure-corrected, background subtracted, image: note that
+  // we pick the b or w band depending on the stack id.
+  //
+  function sendStackEcorrImg(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackEcorrImg sent empty target');
+      return;
+    }
+
+    const band = stack.startsWith('acis') ? 'b' : 'w';
+    sendStackFile(event, target,
+		  `${band}-band exposure-corrected background-subtracted image`,
+		  'stkecorrimg', stack, stackver, `${band}_img3`);
+  }
+
+  // Send the background image: note that
+  // we pick the b or w band depending on the stack id.
+  //
+  function sendStackBkgImg(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackBkgImg sent empty target');
+      return;
+    }
+
+    const band = stack.startsWith('acis') ? 'b' : 'w';
+    sendStackFile(event, target,
+		  `${band}-band background image`,
+		  'stkbkgimg', stack, stackver, `${band}_bkgimg3`);
+  }
+
   // Send the sensitivity image: note that we pick the b or w band
   // depending on the stack id.
   //
@@ -628,6 +658,8 @@ const wwtsamp = (function () {
            sendSourcePropertiesNear: sendSourcePropertiesNear,
            sendSourcePropertiesName: sendSourcePropertiesName,
            sendStackEvt3: sendStackEvt3,
+	   sendStackEcorrImg: sendStackEcorrImg,
+	   sendStackBkgImg: sendStackBkgImg,
 	   sendStackSensity: sendStackSensity,
 
            // For debugging

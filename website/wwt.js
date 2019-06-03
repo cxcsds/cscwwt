@@ -1356,7 +1356,8 @@ var wwt = (function () {
   // version number of the stack event file/sensitivity map
   // available in the archive.
   //
-  const stackVersionTable = {stkevt3: null, sensity: null};
+  const stackVersionTable = {stkevt3: null, sensity: null,
+			     stkecorrimg: null, stkbkgimg: null};
 
   // Create the function to show the catalog.
   //   properties is the catalogProps.catalog field
@@ -2284,8 +2285,12 @@ var wwt = (function () {
     // What version info do we have (aka can we export the data products
     // via SAMP) for this stack?
     //
-    const versionInfo = {stkevt3: getVersion(stackVersionTable.stkevt3, stack0),
-			 sensity: getVersion(stackVersionTable.sensity, stack0)};
+    const versionInfo =
+      {stkevt3: getVersion(stackVersionTable.stkevt3, stack0),
+       stkecorrimg: getVersion(stackVersionTable.stkecorrimg, stack0),
+       stkbkgimg: getVersion(stackVersionTable.stkbkgimg, stack0),
+       sensity: getVersion(stackVersionTable.sensity, stack0)
+      };
     wwtprops.addStackInfo(stack0, versionInfo);
 
     if (seps.length === 0) { return; }
@@ -2701,7 +2706,7 @@ var wwt = (function () {
 
       // We create and execute the download function here.
       //
-      ['stkevt3', 'sensity'].forEach(n => {
+      Object.keys(stackVersionTable).forEach(n => {
 	const f = makeDownloadData(`wwtdata/version.${n}.json`,
 				   null, null,
 				   (d) => { stackVersionTable[n] = d; });

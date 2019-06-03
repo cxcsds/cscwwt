@@ -453,6 +453,10 @@ const wwtprops = (function () {
     const band = stack.stackid.startsWith('acis') ? 'broad' : 'wide';
 
     const opts = [{value: 'stkevt3', label: 'Stack event file'},
+		  {value: 'stkecorrimg',
+		   label: `Stack ${band}-band exposure-corrected image`},
+		  {value: 'stkbkgimg',
+		   label: `Stack ${band}-band background image`},
 		  {value: 'sensity',
 		   label: `Stack ${band}-band sensitivity image`}];
 
@@ -496,17 +500,24 @@ const wwtprops = (function () {
       els.button.addEventListener('click', (event) => {
 	console.log(`Chosen option: ${selected.choice}`);
 	console.log(`Chosen target: ${selected.target}`);
+	let send = null;
 	if (selected.choice === 'stkevt3') {
-	  wwtsamp.sendStackEvt3(event, stack.stackid,
-				versionTable[selected.choice],
-				selected.target);
+	  send = wwtsamp.sendStackEvt3;
+	} else if (selected.choice === 'stkecorrimg') {
+	  send = wwtsamp.sendStackEcorrImg;
+	} else if (selected.choice === 'stkbkgimg') {
+	  send = wwtsamp.sendStackBkgImg;
 	} else if (selected.choice === 'sensity') {
-	  wwtsamp.sendStackSensity(event, stack.stackid,
-				   versionTable[selected.choice],
-				   selected.target);
+	  send = wwtsamp.sendStackSensity;
+	}
+
+	if (send !== null) {
+	  send(event, stack.stackid, versionTable[selected.choice],
+	       selected.target);
 	} else {
 	  console.log(`INTERNAL ERROR: unsupported option ${selected.choice}`);
 	}
+
       }, false);
     }
 

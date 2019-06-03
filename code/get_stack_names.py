@@ -3,7 +3,7 @@
 """
 Usage:
 
-  python get_stack_names.py infile [stkevt3|sensity]
+  python get_stack_names.py infile <option>
 
 Aim:
 
@@ -12,7 +12,13 @@ is, the file name needed to query the csccli to get the data product.
 
 infile must have a stack column
 
-The options are stkevt3 or sensity - which means b or w band.
+The option is for b or w band only (when an image) and must be one of:
+
+  stkevt3
+  stkecorrimg
+  stkbkgimg
+  stkexpmap
+  sensity
 
 """
 
@@ -26,7 +32,7 @@ import json
 def get_url(stack, proptype):
 
     url = 'http://cda.harvard.edu/csccli/browse?version=cur&packageset={}%2F{}'.format(stack, proptype)
-    if proptype == 'sensity':
+    if proptype != 'stkevt3':
         url += '%2F'
         if stack.startswith('hrc'):
             url += 'w'
@@ -63,21 +69,24 @@ def report_filename(stack, proptype):
     sys.stdout.flush()
 
 
+options = ['stkevt3', 'stkecorrimg', 'stkbkgimg', 'stkexpmap', 'sensity']
+
+
 def usage():
     sys.stderr.write("Usage: {} ".format(sys.argv[0]))
-    sys.stderr.write("stackfile [stkevt3|sensity]\n")
+    sys.stderr.write("stackfile <option>\n")
+    sys.stderr.write("\n<option> is one of:\n")
+    sys.stderr.write("  {}\n".format(" ".join(options)))
     sys.exit(1)
 
 
 if __name__ == "__main__":
 
     nargs = len(sys.argv)
-    if nargs < 2 or nargs > 3:
+    if nargs != 3:
         usage()
 
-    if nargs == 2:
-        proptype = 'stkevt3'
-    elif sys.argv[2] in ['stkevt3', 'sensity']:
+    if sys.argv[2] in options:
         proptype = sys.argv[2]
     else:
         usage()

@@ -3,7 +3,7 @@
 """
 Usage:
 
-  ./parse_stack_names.py stkevt3|sensity output-of-get_stack_names.py
+  ./parse_stack_names.py <option> output-of-get_stack_names.py
 
 Aim:
 
@@ -11,6 +11,17 @@ Construct a JSON file mapping from stack id to version number. The
 assumption is that one version number is going to dominate the
 counts, so we only have to give versions for stacks that don't
 meet this version.
+
+The option must be one of (although its value isn't actually checked):
+
+  stkevt3
+  stkecorrimg
+  stkbkgimg
+  stkexpmap
+  sensity
+
+and assumes there is only a single band for each stack (for the case
+where there are multiple bands for a file type).
 
 """
 
@@ -67,7 +78,7 @@ def convert(filetype, infile):
     sys.stderr.write("Version breakdown\n")
     for v, c in vs:
         sys.stderr.write("  version= {:3d}  count= {}\n".format(v, c))
-    
+
     out['default_version'] = default_version
     out['ndefault_version'] = ndef
     delete = []
@@ -82,9 +93,14 @@ def convert(filetype, infile):
     print(json.dumps(out))
 
 
-def usage(progname):
-    sys.stderr.write("Usage: {} ".format(progname))
-    sys.stderr.write("stkevt3|sensity infile\n")
+options = ['stkevt3', 'stkecorrimg', 'stkbkgimg', 'stkexpmap', 'sensity']
+
+
+def usage():
+    sys.stderr.write("Usage: {} ".format(sys.argv[0]))
+    sys.stderr.write("<option> infile\n")
+    sys.stderr.write("\n<option> is one of:\n")
+    sys.stderr.write("  {}\n".format(" ".join(options)))
     sys.exit(1)
 
 
@@ -92,7 +108,7 @@ if __name__ == "__main__":
 
     nargs = len(sys.argv)
     if nargs != 3:
-        usage(sys.argv[0])
+        usage()
 
     filetype = sys.argv[1]
     infile = sys.argv[2]
