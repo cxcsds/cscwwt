@@ -2857,14 +2857,37 @@ var wwt = (function () {
     pane.style.display = 'none';
   }
 
-  // handle the tooltip display for the button
+  // Handle the tooltip display for the button. This is all
+  // rather complicated, and perhaps we should just remove the
+  // support for tooltips?
   //
   // The aim is to display the tooltip a short time after
   // entry, and then time out. Try to kill the timers if
   // they are no-longer valid.
   //
+  // To avoid "bouncing" - whereby it looks as if the tooltip
+  // itself causes the pointer to "leave" the element so that
+  // once the tooltip goes away it looks as if the mouse has
+  // re-entered the element so we need to redisplay [*] - there
+  // is a minimum time between diplays. The noShowBeforeToolTip
+  // object stores the earliest time we can re-display the
+  // tooltip. This is to support variable tool-tip display times;
+  // it is potentially a source of problems if the system time gets
+  // changed while the webpage is in use (e.g. due to re-syncing
+  // of the system time) since it could lead to tool tips refusing
+  // to be displayed, but it's probably not worth any effort to
+  // try and fix (as the "error" should just be the inability to
+  // display tooltips).
+  //
+  // [*] We could try to ensure that the tooltip is placed outside
+  //     the element, so this shouldn't happen, but try the timer
+  //     limit first.
+  //
   var tooltipTimers = {};
+  var noShowBeforeToolTip = {};
 
+  // This does not change noShowBeforeToolTip.
+  //
   function clearToolTipTimer(name) {
     if (tooltipTimers[name] === null) { return; }
     clearTimeout(tooltipTimers[name]);
@@ -2872,6 +2895,7 @@ var wwt = (function () {
   }
 
   // time out is in seconds, default is 3
+  //
   function addToolTipHandler(name, timeout) {
     if (name in tooltipTimers) {
       console.log(`WARNING: multiple calls to addToolTipHandler ${name}`);
@@ -2898,29 +2922,53 @@ var wwt = (function () {
 
     tooltipTimers[name] = null;
 
+    // How long to wait, in milliseconds
+    //
+    const waitTime = 500;
+    const timeoutTime = timeout * 1000;
+
     // Should this be mouseover or mouseenter? If it is only ever
     // used on img elements I'm not sure if it makes any real
     // difference.
     //
     el.addEventListener('mouseenter', ev => {
+
+      // Can we display?
+      const now = Date.now();
+      const earliest = noShowBeforeToolTip[name];
+      if (typeof earliest !== 'undefined') {
+	if (earliest > now) {
+	  return;
+	}
+      }
+
       clearToolTipTimer(name);
       // Delay the entrance so that if the user is just mousing over
       // everything the tooltip doesn't just flash up and then
       // disappear.
       const timer = setTimeout(() => {
         tt.style.display = 'inline';
+
+	// Only set if the tooltip was displayed; is there a
+	// chance of this being over-written by other handlers?
+	//
+	noShowBeforeToolTip[name] = Date.now() + timeoutTime + 2 * waitTime;
+
 	// TODO: can we convert 1em to a pixel size?
 	if (!positionAtClick(tt, ev, 10)) {
 	  tt.style.display = 'none';
 	}
+
         const timer2 = setTimeout(() => {
           tt.style.display = 'none';
-        }, timeout * 1000);
+        }, timeoutTime);
         tooltipTimers[name] = timer2;
-      }, 500);
+
+      }, waitTime);
       tooltipTimers[name] = timer;
 
     }, false);
+
     el.addEventListener('mouseleave', () => {
       clearToolTipTimer(name);
       tt.style.display = 'none';
