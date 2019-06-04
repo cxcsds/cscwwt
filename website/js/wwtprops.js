@@ -1224,7 +1224,8 @@ const wwtprops = (function () {
   // The list contents are only updated if there is a change. This is
   // separate from the selected option, which is changed to highlight
   // the SAMP option if possible:
-  //   - if SAMP is unavailable, then select 'copy to clipboard'
+  //   - if SAMP is unavailable or not running, then select
+  //     'copy to clipboard'
   //   - if SAMP is available
   //     - if the previously-selected client is still available
   //       then use it (this EXCLUDES 'copy to clipboard', as otherwise
@@ -1248,8 +1249,7 @@ const wwtprops = (function () {
     // Note that clients is null if we are not registered with a hub.
     //
     const hasHub = wwtsamp.hasHub();
-    const isRegistered = wwtsamp.isRegistered();
-    const clients = wwtsamp.respondsTo(mtype);
+    const isRunning = wwtsamp.isRunning();
 
     // See the comments to createSAMPClientList for the logic (the
     // aim is to only provide an option when it is meaningfull).
@@ -1257,12 +1257,14 @@ const wwtprops = (function () {
     // Also decide the "new" default selection here (although it
     // may not be used), and store the value rather than the label.
     //
+    let defValue = wwtsamp.TARGET_CLIPBOARD;
+
     const newOptions = [];
-    const allOption = makeOption(wwtsamp.TARGET_ALL, 'All clients');
-    let defValue = null;
-    if (hasHub) {
+    if (hasHub && isRunning) {
+      const allOption = makeOption(wwtsamp.TARGET_ALL, 'All clients');
       defValue = wwtsamp.TARGET_ALL;
-      if (isRegistered) {
+      if (wwtsamp.isRegistered()) {
+	const clients = wwtsamp.respondsTo(mtype);
 	// should not be null here, but just in case
 	if ((clients !== null) && (clients.length > 0)) {
 	  if (clients.length > 1) {
@@ -1271,17 +1273,19 @@ const wwtprops = (function () {
 	    defValue = wwtsamp.targetClient(clients[0]);
 	  }
 	  clients.forEach(client => {
-	    newOptions.push(makeOption(wwtsamp.targetClient(client), client.name));
+	    newOptions.push(makeOption(wwtsamp.targetClient(client),
+				       client.name));
 	  });
 	}
       } else {
 	newOptions.push(allOption);
 	newOptions.push(makeOption(wwtsamp.TARGET_FIND, 'Find clients'));
       }
-    } else {
-      defValue = wwtsamp.TARGET_CLIPBOARD;
     }
 
+    // If the new and old lists are the same then we do not need to
+    // do anything.
+    //
     let i;
     if (oldOptions.length === newOptions.length + startClear) {
       let flag = true;
@@ -1290,7 +1294,7 @@ const wwtprops = (function () {
 	const newO = newOptions[i];
 	const same = ((oldO.value === newO.value) &&
 		      (oldO.innerText === newO.innerText));
-	flag &= same;
+	flag = flag && same;
       }
       if (flag) {
 	return;
@@ -1331,6 +1335,7 @@ const wwtprops = (function () {
       if (selOpt !== null) {
 	selOpt.selected = true;
       } else {
+	// Don't know what to do, so pick the first one
 	sel.querySelector('option').selected = true;
       }
     }
