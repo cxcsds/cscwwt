@@ -1257,8 +1257,9 @@ const wwtprops = (function () {
     // Also decide the "new" default selection here (although it
     // may not be used), and store the value rather than the label.
     //
+    let defValue = wwtsamp.TARGET_CLIPBOARD;
+
     const newOptions = [];
-    let defValue = null;
     if (hasHub && isRunning) {
       const allOption = makeOption(wwtsamp.TARGET_ALL, 'All clients');
       defValue = wwtsamp.TARGET_ALL;
@@ -1272,17 +1273,19 @@ const wwtprops = (function () {
 	    defValue = wwtsamp.targetClient(clients[0]);
 	  }
 	  clients.forEach(client => {
-	    newOptions.push(makeOption(wwtsamp.targetClient(client), client.name));
+	    newOptions.push(makeOption(wwtsamp.targetClient(client),
+				       client.name));
 	  });
 	}
       } else {
 	newOptions.push(allOption);
 	newOptions.push(makeOption(wwtsamp.TARGET_FIND, 'Find clients'));
       }
-    } else {
-      defValue = wwtsamp.TARGET_CLIPBOARD;
     }
 
+    // If the new and old lists are the same then we do not need to
+    // do anything.
+    //
     let i;
     if (oldOptions.length === newOptions.length + startClear) {
       let flag = true;
@@ -1291,7 +1294,7 @@ const wwtprops = (function () {
 	const newO = newOptions[i];
 	const same = ((oldO.value === newO.value) &&
 		      (oldO.innerText === newO.innerText));
-	flag &= same;
+	flag = flag && same;
       }
       if (flag) {
 	return;
@@ -1332,6 +1335,7 @@ const wwtprops = (function () {
       if (selOpt !== null) {
 	selOpt.selected = true;
       } else {
+	// Don't know what to do, so pick the first one
 	sel.querySelector('option').selected = true;
       }
     }
