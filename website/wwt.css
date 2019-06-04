@@ -236,12 +236,13 @@ div.polygoninfopane {
   z-index: 200;
 }
 
-
+/* no-longer needed but kept in justin case I change my mind
 div.stackinfopane div.main , div.sourceinfopane div.main ,
 div.neareststackinfopane div.main , div.nearestsourceinfopane div.main ,
 div.sourceselectionpane div.main , div.polygoninfopane div.main {
   background: rgba(255, 255, 255, 1);
 }
+*/
 
 .namelink {
   font-size: small;
@@ -412,7 +413,7 @@ div.iconarea img {
 
 
 div.main {
-  background: rgba(255, 255, 255, 0.6);  /* is this used anymore ? */
+  background: white;
   clear: both;
   padding: 1em;
 }
@@ -828,8 +829,9 @@ div.flowable p:first-child {
 
 div.options {
   background-color: white;
-  padding-bottom: 1em;
-  padding-top: 1em;
+  border: 1px solid black;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
 }
 
 div.options div {
