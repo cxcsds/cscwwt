@@ -75,6 +75,10 @@ const wwtsamp = (function () {
 
     startPolling();
     sampConnection.onreg = () => {
+      if (sampIsRegistered) {
+	console.log('internal note: SAMP onreg called but already registered.');
+	return;
+      }
       sampIsRegistered = true;
 
       el.classList.remove('requires-samp');
@@ -83,6 +87,10 @@ const wwtsamp = (function () {
       sampTrace('Registered with SAMP hub');
     }
     sampConnection.onunreg = () => {
+      if (!sampIsRegistered) {
+	console.log('internal note: SAMP onunreg called but not registered.');
+	return;
+      }
       sampIsRegistered = false;
 
       // Does this make sense? The icon needs to be re-displayed
@@ -90,6 +98,11 @@ const wwtsamp = (function () {
       el.classList.add('requires-samp');
 
       sampTrace('Un-registered from SAMP hub');
+
+      // Update any client lists, in case it hasn't already been
+      // called (or isn't going to be).
+      //
+      refreshSAMPClientLists();
     }
   }
 
@@ -105,6 +118,10 @@ const wwtsamp = (function () {
     if (sampConnection === null) { return; }
     sampCheckHandler = sampConnection.onHubAvailability(sampIsAvailable, 5000);
     sampTrace(`Started SAMP polling: handler ${sampCheckHandler}`);
+    // Do not call refreshSAMPClientLists here since the assumption is
+    // that it will be called within 5 seconds anyway, and hopefully
+    // earlier.
+    //
   }
 
   // A user may want to stop polling if they know they are not
@@ -116,6 +133,19 @@ const wwtsamp = (function () {
     sampTrace(`Stopping SAMP polling: handler ${sampCheckHandler}`);
     clearInterval(sampCheckHandler);
     sampCheckHandler = null;
+    refreshSAMPClientLists();
+  }
+
+  // isRunning indicates whether we are able to send/receive
+  // SAMP messages (it is not a sufficient condition, since
+  // must also have been registered, but it allows a user
+  // to check whether SAMP is "active" or not. Note that there
+  // is no technical reason why we can not talk to the SAMP
+  // hub when isRunning is false, but I want a flag to indicate
+  // this state.
+  //
+  function isRunning() {
+    return sampCheckHandler !== null;
   }
 
   // Tie the SAMP client in to the "select a client" lists: update
@@ -157,6 +187,11 @@ const wwtsamp = (function () {
     });
   }
 
+  // The assumption here is that refreshSAMPClientLists will get
+  // called implicitly here (due to the registration process leading
+  // to our connection object being informed of clients that are
+  // relevant - via the clientChanged function).
+  //
   function registerSAMP() {
     openSAMP();
     if (sampIsRegistered) { return; }
@@ -168,6 +203,7 @@ const wwtsamp = (function () {
     if (sampIsRegistered) {
       sampConnection.unregister();
     }
+
     // Do not close SAMP completely (I think because I was concerned
     // about it potentially causing problems with any unregister
     // operation).
@@ -689,6 +725,7 @@ const wwtsamp = (function () {
 	   hasConnected: () => sampConnection !== null,
 	   isRegistered: () => sampIsRegistered,
 	   hasHub: () => sampHubIsPresent,
+	   isRunning: isRunning,
 
 	   respondsTo: respondsTo,
 	   targetClient: targetClient,
