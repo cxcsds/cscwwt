@@ -342,8 +342,13 @@ const wwtsamp = (function () {
 
       msg += ` responded to the ${mtype} request.`;
 
+      // This used to say 'stack event file' but we now support other
+      // file types.
+      //
+      // TODO: should we just avoid this warning?
+      //
       if ((n > 0) && (mtype === 'image.load.fits')) {
-        msg += '\nWarning: downloading the stack event file can take a long time!';
+        msg += '\nWarning: downloading the stack data can take a long time!';
       }
 
       sampReport(msg);
