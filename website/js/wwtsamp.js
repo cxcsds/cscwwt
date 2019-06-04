@@ -342,8 +342,13 @@ const wwtsamp = (function () {
 
       msg += ` responded to the ${mtype} request.`;
 
+      // This used to say 'stack event file' but we now support other
+      // file types.
+      //
+      // TODO: should we just avoid this warning?
+      //
       if ((n > 0) && (mtype === 'image.load.fits')) {
-        msg += '\nWarning: downloading the stack event file can take a long time!';
+        msg += '\nWarning: downloading the stack data can take a long time!';
       }
 
       sampReport(msg);
@@ -541,13 +546,10 @@ const wwtsamp = (function () {
             'CSC 2.0 master-source properties (single source)');
   }
 
-  function sendStackEvt3(event, stack, stackver, target) {
-    if ((typeof target === 'undefined') || (target === '')) {
-      console.log('Internal error: sendStackEvt3 sent empty target');
-      return;
-    }
-
-    sampTrace(`SAMP: stack=${stack} ver=${stackver} target=${target}`);
+  // Send the stack file (e.g. event file or sensitivity image).
+  //
+  function sendStackFile(event, target, label, filetype, stack, stackver, suffix) {
+    sampTrace(`SAMP: ${filetype} stack=${stack} ver=${stackver} suffix=${suffix} target=${target}`);
 
     // simple for now
     let verstr;
@@ -556,11 +558,79 @@ const wwtsamp = (function () {
     else                     { verstr = stackver.toString(); }
 
     const url = 'http://cda.harvard.edu/csccli/retrieveFile?' +
-      `version=cur&filetype=stkevt3&filename=${stack}N${verstr}_evt3.fits`;
+      `version=cur&filetype=${filetype}&filename=${stack}N${verstr}_${suffix}.fits`;
 
     console.log(`--> sending image.load.fits for ${url}`);
     sendURL(event, target, 'image.load.fits', url,
-            `Stack evt3 for ${stack}`);
+            `Stack ${label} for ${stack}`);
+  }
+
+  function sendStackEvt3(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackEvt3 sent empty target');
+      return;
+    }
+    sendStackFile(event, target, 'evt3', 'stkevt3', stack, stackver, 'evt3');
+  }
+
+  // Send the exposure-corrected, background subtracted, image: note that
+  // we pick the b or w band depending on the stack id.
+  //
+  function sendStackEcorrImg(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackEcorrImg sent empty target');
+      return;
+    }
+
+    const band = stack.startsWith('acis') ? 'b' : 'w';
+    sendStackFile(event, target,
+		  `${band}-band exposure-corrected background-subtracted image`,
+		  'stkecorrimg', stack, stackver, `${band}_img3`);
+  }
+
+  // Send the exposure map: note that
+  // we pick the b or w band depending on the stack id.
+  //
+  function sendStackExpMap(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackExpMap sent empty target');
+      return;
+    }
+
+    const band = stack.startsWith('acis') ? 'b' : 'w';
+    sendStackFile(event, target,
+		  `${band}-band exposure map`,
+		  'stkexpmap', stack, stackver, `${band}_exp3`);
+  }
+
+  // Send the background image: note that
+  // we pick the b or w band depending on the stack id.
+  //
+  function sendStackBkgImg(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackBkgImg sent empty target');
+      return;
+    }
+
+    const band = stack.startsWith('acis') ? 'b' : 'w';
+    sendStackFile(event, target,
+		  `${band}-band background image`,
+		  'stkbkgimg', stack, stackver, `${band}_bkgimg3`);
+  }
+
+  // Send the sensitivity image: note that we pick the b or w band
+  // depending on the stack id.
+  //
+  function sendStackSensity(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackSensity sent empty target');
+      return;
+    }
+
+    const band = stack.startsWith('acis') ? 'b' : 'w';
+    sendStackFile(event, target,
+		  `${band}-band sensitivity image`,
+		  'sensity', stack, stackver, `${band}_sens3`);
   }
 
   // Return information on any SAMP clients that respond to the
@@ -608,6 +678,10 @@ const wwtsamp = (function () {
            sendSourcePropertiesNear: sendSourcePropertiesNear,
            sendSourcePropertiesName: sendSourcePropertiesName,
            sendStackEvt3: sendStackEvt3,
+	   sendStackEcorrImg: sendStackEcorrImg,
+	   sendStackExpMap: sendStackExpMap,
+	   sendStackBkgImg: sendStackBkgImg,
+	   sendStackSensity: sendStackSensity,
 
            // For debugging
            getSAMPConnection: () => sampConnection,

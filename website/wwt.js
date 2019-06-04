@@ -1353,12 +1353,17 @@ var wwt = (function () {
 					   processXMMData);
 
   // Load in (asynchronously) the mapping between stack name and the
-  // version number of the stack event file available in the archive.
+  // version number of the stack event file/sensitivity map
+  // available in the archive.
   //
-  var stackEventVersions = null;
-  const loadStackEventVersions = makeDownloadData('wwtdata/version.stkevt3.json',
-						  null, null,
-						  (d) => { stackEventVersions = d; });
+  // The properties of this table define what data is loaded
+  // and displayed to the user (if available). So to just stick
+  // to the event file remove all but the stkevt3 setting.
+  //
+  const stackVersionTable = {stkevt3: null, sensity: null,
+			     stkecorrimg: null,
+			     stkexpmap: null,
+			     stkbkgimg: null};
 
   // Create the function to show the catalog.
   //   properties is the catalogProps.catalog field
@@ -2228,6 +2233,35 @@ var wwt = (function () {
     processStackSelection(stack.pos[0], stack.pos[1]);
   }
 
+  // Extract the version number for the given stack, if the data is
+  // available, otherwise return null. versionTable is expected to
+  // be one of the fields of stackVersionTable (e.g.
+  // stackVersionTable.stkevt3).
+  //
+  function getVersion(versionTable, stackid) {
+    if (versionTable === null) {
+      return null;
+    }
+
+    if (stackid in versionTable.versions) {
+      return versionTable.versions[stackid];
+    }
+
+    if ('default_version' in versionTable) {
+      return versionTable.default_version;
+    }
+
+    /* This should not happen, unless the code hasn't picked up the
+     * new JSON file, so there is no default_version field.
+     * Which means that using the filetype field of versionTable is
+     * not expected to provide a useful answer.
+     */
+    const lbl = 'WARNING: stackVersion is undefined for ' +
+	  `${stackid} (${versionTable.filetype})`;
+    console.log(lbl);
+    return null;
+  }
+
   // Show the nearest stack: ra and dec are in degrees
   //
   function processStackSelection(sra0, sdec0) {
@@ -2254,7 +2288,15 @@ var wwt = (function () {
     const fovs = stackAnnotations[stack0.stackid];
     fovs.forEach(fov => nearestFovs.push(changeFov(fov, true, 'cyan', 4)));
 
-    wwtprops.addStackInfo(stack0, stackEventVersions);
+    // What version info do we have (aka can we export the data products
+    // via SAMP) for this stack?
+    //
+    const versionInfo = {};
+    Object.keys(stackVersionTable).forEach(n => {
+      if (stackVersionTable[n] === null) { return; }
+      versionInfo[n] = getVersion(stackVersionTable[n], stack0);
+    });
+    wwtprops.addStackInfo(stack0, versionInfo);
 
     if (seps.length === 0) { return; }
 
@@ -2667,10 +2709,18 @@ var wwt = (function () {
       setupUserSelection();
       stopExcessScrolling();
 
-      // Not 100% happy with the UI for indicating data to be
-      // sent via Web-SAMP, but leave in for now.
+      // We create and execute the download function here.
       //
-      loadStackEventVersions();
+      Object.keys(stackVersionTable).forEach(n => {
+	if (stackVersionTable[n] !== null) {
+	  console.log(`INTERNAL ERROR: expected stackVersionTable.${n} to be null`);
+	}
+	const f = makeDownloadData(`wwtdata/version.${n}.json`,
+				   null, null,
+				   (d) => { stackVersionTable[n] = d; });
+	f();
+      });
+
       downloadEnsData();
 
       // TODO: should this only be changed once the ready function has
@@ -4371,7 +4421,6 @@ var wwt = (function () {
 
     clearState: clearState,
     switchSelectionMode: switchSelectionMode
-
   };
 
 })();

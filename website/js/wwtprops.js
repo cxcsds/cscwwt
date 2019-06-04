@@ -438,29 +438,89 @@ const wwtprops = (function () {
 
   // Add in the SAMP export button for the stack info panel.
   //
-  function addSendStackEvtFile(active, parent, stack, stackVersion) {
-    if (stackVersion === null) { return; }
-
+  // versionTable is expected to contain fielts which are either
+  // numbers or null, and refer to the filetypes available to
+  // download (and must match the value field of the opts array
+  // below).
+  //
+  function addSendStackEvtFile(active, parent, stack, versionTable) {
     const clientListId = 'export-clientlist-stkevt';
     const mtype = 'image.load.fits';
 
     // What is being exported?
     //
-    const whatEl = document.createElement('span');
-    addText(whatEl, 'Stack event file');
+    const band = stack.stackid.startsWith('acis') ? 'broad' : 'wide';
+
+    const opts = [{value: 'stkevt3', label: 'Stack event file'},
+		  {value: 'stkecorrimg',
+		   label: `Stack ${band}-band exposure-corrected image`},
+		  {value: 'stkexpmap',
+		   label: `Stack ${band}-band exposure map`},
+		  {value: 'stkbkgimg',
+		   label: `Stack ${band}-band background image`},
+		  {value: 'sensity',
+		   label: `Stack ${band}-band sensitivity image`}];
+
+    const toShow = [];
+    opts.forEach(opt => {
+      const ver = versionTable[opt.value];
+      if ((typeof ver === 'undefined') || (ver === null)) { return; }
+      toShow.push(opt);
+    });
+
+    if (toShow.length === 0) { return; }
 
     // What information is tracked?
     //
-    const selected = {target: wwtsamp.TARGET_CLIPBOARD};
+    const selected = {target: wwtsamp.TARGET_CLIPBOARD, choice: null};
+
+    let whatEl;
+    if (toShow.length > 1) {
+      whatEl = document.createElement('select');
+      whatEl.id = 'export-stack-choice';
+      whatEl.setAttribute('name', whatEl.id);
+      whatEl.setAttribute('class', 'button');
+      toShow.forEach(opt => addOption(whatEl, opt.value, opt.label));
+      selected.choice = toShow[0].value;
+    } else {
+      whatEl = document.createElement('span');
+      addText(whatEl, toShow[0].label);
+      selected.choice = toShow[0].value;
+    }
 
     const els = createSAMPExport(active, mtype, 'export-samp-stkevt',
 				 clientListId, whatEl, selected);
 
     if (active) {
+      if (whatEl.id !== '') {
+	whatEl.addEventListener('change', ev => {
+	  selected.choice = ev.target.value;
+	}, false);
+      }
+
       els.button.addEventListener('click', (event) => {
+	console.log(`Chosen option: ${selected.choice}`);
 	console.log(`Chosen target: ${selected.target}`);
-	wwtsamp.sendStackEvt3(event, stack.stackid, stackVersion,
-			      selected.target);
+	let send = null;
+	if (selected.choice === 'stkevt3') {
+	  send = wwtsamp.sendStackEvt3;
+	} else if (selected.choice === 'stkecorrimg') {
+	  send = wwtsamp.sendStackEcorrImg;
+	} else if (selected.choice === 'stkexpmap') {
+	  send = wwtsamp.sendStackExpMap;
+	} else if (selected.choice === 'stkbkgimg') {
+	  send = wwtsamp.sendStackBkgImg;
+	} else if (selected.choice === 'sensity') {
+	  send = wwtsamp.sendStackSensity;
+	}
+
+	if (send !== null) {
+	  send(event, stack.stackid, versionTable[selected.choice],
+	       selected.target);
+	} else {
+	  console.log(`INTERNAL ERROR: unsupported option ${selected.choice}`);
+	}
+
       }, false);
     }
 
@@ -507,10 +567,10 @@ const wwtprops = (function () {
   // parent - the div into which the contents should be placed;
   //          expected to be empty and have a class of stackinfopane
   // stack - object, stack details
-  // stackVersion - null or the stack version
+  // versionTable - fields with version numbers (or null)
   // active - boolean, if true then links and handlers are used
   //
-  function addStackInfoContents(parent, stack, stackVersion, active) {
+  function addStackInfoContents(parent, stack, versionTable, active) {
 
     const mainDiv = addControlElements(parent,
 				       `Stack: ${stack.stackid}`,
@@ -665,7 +725,7 @@ const wwtprops = (function () {
 
     // SAMP: send stack event file
     //
-    addSendStackEvtFile(active, mainDiv, stack, stackVersion);
+    addSendStackEvtFile(active, mainDiv, stack, versionTable);
 
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
@@ -743,29 +803,14 @@ const wwtprops = (function () {
 		    {right: '0.5em', bottom: '0.5em'}, true);
   }
 
-  // Add the info for this stack to the main screen.
+  // Add the info for this stack to the main screen. versionTable is
+  // expected to have fields that give the version number for the given
+  // filetype (or null if it is missing)
   //
-  function addStackInfo(stack, stackEventVersions) {
+  function addStackInfo(stack, versionTable) {
     const parent = findStackInfo();
     if (parent === null) { return; }
-
-    let stackVersion = null;
-    if (stackEventVersions !== null) {
-      if (stack.stackid in stackEventVersions.versions) {
-	stackVersion = stackEventVersions.versions[stack.stackid];
-      } else {
-	stackVersion = stackEventVersions.default_version;
-      }
-      /* This should not happen, unless the code hasn't picked up the
-       * new JSON file, so there is no default_version field.
-       */
-      if (typeof stackVersion === 'undefined') {
-	console.log(`WARNING: stackVersion is undefined for ${stack.stackid}`);
-	stackVersion = null;
-      }
-    }
-
-    addStackInfoContents(parent, stack, stackVersion, true);
+    addStackInfoContents(parent, stack, versionTable, true);
   }
 
   // Add the info for this stack to the help pane; this is an
@@ -778,9 +823,10 @@ const wwtprops = (function () {
       return;
     }
 
-    // Need a version value for the SAMP button to appear, but doesn't
+    // Need version values for the SAMP button to appear, but doesn't
     // really matter what it is.
-    addStackInfoContents(parent, stack, 20, false);
+    const versionTable = {stkevt3: 20, sensity: 22};
+    addStackInfoContents(parent, stack, versionTable, false);
   }
 
   // Hide the element, remove its children, and return it.

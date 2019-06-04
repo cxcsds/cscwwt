@@ -769,10 +769,13 @@ main#content div.wrap {
 
 	  <p>
 	    The <span class='example-button'>Export ...</span>
-	    button lets you send the stack event file to a
+	    button lets you send the stack event file or
+	    sensitivity image to a
 	    Virtual-Observatory application if a SAMP hub
 	    is running on your machine and SAOImageDS9 is
-	    connected to it. If there is no SAMP hub then
+	    connected to it (or any other client that responds
+	    to the SAMP <span class="term">image.load.fits</span> message type).
+	    If there is no SAMP hub then
 	    the URL of the stack event file can be copied to
 	    the clipboard.
 	  </p>
