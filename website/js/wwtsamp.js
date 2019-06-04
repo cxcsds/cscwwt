@@ -583,6 +583,21 @@ const wwtsamp = (function () {
 		  'stkecorrimg', stack, stackver, `${band}_img3`);
   }
 
+  // Send the exposure map: note that
+  // we pick the b or w band depending on the stack id.
+  //
+  function sendStackExpMap(event, stack, stackver, target) {
+    if ((typeof target === 'undefined') || (target === '')) {
+      console.log('Internal error: sendStackExpMap sent empty target');
+      return;
+    }
+
+    const band = stack.startsWith('acis') ? 'b' : 'w';
+    sendStackFile(event, target,
+		  `${band}-band exposure map`,
+		  'stkexpmap', stack, stackver, `${band}_exp3`);
+  }
+
   // Send the background image: note that
   // we pick the b or w band depending on the stack id.
   //
@@ -659,6 +674,7 @@ const wwtsamp = (function () {
            sendSourcePropertiesName: sendSourcePropertiesName,
            sendStackEvt3: sendStackEvt3,
 	   sendStackEcorrImg: sendStackEcorrImg,
+	   sendStackExpMap: sendStackExpMap,
 	   sendStackBkgImg: sendStackBkgImg,
 	   sendStackSensity: sendStackSensity,
 

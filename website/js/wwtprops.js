@@ -438,23 +438,24 @@ const wwtprops = (function () {
 
   // Add in the SAMP export button for the stack info panel.
   //
-  // versionTable is expected to contain stkevt3 and sensity fields,
-  // which are either numbers or null.
+  // versionTable is expected to contain fielts which are either
+  // numbers or null, and refer to the filetypes available to
+  // download (and must match the value field of the opts array
+  // below).
   //
   function addSendStackEvtFile(active, parent, stack, versionTable) {
     const clientListId = 'export-clientlist-stkevt';
     const mtype = 'image.load.fits';
 
-    // What is being exported? This is expect ro be a "scalar" or
-    // multiple items, but the way the data is currently aligned it
-    // is either going to be null or everything, but we retain support
-    // for only a subset being available.
+    // What is being exported?
     //
     const band = stack.stackid.startsWith('acis') ? 'broad' : 'wide';
 
     const opts = [{value: 'stkevt3', label: 'Stack event file'},
 		  {value: 'stkecorrimg',
 		   label: `Stack ${band}-band exposure-corrected image`},
+		  {value: 'stkexpmap',
+		   label: `Stack ${band}-band exposure map`},
 		  {value: 'stkbkgimg',
 		   label: `Stack ${band}-band background image`},
 		  {value: 'sensity',
@@ -505,6 +506,8 @@ const wwtprops = (function () {
 	  send = wwtsamp.sendStackEvt3;
 	} else if (selected.choice === 'stkecorrimg') {
 	  send = wwtsamp.sendStackEcorrImg;
+	} else if (selected.choice === 'stkexpmap') {
+	  send = wwtsamp.sendStackExpMap;
 	} else if (selected.choice === 'stkbkgimg') {
 	  send = wwtsamp.sendStackBkgImg;
 	} else if (selected.choice === 'sensity') {
