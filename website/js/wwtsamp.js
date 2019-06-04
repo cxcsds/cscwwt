@@ -681,7 +681,7 @@ const wwtsamp = (function () {
 
     // Is this the best way to do this?
     //
-    sampTrace(`SAMP: querying for [${mtype}] clients`);
+    // sampTrace(`SAMP: querying for [${mtype}] clients`);
 
     // Rely on the callable client knowing this - i.e. we do not
     // have to call getSubscribedClients.
