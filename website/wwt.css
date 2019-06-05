@@ -31,6 +31,10 @@ div#cxcheader {
   position: fixed;
 }
 
+/* hide virtually all of the header: try to leave only the CXC link,
+   but this requires hard-coding assumptions about the way the header
+   is written */
+
 div#cxcheaderleft { display: none; }
 div#cxcheaderright {
   /*
@@ -49,11 +53,21 @@ div#cxcheaderright {
   position: fixed;
   right: 0;
 }
+
 div#cxcheaderright ul {
+  display: none;
+}
+
+div#cxcheaderright ul:first-child {
+  display: block;
   float: left;
 }
 div#cxcheaderright ul li {
+  display: none;
   padding-top: 0;
+}
+div#cxcheaderright ul li:last-child {
+  display: list-item;
 }
 div#cxcheaderright ul li a:hover {
   /* background-color: rgba(255, 255, 255, 0.6); */
@@ -131,6 +145,7 @@ div#WorldWideTelescopeControlHost {
   color: rgba(0, 0, 0, 0.8);
   font-family: monospace;
   padding: 0.5em;
+  text-align: center;
   vertical-align: middle;
 }
 
