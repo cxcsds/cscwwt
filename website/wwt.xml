@@ -458,10 +458,10 @@ main#content div.wrap {
 		     href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
 	    is running on
 	    the same machine as the web browser.
-	    The positions of detections from the latest
+	    The positions of detections from release 1.1 of the CSC and the latest
 	    <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
 	    source catalog</extlink>
-	    can also be displayed, as the two surveys are complementary.
+	    can also be displayed.
 	  </p>
 	  <p>
 	    More details can be found using the
@@ -507,17 +507,19 @@ main#content div.wrap {
 	    whole sky, and the background data can also be changed,
 	    showing the sky in a range of wavelengths from
 	    the Cosmic Microwave Background to Gamma Rays.
-	    Positions of sources from the CSC and from the latest
+	    Positions of sources from the CSC (2.0 and the previous release, 1.1)
+	    and from the latest
 	    XMM-Newton source catalog can be displayed, and summary plots
-	    of the CSC source properties can be shown.
+	    of the CSC 2.0 source properties can be shown.
 	  </p>
+<!--
 	  <p>
 	    The <cxclink target="_blank"
 	    href="processing_status.html">Processing Status</cxclink>
             page provides more information on the current status
             of version 2.0 of the Chandra Source Catalog.
 	  </p>
-
+-->
 	  <h3>What do all the icons mean?</h3>
 
 	  <p>
@@ -789,7 +791,7 @@ main#content div.wrap {
 	    "<span class="term">Select nearest source</span>" - and
 	    the nearest <em>displayed</em> source from CSC2 will be
 	    selected. A different window is created, this time containing
-	    summary details about the source from CSC v2.
+	    summary details about the source from CSC 2.0.
 	  </p>
 
 	  <div class="infocontainer">
@@ -847,16 +849,15 @@ main#content div.wrap {
 	  <p>
 	    Since the data files can take some time to load, the
 	    source catalogs must be loaded - using the
-	    "<span class="term">Load CSC2.0 Sources</span>"
+	    "<span class="term">Load CSC2.0 Sources</span>",
+	    "<span class="term">Load CSC1.1 Sources</span>",
 	    or 
 	    "<span class="term">Load 3XMM-DR8 Sources</span>"
 	    buttons - before they can be shown. Once the data
 	    has loaded the button will change its label.
-	  </p>
-
-	  <p>
 	    Selecting the
-	    "<span class="term">Show CSC2.0 Sources</span>"
+	    "<span class="term">Show CSC2.0 Sources</span>",
+	    "<span class="term">Show CSC1.1 Sources</span>"
 	    or 
 	    "<span class="term">Show 3XMM-DR8 Sources</span>"
 	    button will add circles, indicating the sources, close
@@ -869,10 +870,11 @@ main#content div.wrap {
 	  <p>
 	    By default, the CSC2.0 sources are drawn as cyan circles with
 	    a radius
-	    of 5 arcseconds, and the XMM sources are drawn as green
+	    of 5 arcseconds, the CSC1.1 sources are drawn as orange circles
+	    with a radius of 7 arcseconds, and the XMM sources are green
 	    circles with a radius of 10 arcseconds. These radii are
 	    generally <em>significantly larger</em> than the positional
-	    error on the location; instead the values were chosen to
+	    error on the location, as they were chosen to
 	    make sure that the sources are visible!
 	    The XMM source locations are taken from the DR8 list
 	    as described on the
