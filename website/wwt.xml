@@ -147,9 +147,9 @@ main#content div.wrap {
 				       id="dec_s">&nbsp;</output>"
 	      <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
 		   alt="Scissors (cut to clipboard)"
-		   class="icon"/>
+		   class="icon end-of-line"/>
 	    </p>
-	    <p class="centered">
+	    <p>
 	      FOV: <span id="fov"></span>
 	      <img src="wwtimg/fa/bookmark.svg" id="bookmark"
 		   alt="Bookmark this location (copy URL to clipboard)"
