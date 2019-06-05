@@ -62,6 +62,7 @@ var wwt = (function () {
   const keyConstellations = 'wwt-constellations';
   const keyBoundaries = 'wwt-boundaries';
   const keySAMP = 'wwt-samp';
+  const keyWelcome = 'wwt-welcome';
   const keyMilkyWay = 'wwt-milkyway';
   const keyClipboardFormat = 'wwt-clipboardformat';
 
@@ -72,7 +73,7 @@ var wwt = (function () {
 		  keySave, keyLocation, keyFOV, keyForeground,
 		  keyCoordinateGrid,
 		  keyCrosshairs, keyConstellations, keyBoundaries,
-		  keySAMP,
+		  keySAMP, keyWelcome,
 		  keyMilkyWay, keyClipboardFormat];
 
     keys.forEach(key => {
@@ -112,6 +113,15 @@ var wwt = (function () {
   //
   function getState(key) {
     return window.localStorage.getItem(key);
+  }
+
+  // Returns true if the key is known about and set (has a value
+  // of 'true') or is not set. There is no validation that key
+  // is valid.
+  //
+  function isKeySet(key) {
+    const state = getState(key);
+    return ((state === null) || (state === 'true'));
   }
 
   function setSaveState(flag) {
@@ -658,6 +668,8 @@ var wwt = (function () {
     saveState(keyBoundaries, flag);
   }
 
+  // Do we use SAMP or not?
+  //
   function setSAMP(flag) {
     if (flag) {
       if (wwtsamp.hasConnected()) {
@@ -670,6 +682,13 @@ var wwt = (function () {
       wwtsamp.teardown();
     }
     saveState(keySAMP, flag);
+  }
+
+  // Do we display the Welcome flag or not (can only be seen by re-loading
+  // the page, so do not need to do much here).
+  //
+  function setWelcome(flag) {
+    saveState(keyWelcome, flag);
   }
 
   // How are the toggle items handled?
@@ -701,6 +720,8 @@ var wwt = (function () {
      change: setConstellations, defval: true},
     {key: keyBoundaries, sel: '#toggleboundaries',
      change: setBoundaries, defval: false},
+    {key: keyWelcome, sel: '#togglewelcome',
+     change: setWelcome, defval: true},
     {key: keySAMP, sel: '#togglesamp',
      change: setSAMP, defval: true},
     {key: null, sel: '#togglebanners',
@@ -1923,7 +1944,12 @@ var wwt = (function () {
    * I use are hard-coded/in the default name list, but
    * a few aren't.
    *
-   * Should this only be called once?
+   * Should this only be called once? There are times when
+   * the WWT interface has to be given a "quick nudge" to
+   * work - which we do by re-running the initialization code -
+   * and it's not clear what happens in this case if the
+   * collection is loaded twice. I would hope it just over-writes
+   * the previous setting (as the name is the same).
    */
   function createImageCollections() {
     trace('adding image collection ...');
@@ -2763,8 +2789,8 @@ var wwt = (function () {
       removeSetupBanner();
 
       // Only start up SAMP if the state allows it.
-      const sampState = getState(keySAMP);
-      if ((sampState === null) || (sampState === 'true')) {
+      if (isKeySet(keySAMP)) {
+	trace('setting up SAMP support');
 	wwtsamp.setup();
       }
 
@@ -3272,6 +3298,19 @@ var wwt = (function () {
     }
 
     trace('initialize');
+
+    // Do we display the welcome screen or not? This is a special-case
+    // of the settings, since we need to know it as soon as possible,
+    // rather than after WWT has been initialized.
+    //
+    if (isKeySet(keyWelcome)) {
+      const welcome = host.querySelector('#welcome');
+      if (welcome !== null) {
+	welcome.style.display = 'block';
+      } else {
+	console.log('INTERNAL ERROR: no #welcome');
+      }
+    }
 
     // Pass in useful information to wwtsamp (even if later we turn
     // off support for SAMP).

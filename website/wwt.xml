@@ -1005,6 +1005,14 @@ main#content div.wrap {
 	    </div>
 
 	    <div class="checkbox">
+	      <input id="togglewelcome" name="togglewelcome"
+		     type="checkbox" checked="true"/>
+	      <label for="togglewelcome">
+		Display the welcome banner on page load?
+	      </label>
+	    </div>
+
+	    <div class="checkbox">
 	      <input id="togglesamp" name="togglesamp"
 		     type="checkbox" checked="true"/>
 	      <label for="togglesamp">

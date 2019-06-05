@@ -906,7 +906,7 @@ div.pane {
 #welcome {
   background: rgba(255, 255, 255, 1.0);
   border: 2px solid black;
-  /* display: none; */
+  display: none;
   left: 50%;
 
   max-height: 80%;
