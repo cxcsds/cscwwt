@@ -22,6 +22,9 @@ The option is for b or w band only (when an image) and must be one of:
 
 """
 
+import math
+import numpy as np
+
 import sys
 
 from six.moves import urllib
@@ -29,22 +32,29 @@ from six.moves import urllib
 import json
 
 
-def get_url(stack, proptype):
+def get_url(stacks, proptype):
 
-    url = 'http://cda.harvard.edu/csccli/browse?version=cur&packageset={}%2F{}'.format(stack, proptype)
-    if proptype != 'stkevt3':
-        url += '%2F'
-        if stack.startswith('hrc'):
-            url += 'w'
-        else:
-            url += 'b'
+    codes = []
+    for stack in stacks:
+        code = '{}%2F{}'.format(stack, proptype)
 
+        if proptype != 'stkevt3':
+            code += '%2F'
+            if stack.startswith('hrc'):
+                code += 'w'
+            else:
+                code += 'b'
+
+        codes.append(code)
+
+    code = ",".join(codes)
+    url = 'http://cda.harvard.edu/csccli/browse?version=cur&packageset={}'.format(code)
     return url
 
 
-def report_filename(stack, proptype):
+def report_filename(stacks, proptype):
 
-    url = get_url(stack, proptype)
+    url = get_url(stacks, proptype)
 
     try:
         resp = urllib.request.urlopen(url).read()
@@ -55,18 +65,61 @@ def report_filename(stack, proptype):
 
     # oh, let's be all python3-ey
     cts = json.loads(resp.decode('utf8'))
-    if len(cts) != 1:
-        sys.stderr.write("ERROR: stack={} returned {}\n".format(stack, cts))
+    if len(cts) == 0:
+        sys.stderr.write("ERROR: stacks={} returned {}\n".format(stacks,
+                                                                 cts))
         return
 
-    try:
-        filename = cts[0]['filename']
-    except KeyError:
-        sys.stderr.write("Error: stack={} no filename in {}\n".format(stack, cts))
-        return
+    # We can not guarantee the ordering of the response (e.g. in the
+    # case of missing files). We want the output order to match the
+    # input order though.
+    #
+    fstacks = []
+    filenames = {}
+    for content in cts:
+        try:
+            filename = content['filename']
+        except KeyError:
+            sys.stderr.write("Error: no filename in {}\n".format(content))
+            continue
 
-    print("{} {}".format(stack, filename))
+        for stack in stacks:
+            if stack in filename:
+                if stack in filenames:
+                    sys.stderr.write("MULTIPLE RESPONSES for {}:\n".format(stack))
+                    sys.stderr.write("  {}\n".format(filenames[stack]))
+                    sys.stderr.write("  {}\n".format(filename))
+
+                filenames[stack] = filename
+                fstacks.append(stack)
+
+                # could call continue here, but safety check
+
+    for stack in stacks:
+        try:
+            sys.stdout.write("{} {}\n".format(stack, filenames[stack]))
+        except KeyError:
+            pass
+
     sys.stdout.flush()
+
+    sgot = set(fstacks)
+    if len(sgot) != len(fstacks):
+        raise ValueError("Multiple matches to stack:\n{}\n".format(fstacks))
+
+    sexp = set(stacks)
+    if sgot == sexp:
+        return 0
+
+    smissing = sexp.difference(sgot)
+    if len(smissing) > 0:
+        sys.stderr.write("No data for stack(s):\n{}\n".format(smissing))
+        return len(smissing)
+
+    else:
+        sys.stderr.write("somehow got more stacks:\n{}\n{}\n".format(sexp,
+                                                                     sgot))
+        return 0
 
 
 options = ['stkevt3', 'stkecorrimg', 'stkbkgimg', 'stkexpmap', 'sensity']
@@ -99,5 +152,26 @@ if __name__ == "__main__":
         raise IOError("No stacks in {}".format(infile))
 
     print("# stack filename")
-    for stk in cr.get_column('stack').values:
-        report_filename(stk, proptype)
+    stacks = cr.get_column('stack').values
+    nstacks = len(stacks)
+
+    # try to avoid the URL being too long; pick 24 as a guess
+    # (character length of stack + extra coding is < 40 characters,
+    # 24 * 40 = 960, so total url length is <~ 1024 characters.
+    # It can probably be larger, but let's see how this goes.
+    #
+    # NumPy's array_split routine takes the number of chunks, rather
+    # than the number of elements per chunk
+    #
+    nmiss = 0
+    chunksize = 24
+    if nstacks <= chunksize:
+        nmiss = report_filename(stacks, proptype)
+
+    else:
+        nchunks = math.ceil(nstacks / chunksize)
+        for chunk in np.array_split(stacks, nchunks):
+            nmiss =+ report_filename(chunk, proptype)
+
+    if nmiss > 0:
+        sys.stderr.write("\nMissing files for {} stack(s)\n".format(nmiss))
