@@ -975,6 +975,14 @@ main#content div.wrap {
 	    </div>
 
 	    <div class="checkbox">
+	      <input id="togglemoveflag" name="togglemoveflag"
+		     type="checkbox"/>
+	      <label for="togglemoveflag">
+		Go directly to new locations (no animated move).
+	      </label>
+	    </div>
+
+	    <div class="checkbox">
 	      <input id="togglemw" name="togglemw"
 		     type="checkbox"/>
 	      <label for="togglemw">Show Milky Way outline</label>

@@ -65,6 +65,7 @@ var wwt = (function () {
   const keyWelcome = 'wwt-welcome';
   const keyMilkyWay = 'wwt-milkyway';
   const keyClipboardFormat = 'wwt-clipboardformat';
+  const keyMoveFlag = 'wwt-moveflag';
 
   // Remove any user-stored values.
   //
@@ -74,7 +75,7 @@ var wwt = (function () {
 		  keyCoordinateGrid,
 		  keyCrosshairs, keyConstellations, keyBoundaries,
 		  keySAMP, keyWelcome,
-		  keyMilkyWay, keyClipboardFormat];
+		  keyMilkyWay, keyClipboardFormat, keyMoveFlag];
 
     keys.forEach(key => {
       trace(`-- clearing state for key=${key}`);
@@ -271,6 +272,18 @@ var wwt = (function () {
     }
     clipboardFormat = format;
     saveState(keyClipboardFormat, clipboardFormat);
+  }
+
+  // Do we move straight to a location or do the fancy zoom out/move/zoom in
+  // process?
+  //
+  // If sent false then the zoom out/move/zoom in scheme is used,
+  //         true       move straight there
+  //
+  var moveFlag = false;
+  function setMoveFlag(flag) {
+    moveFlag = flag;
+    saveState(keyMoveFlag, moveFlag);
   }
 
   // Given RA and Dec in decimal degrees, return a string representation
@@ -710,6 +723,8 @@ var wwt = (function () {
   const toggleInfo = [
     {key: keySave, sel: '#togglesavestate',
      change: setSaveState, defval: true},
+    {key: keyMoveFlag, sel: '#togglemoveflag',
+     change: setMoveFlag, defval: false},
     {key: keyClipboardFormat, sel: '#clipboardformat',
      change: setClipboardFormat, defval: 'degrees'},
     {key: keyCoordinateGrid, sel: '#togglegrid',
@@ -782,7 +797,7 @@ var wwt = (function () {
     if (fov > maxFOV) { return; }
     let ra = 15.0 * wwt.getRA();
     let dec = wwt.getDec();
-    wwt.gotoRaDecZoom(ra, dec, fov, false);
+    wwt.gotoRaDecZoom(ra, dec, fov, moveFlag);
   }
 
   const zoomFactor = 1.25;
@@ -800,7 +815,7 @@ var wwt = (function () {
   function zoomToStack(stackname) {
     for (var stack of inputStackData.stacks) {
       if (stack.stackid !== stackname) { continue; }
-      wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, false);
+      wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, moveFlag);
       wwtsamp.moveTo(stack.pos[0], stack.pos[1]);
       return;
     }
@@ -823,7 +838,7 @@ var wwt = (function () {
 
       const ra = src[raIdx];
       const dec = src[decIdx];
-      wwt.gotoRaDecZoom(ra, dec, 0.06, false);
+      wwt.gotoRaDecZoom(ra, dec, 0.06, moveFlag);
       wwtsamp.moveTo(ra, dec);
       return;
     }
@@ -1628,7 +1643,7 @@ var wwt = (function () {
     // move her mouse left.
     //
     pane.style.left = `${event.clientX + 5}px`;
-    pane.style.top = `${event.clientY - 40}px`
+    pane.style.top = `${event.clientY - 60}px`
 
     pane.style.display = 'block';
 
@@ -2064,10 +2079,16 @@ var wwt = (function () {
   // or non-checkbox elements, it gets messier.
   //
   function createSettings() {
+    trace(`createSettings is looping through ${toggleInfo.length} settings`);
+    let ctr = 0;
     toggleInfo.forEach(o => {
+      ctr += 1;
       const keyval = o.key === null ? null : getState(o.key);
-      trace(` - setting for ${o.sel}  key=${o.key} -> ${keyval}`);
-      if (keyval === null) { return; }
+      if (keyval === null) {
+        trace(` - [${ctr}] ${o.sel} key=${o.key} is not set so skipping`);
+        return;
+      }
+      trace(` - [${ctr}] setting for ${o.sel}  key=${o.key} -> ${keyval}`);
 
       const el = document.querySelector(o.sel);
       if (el === null) {
@@ -2160,7 +2181,7 @@ var wwt = (function () {
   //
   function processPointSelection(ra, dec) {
     const fov = wwt.get_fov();
-    wwt.gotoRaDecZoom(ra, dec, fov, false);
+    wwt.gotoRaDecZoom(ra, dec, fov, moveFlag);
   }
 
   // Return the angular separation between the two points
@@ -2616,7 +2637,7 @@ var wwt = (function () {
       // assume userLocation has been validated
       wwt.gotoRaDecZoom(userLocation.ra,
 			userLocation.dec,
-			userLocation.zoom, false);
+			userLocation.zoom, moveFlag);
       trace('Set up zoom to user-supplied location');
       return;
     }
@@ -2647,10 +2668,10 @@ var wwt = (function () {
     }
 
     if ((ra === null) || (dec === null)) {
-      wwt.gotoRaDecZoom(ra0, dec0, zoom, false);
+      wwt.gotoRaDecZoom(ra0, dec0, zoom, moveFlag);
       trace('Set up zoom to starting location: default');
     } else {
-      wwt.gotoRaDecZoom(ra, dec, zoom, false);
+      wwt.gotoRaDecZoom(ra, dec, zoom, moveFlag);
       trace('Set up zoom to starting location: stored');
     }
 
@@ -3564,7 +3585,7 @@ var wwt = (function () {
     const dec = Number(dec0);
     if (isNaN(ra) || isNaN(dec)) { return; }
     if ((ra < 0) || (ra >= 360) || (dec < -90) || (dec > 90)) { return; }
-    wwt.gotoRaDecZoom(ra, dec, wwt.get_fov(), false);
+    wwt.gotoRaDecZoom(ra, dec, wwt.get_fov(), moveFlag);
   }
 
   function setPosition(ra, dec, label, fov) {
@@ -3594,7 +3615,7 @@ var wwt = (function () {
     hideSources();
     clearNearestStack();
 
-    wwt.gotoRaDecZoom(ra, dec, fov, false);
+    wwt.gotoRaDecZoom(ra, dec, fov, moveFlag);
     wwtsamp.moveTo(ra, dec);
 
     // Can not just call showSources here since we have not
