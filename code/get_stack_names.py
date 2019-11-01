@@ -48,7 +48,11 @@ def get_url(stacks, proptype):
         codes.append(code)
 
     code = ",".join(codes)
-    url = 'http://cda.harvard.edu/csccli/browse?version=cur&packageset={}'.format(code)
+
+    # version = 'version=cur&'
+    version = ''
+
+    url = 'http://cda.harvard.edu/csccli/browse?{}packageset={}'.format(version, code)
     return url
 
 
