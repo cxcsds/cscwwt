@@ -1067,7 +1067,7 @@ const wwtprops = (function () {
     const a = document.createElement('a');
     if (active) {
       a.setAttribute('target', '_blank');
-      a.setAttribute('href', 'caveats.html#prelim');
+      a.setAttribute('href', 'caveats.html');
     } else {
       a.setAttribute('href', '#');
     }
