@@ -3,7 +3,7 @@
 /* global XMLHttpRequest */
 
 // Query the LookUP service for converting Astronomical names to
-// RA/Dec values: http://www.strudel.org.uk/lookUP/
+// RA/Dec values: https://www.strudel.org.uk/lookUP/
 //
 // The following code is based on
 // https://raw.githubusercontent.com/slowe/astro.js/master/astro.lookup.js
@@ -37,7 +37,7 @@ const lookup = (() => {
       return;
     }
 
-    var src = 'http://www.strudel.org.uk/lookUP/json/?name=' +
+    var src = 'https://www.strudel.org.uk/lookUP/json/?name=' +
       cleanQueryValue(objectName);
 
     // Why am I not using d here?
