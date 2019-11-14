@@ -19,7 +19,10 @@
     </metalist>
 
     <htmlscripts>
+      <!-- needs to be proxied now we've moved to https
       <htmlscript src="http://www.worldwidetelescope.org/scripts/wwtsdk.aspx"/>
+      -->
+      <htmlscript src="/cgi-gen/borax/wwtsdk.aspx"/>
 
       <!-- should probably specify a version -->
       <htmlscript src="https://cdn.plot.ly/plotly-latest.min.js"/>
@@ -1242,7 +1245,10 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://www.nasa.gov/mission_pages/planck/index.html">Planck</extlink></dt>
             <dd>
               <img class="thumbnail" alt="Planck logo"
+		   src="/cgi-gen/borax/planck"/>
+<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=planck"/>
+-->
               <p>
 		Planck is a European Space Agency mission, with significant
 		participation from NASA. NASAs Planck Project Office is based at
@@ -1256,7 +1262,10 @@ main#content div.wrap {
             Survey (VLSS)</extlink></dt>
             <dd>
               <img class="thumbnail" alt="VLA logo"
+		   src="/cgi-gen/borax/VLA"/>
+<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=VLA"/>
+-->
               <p>
 		VLSS Cohen, A. S.; Lane, W. M.; Cotton, W. D.; Kassim, N. E.; Lazio, T. J. W.; Perley, R. A.; Condon, J. J.; Erickson, W. C.; Served From NASA Skyview
               </p>
@@ -1265,7 +1274,10 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://wise.ssl.berkeley.edu/">WISE</extlink></dt>
             <dd>
               <img class="thumbnail" alt="WISE logo"
+                   src="/cgi-gen/borax/wise"/>
+<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=wise"/>
+-->
               <p>
 		NASA/JPL-Caltech/UCLA
               </p>
@@ -1274,7 +1286,10 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://www.ipac.caltech.edu/2mass/">2MASS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="2MASS logo"
+                   src="/cgi-hen/borax/2mass"/>
+<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=2mass"/>
+-->
               <p>
 		This publication makes use of data products from the Two Micron
 		All Sky Survey, which is a joint project of the University of
@@ -1288,7 +1303,10 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm">DSS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="DSS logo"
+                   src="/cgi-gen/borax/DSS.png"/>
+<!--
                    src="http://www.worldwidetelescope.org/thumbnails/DSS.png"/>
+-->
               <p>
 		Copyright DSS Consortium
               </p>
@@ -1297,7 +1315,10 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://www.astro.princeton.edu/~dfink/halpha/processing.html">Hα</extlink></dt>
             <dd>
               <img class="thumbnail" alt="Halpha survey logo"
+                   src="/cgi-gen/borax/halpha"/>
+<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=halpha"/>
+-->
               <p>
 		Image Courtesy Douglas Finkbeiner. The full-sky H-alpha map (6'
 		FWHM resolution) is a composite of the Virginia Tech Spectral
@@ -1311,7 +1332,10 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://www.xray.mpe.mpg.de/cgi-bin/rosat/rosat-survey">RASS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="RASS logo"
+                   src="/cgi-gen/borax/rosatcolor"/>
+<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=rosatcolor"/>
+-->
               <p>
 		This is a composite of three RASS3 surveys from the ROSAT Data
 		Archive of the Max-Planck-Institut fur extraterrestrische Physik
@@ -1325,7 +1349,10 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://www.nasa.gov/mission_pages/GLAST/main/index.html">Fermi</extlink></dt>
             <dd>
               <img class="thumbnail" alt="Fermi logo"
+                   src="/cgi-gen/borax/FermiYearThree"/>
+<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=FermiYearThree"/>
+-->
               <p>
 		NASA and the FERMI-LAT Team.
               </p>
