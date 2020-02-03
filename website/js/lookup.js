@@ -44,7 +44,11 @@ const lookup = (() => {
     lup.onreadystatechange = (d) => {
       if (lup.readyState === XMLHttpRequest.DONE) {
         if (lup.status === 200) {
-          const response = JSON.parse(lup.responseText);
+          try {
+            const response = JSON.parse(lup.responseText);
+          } catch (e) {
+            errhandle('Unable to decode the response from the lookUP service.');
+          }
           process(objectName, callback, errhandle, response);
         } else {
 	  errhandle('There was a problem calling the lookUP service.');
