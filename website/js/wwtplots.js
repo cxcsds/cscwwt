@@ -216,6 +216,11 @@ const wwtplots = (function () {
       const r1 = [];
 
       catinfo.annotations.forEach(ann => {
+	// If the source is currently hidden, do not include in the plots
+	if ((typeof ann.shown !== 'undefined') && !ann.shown) {
+	  return;
+	}
+
 	const src = wwt.getCSCObject(ann.data);
 
 	if (src.err_ellipse_r0 !== null &&
