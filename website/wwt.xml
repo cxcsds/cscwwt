@@ -21,8 +21,13 @@
     <htmlscripts>
       <!-- needs to be proxied now we've moved to https
       <htmlscript src="http://www.worldwidetelescope.org/scripts/wwtsdk.aspx"/>
-      -->
+
+      and this is the proxy
+
       <htmlscript src="/cgi-gen/borax/wwtsdk.aspx"/>
+      -->
+
+      <htmlscript src="https://www.worldwidetelescope.org/webclient/sdk/wwtsdk.js"/>
 
       <!-- should probably specify a version -->
       <htmlscript src="https://cdn.plot.ly/plotly-latest.min.js"/>
@@ -449,16 +454,16 @@ main#content div.wrap {
 	    and create a window which can be used to
 	    display several plots and send their properties to
 	    <extlink target="_blank"
-		     href="http://www.ivoa.net/">Virtual Observatory</extlink>
+		     href="https://www.ivoa.net/">Virtual Observatory</extlink>
 	    applications - such as
 	    <extlink target="_blank"
 		     href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
 	    or
 	    <extlink target="_blank"
-		     href="http://ds9.si.edu/site/Home.html">SAOImageDS9</extlink>
+		     href="https://ds9.si.edu/">SAOImageDS9</extlink>
 	    - if a
 	    <extlink target="_blank"
-		     href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
+		     href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
 	    is running on
 	    the same machine as the web browser.
 	    The positions of detections from release 1.1 of the CSC and the latest
@@ -583,7 +588,7 @@ main#content div.wrap {
 		of it) to the clipboard, so that it can then be pasted
 		into another application (such as
 		<extlink target="_blank"
-			 href="http://cda.cfa.harvard.edu/cscview/">CSCView</extlink>).
+			 href="https://cda.cfa.harvard.edu/cscview/">CSCView</extlink>).
 		The default format is to use decimal degrees, but this
 		can be changed using the "Settings panel". The options
 		are (a space is always used to separate the Right
@@ -592,7 +597,7 @@ main#content div.wrap {
 		decimal degrees labelled with a trailing 'd' (as used
 		in
 		<extlink target="_blank"
-		     href="http://ned.ipac.caltech.edu/">NED</extlink>);
+		     href="https://ned.ipac.caltech.edu/">NED</extlink>);
 		colons separating the sexagesimal components;
 		or hms/°'" separating the sexagesimal components.
 	      </p>
@@ -634,7 +639,7 @@ main#content div.wrap {
 		This icon will only appear if a SAMP hub (one
 		that supports the
 		<extlink target="_blank"
-			 href="http://www.ivoa.net/documents/SAMP/20120411/REC-SAMP-1.3-20120411.html#tth_sEc5">SAMP Web Profile</extlink>)
+			 href="https://www.ivoa.net/documents/SAMP/20120411/REC-SAMP-1.3-20120411.html#tth_sEc5">SAMP Web Profile</extlink>)
 		is running on the same machine as the web browser,
 		such as the 
 		<extlink target="_blank"
@@ -642,7 +647,7 @@ main#content div.wrap {
 		Virtual-Observatory table viewer</extlink>
 		and
 		<extlink target="_blank"
-			 href="http://ds9.si.edu/site/Home.html">SAOImageDS9</extlink>.
+			 href="https://ds9.si.edu/">SAOImageDS9</extlink>.
 		Selecting the icon will register the WWT/CSC2 display with
 		the SAMP hub: this is an <em>optional step</em>,
 		but selecting it will
@@ -744,7 +749,7 @@ main#content div.wrap {
 	    (ICRS) and <strong>must be separated by a comma</strong>, otherwise
 	    the text is sent to the 
 	    <extlink target="_blank"
-		     href="http://www.strudel.org.uk/lookUP/about.html">LookUP
+		     href="https://www.strudel.org.uk/lookUP/about.html">LookUP
 	    service</extlink> to try and identify a location. The support
 	    for positions is limited to the following formats:
 	    <span class="term">205.842, -14.8367</span>;
@@ -814,11 +819,11 @@ main#content div.wrap {
 	    Above the properties are links to copy the search name to the
 	    clipboard, search in the
 	    <extlink target="_blank"
-		     href="http://ned.ipac.caltech.edu/">NASA/IPAC
+		     href="https://ned.ipac.caltech.edu/">NASA/IPAC
 	    Extragalactic Database</extlink>
 	    or the
 	    <extlink target="_blank"
-		     href="http://simbad.u-strasbg.fr/simbad/">SIMBAD
+		     href="https://simbad.u-strasbg.fr/simbad/">SIMBAD
 	    Astronomical Database</extlink>
 	    within 5 arcseconds of the source
 	    location, and to center-and-zoom the WWT display on the source.
@@ -837,7 +842,7 @@ main#content div.wrap {
 	    as well as to previous releases - is available
             either via the
             <extlink target="_blank"
-		     href="http://cda.cfa.harvard.edu/cscview/">CSCView
+		     href="https://cda.cfa.harvard.edu/cscview/">CSCView
             application</extlink> or with direct
             <abbr title="Astronomical Data Query Language">ADQL</abbr>
             queries, as described on the
@@ -893,16 +898,16 @@ main#content div.wrap {
 	    sources or send the source properties for the selected
 	    sources to
 	    <extlink target="_blank"
-		     href="http://www.ivoa.net/">Virtual Observatory</extlink>
+		     href="https://www.ivoa.net/">Virtual Observatory</extlink>
 	    applications - such as
 	    <extlink target="_blank"
 		     href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
 	    or
 	    <extlink target="_blank"
-		     href="http://ds9.si.edu/site/Home.html">SAOImageDS9</extlink>
+		     href="https://ds9.si.edu/">SAOImageDS9</extlink>
 	    - if a
 	    <extlink target="_blank"
-		     href="http://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
+		     href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
 	    is running on the same machine as the web browser.
 	  </p>
 
@@ -916,7 +921,7 @@ main#content div.wrap {
           <p>
             The display - provided by the
             <extlink target="_blank"
-		     href="http://www.worldwidetelescope.org/webclient/">WorldWide
+		     href="https://www.worldwidetelescope.org/webclient/">WorldWide
 	    Telescope</extlink> - can be panned, zoomed into (or
             out of), and the background image changed to show
 	    one of a range of wavelengths (from Gamma Ray to Microwave)
@@ -1158,18 +1163,18 @@ main#content div.wrap {
           <p>
             The display is provided by the
             <extlink target="_blank"
-		     href="http://www.worldwidetelescope.org/webclient/">WorldWide
+		     href="https://www.worldwidetelescope.org/webclient/">WorldWide
 	    Telescope</extlink>, which is funded by the
             <extlink target="_blank"
-		     href="http://www.worldwidetelescope.org/About/">American
+		     href="https://www.worldwidetelescope.org/About/">American
 	    Astronomical Society</extlink>.
             The target search uses the
             <extlink target="_blank"
-		     href="http://www.strudel.org.uk/lookUP/about.html">LookUP
+		     href="https://www.strudel.org.uk/lookUP/about.html">LookUP
             service</extlink>,
             operated by
             <extlink target="_blank"
-		     href="http://www.strudel.org.uk/">Stuart R. Lowe</extlink>,
+		     href="https://www.strudel.org.uk/">Stuart R. Lowe</extlink>,
             which 
             provides a simple way to search Astronomical targets by name.
             The Milky Way outline is from the
@@ -1178,7 +1183,7 @@ main#content div.wrap {
             project</extlink> - which converted the original
             <extlink target="_blank"
 		     href="http://www.skymap.com/milkyway_cat.htm">Milky Way
-            Outline Catalogs data</extlink>
+            Outline Catalogs data</extlink> (link appears to be dead)
             by Jose R. Vieira.
 	    The configuration, broadcast, close, resize,
 	    scissors, search, and zoom icons are from the
@@ -1191,25 +1196,25 @@ main#content div.wrap {
 	    The animated "spinner" - seen when loading the source catalogs or
             looking up a name - is taken from the 
 	    <extlink target="_blank"
-		     href="http://tobiasahlin.com/spinkit/">SpinKit package</extlink>
+		     href="https://tobiasahlin.com/spinkit/">SpinKit package</extlink>
 	    by Tobias Ahlin, which is released under the
 	    <extlink target="_blank"
 		     href="https://github.com/tobiasahlin/SpinKit/blob/master/LICENSE">MIT
 	    License</extlink>.
 	    The color picker widget is provided by
 	    <extlink target="_blank"
-		     href="http://jscolor.com/">jscolor.js</extlink>,
+		     href="https://jscolor.com/">jscolor.js</extlink>,
 	    plotting by
 	    <extlink target="_blank"
 		     href="https://plot.ly/javascript/">plotly.js</extlink>,
 	    and the Web-SAMP functionality by
 	    <extlink target="_blank"
-		     href="http://astrojs.github.io/sampjs/">sampjs</extlink>.
+		     href="https://astrojs.github.io/sampjs/">sampjs</extlink>.
 	  </p>
 	  <p>
 	    The display code is based on work originally done for the
 	    <extlink target="_blank"
-		     href="http://chandraobservatory.herokuapp.com/">Chandra
+		     href="https://chandraobservatory.herokuapp.com/">Chandra
 	    Observation Viewer</extlink> and was enhanced based on
 	    the code used to create the
 	    <extlink target="_blank"
@@ -1242,12 +1247,12 @@ main#content div.wrap {
 	  </p>
           <!-- taken from csc2.wtml -->
           <dl>
-            <dt><extlink target="_blank" href="http://www.nasa.gov/mission_pages/planck/index.html">Planck</extlink></dt>
+            <dt><extlink target="_blank" href="https://www.nasa.gov/mission_pages/planck/index.html">Planck</extlink></dt>
             <dd>
               <img class="thumbnail" alt="Planck logo"
-		   src="/cgi-gen/borax/planck"/>
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=planck"/>
 <!--
-                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=planck"/>
+		   src="/cgi-gen/borax/planck"/>
 -->
               <p>
 		Planck is a European Space Agency mission, with significant
@@ -1258,13 +1263,16 @@ main#content div.wrap {
               </p>
             </dd>
 
+	    <!-- link appears to be dead
             <dt><extlink target="_blank" href="http://lwa.nrl.navy.mil/VLSS/">VLA Low-frequency Sky
             Survey (VLSS)</extlink></dt>
+	    -->
+            <dt>VLA Low-frequency Sky Survey (VLSS)</dt>
             <dd>
               <img class="thumbnail" alt="VLA logo"
-		   src="/cgi-gen/borax/VLA"/>
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=VLA"/>
 <!--
-                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=VLA"/>
+		   src="/cgi-gen/borax/VLA"/>
 -->
               <p>
 		VLSS Cohen, A. S.; Lane, W. M.; Cotton, W. D.; Kassim, N. E.; Lazio, T. J. W.; Perley, R. A.; Condon, J. J.; Erickson, W. C.; Served From NASA Skyview
@@ -1274,21 +1282,21 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://wise.ssl.berkeley.edu/">WISE</extlink></dt>
             <dd>
               <img class="thumbnail" alt="WISE logo"
-                   src="/cgi-gen/borax/wise"/>
-<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=wise"/>
+<!--
+                   src="/cgi-gen/borax/wise"/>
 -->
               <p>
 		NASA/JPL-Caltech/UCLA
               </p>
             </dd>
           
-            <dt><extlink target="_blank" href="http://www.ipac.caltech.edu/2mass/">2MASS</extlink></dt>
+            <dt><extlink target="_blank" href="https://www.ipac.caltech.edu/2mass/">2MASS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="2MASS logo"
-                   src="/cgi-hen/borax/2mass"/>
-<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=2mass"/>
+<!--
+                   src="/cgi-hen/borax/2mass"/>
 -->
               <p>
 		This publication makes use of data products from the Two Micron
@@ -1300,24 +1308,27 @@ main#content div.wrap {
               </p>
             </dd>
           
-            <dt><extlink target="_blank" href="http://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm">DSS</extlink></dt>
+            <dt><extlink target="_blank" href="https://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm">DSS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="DSS logo"
-                   src="/cgi-gen/borax/DSS.png"/>
-<!--
                    src="http://www.worldwidetelescope.org/thumbnails/DSS.png"/>
+<!--
+                   src="/cgi-gen/borax/DSS.png"/>
 -->
               <p>
 		Copyright DSS Consortium
               </p>
             </dd>
-          
-            <dt><extlink target="_blank" href="http://www.astro.princeton.edu/~dfink/halpha/processing.html">Hα</extlink></dt>
+
+            <!-- link appears to be dead
+            <dt><extlink target="_blank" href="https://www.astro.princeton.edu/~dfink/halpha/processing.html">Hα</extlink></dt>
+	    -->
+            <dt>Hα</dt>
             <dd>
               <img class="thumbnail" alt="Halpha survey logo"
-                   src="/cgi-gen/borax/halpha"/>
-<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=halpha"/>
+<!--
+                   src="/cgi-gen/borax/halpha"/>
 -->
               <p>
 		Image Courtesy Douglas Finkbeiner. The full-sky H-alpha map (6'
@@ -1332,9 +1343,9 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://www.xray.mpe.mpg.de/cgi-bin/rosat/rosat-survey">RASS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="RASS logo"
-                   src="/cgi-gen/borax/rosatcolor"/>
-<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=rosatcolor"/>
+<!--
+                   src="/cgi-gen/borax/rosatcolor"/>
 -->
               <p>
 		This is a composite of three RASS3 surveys from the ROSAT Data
@@ -1346,12 +1357,12 @@ main#content div.wrap {
               </p>
             </dd>
           
-            <dt><extlink target="_blank" href="http://www.nasa.gov/mission_pages/GLAST/main/index.html">Fermi</extlink></dt>
+            <dt><extlink target="_blank" href="https://www.nasa.gov/mission_pages/GLAST/main/index.html">Fermi</extlink></dt>
             <dd>
               <img class="thumbnail" alt="Fermi logo"
-                   src="/cgi-gen/borax/FermiYearThree"/>
-<!--
                    src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=FermiYearThree"/>
+<!--
+                   src="/cgi-gen/borax/FermiYearThree"/>
 -->
               <p>
 		NASA and the FERMI-LAT Team.
