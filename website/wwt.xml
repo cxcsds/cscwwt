@@ -1282,7 +1282,7 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://wise.ssl.berkeley.edu/">WISE</extlink></dt>
             <dd>
               <img class="thumbnail" alt="WISE logo"
-                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=wise"/>
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=wise"/>
 <!--
                    src="/cgi-gen/borax/wise"/>
 -->
@@ -1294,7 +1294,7 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="https://www.ipac.caltech.edu/2mass/">2MASS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="2MASS logo"
-                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=2mass"/>
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=2mass"/>
 <!--
                    src="/cgi-hen/borax/2mass"/>
 -->
@@ -1311,7 +1311,7 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="https://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm">DSS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="DSS logo"
-                   src="http://www.worldwidetelescope.org/thumbnails/DSS.png"/>
+                   src="https://www.worldwidetelescope.org/thumbnails/DSS.png"/>
 <!--
                    src="/cgi-gen/borax/DSS.png"/>
 -->
@@ -1326,7 +1326,7 @@ main#content div.wrap {
             <dt>Hα</dt>
             <dd>
               <img class="thumbnail" alt="Halpha survey logo"
-                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=halpha"/>
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=halpha"/>
 <!--
                    src="/cgi-gen/borax/halpha"/>
 -->
@@ -1343,7 +1343,7 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="http://www.xray.mpe.mpg.de/cgi-bin/rosat/rosat-survey">RASS</extlink></dt>
             <dd>
               <img class="thumbnail" alt="RASS logo"
-                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=rosatcolor"/>
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=rosatcolor"/>
 <!--
                    src="/cgi-gen/borax/rosatcolor"/>
 -->
@@ -1360,7 +1360,7 @@ main#content div.wrap {
             <dt><extlink target="_blank" href="https://www.nasa.gov/mission_pages/GLAST/main/index.html">Fermi</extlink></dt>
             <dd>
               <img class="thumbnail" alt="Fermi logo"
-                   src="http://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=FermiYearThree"/>
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=FermiYearThree"/>
 <!--
                    src="/cgi-gen/borax/FermiYearThree"/>
 -->
