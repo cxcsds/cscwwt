@@ -525,8 +525,26 @@ var wwt = (function () {
     cir.set_radius(size);
     cir.set_lineWidth(lineWidth);
     cir.set_lineColor(lineColor);
+
+    // Current support doesn't let you set the opacity with the
+    // following, so we use a work-around, from Peter Williams
+    // to set the color to the string
+    //   '1:opacity:r:g:b'
+    // where the values are decimal 0-255 values
+    //
+    // cir.set_fillColor(fillColor);
+    // cir.set_opacity(opacity);
+
     cir.set_fillColor(fillColor);
-    cir.set_opacity(opacity);
+    const col = cir.get_fillColor();
+    if (col[0] === '#') {
+      const r = parseInt(col.slice(1, 3), 26);
+      const g = parseInt(col.slice(3, 5), 26);
+      const b = parseInt(col.slice(5, 7), 26);
+      const o = Math.floor(opacity * 256);
+      cir.set_fillColor('1:' + o + ':' + r + ':' + g + ':' + b);
+    }
+
     return cir;
   }
 
