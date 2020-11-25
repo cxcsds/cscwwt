@@ -525,6 +525,8 @@ var wwt = (function () {
     cir.set_radius(size);
     cir.set_lineWidth(lineWidth);
     cir.set_lineColor(lineColor);
+    cir.set_fillColor(fillColor);
+    cir.set_opacity(opacity);
 
     // Current support doesn't let you set the opacity with the
     // following, so we use a work-around, from Peter Williams
@@ -532,17 +534,18 @@ var wwt = (function () {
     //   '1:opacity:r:g:b'
     // where the values are decimal 0-255 values
     //
-    // cir.set_fillColor(fillColor);
-    // cir.set_opacity(opacity);
-
-    cir.set_fillColor(fillColor);
     const col = cir.get_fillColor();
     if (col[0] === '#') {
       const r = parseInt(col.slice(1, 3), 26);
       const g = parseInt(col.slice(3, 5), 26);
       const b = parseInt(col.slice(5, 7), 26);
       const o = Math.floor(opacity * 256);
-      cir.set_fillColor('1:' + o + ':' + r + ':' + g + ':' + b);
+
+      const newcol = '1:' + o + ':' + r + ':' + g + ':' + b;
+      cir.set_fillColor(newcol);
+
+      // Store the value to make it easy to recover
+      cir.store_fillColor = newcol;
     }
 
     return cir;
@@ -1986,7 +1989,7 @@ var wwt = (function () {
    */
   function createImageCollections() {
     trace('adding image collection ...');
-    wwt.loadImageCollection('csc2.wtml');
+//    wwt.loadImageCollection('csc2.wtml');
     trace('... added image collection');
   }
 
@@ -2478,8 +2481,12 @@ var wwt = (function () {
     const current = {fov: src,
 		     reset: () => {
 		       src.set_lineColor(origLineColor);
-		       src.set_fillColor(origFillColor);
-		       src.set_opacity(origOpacity);
+		       if (src.store_fillColor === undefined) {
+		         src.set_fillColor(origFillColor);
+		         src.set_opacity(origOpacity);
+		       } else {
+		         src.set_fillColor(src.store_fillColor);
+		       }
 		     }
 		    };
     nearestSource = [current];
@@ -4196,25 +4203,15 @@ var wwt = (function () {
   // is not guaanteed to be unique, so it does not over-write the
   // stored values - these names are prefixed by "X ".
   //
-  var wtml = {'wmap': 'WMAP ILC 5-Year Cosmic Microwave Background',
-              'dust': 'SFD Dust Map (Infrared)',
-              '2mass-cat': '2MASS: Catalog (Synthetic, Near Infrared)',
-              '2mass-image': 'X 2Mass: Imagery (Infrared)',
-              'dss': 'X Digitized Sky Survey (Color)',
-              'vlss': 'X VLSS: VLA Low-frequency Sky Survey (Radio)',
-              'planck-cmb': 'X Planck CMB',
-              'planck-dust-gas': 'X Planck Dust & Gas',
-              'iris': 'IRIS: Improved Reprocessing of IRAS Survey (Infrared)',
-              'wise': 'X WISE All Sky (Infrared)',
-              'halpha': 'X Hydrogen Alpha Full Sky Map',
-              'sdss': 'SDSS: Sloan Digital Sky Survey (Optical)',
-              'tycho': 'Tycho (Synthetic, Optical)',
-              'usnob1': 'USNOB: US Naval Observatory B 1.0 (Synthetic, Optical)',
-              'galex4-nuv': 'GALEX 4 Near-UV',
-              'galex4-fuv': 'GALEX 4 Far-UV',
-              'galex': 'GALEX (Ultraviolet)',
-              'rass': 'X RASS: ROSAT All Sky Survey (X-ray)',
-              'fermi3': 'X Fermi Year Three (Gamma)'
+  var wtml = {'2mass-image': '2Mass: Imagery (Infrared)',
+              'dss': 'Digitized Sky Survey (Color)',
+              'vlss': 'VLSS: VLA Low-frequency Sky Survey (Radio)',
+              'planck-cmb': 'Planck CMB',
+              'planck-dust-gas': 'Planck Thermal Dust',
+              'wise': 'WISE All Sky (Infrared)',
+              'halpha': 'Hydrogen Alpha Full Sky Map',
+              'rass': 'RASS: ROSAT All Sky Survey (X-ray)',
+              'fermi': 'Fermi LAT 8-year (gamma)'
              };
 
   // Special case the DSS image, since can just hide the foreground image

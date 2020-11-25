@@ -206,7 +206,7 @@ main#content div.wrap {
               <option value="dss" selected="1">Optical (DSS)</option>
               <option value="halpha">Optical (Hα)</option>
               <option value="rass">X-ray (RASS)</option>
-              <option value="fermi3">Gamma (Fermi)</option>
+              <option value="fermi">Gamma (Fermi)</option>
             </select>
 	  </div>
 
