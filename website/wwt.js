@@ -2741,114 +2741,103 @@ var wwt = (function () {
     }, false);
   }
 
-  // This used to be sent in data, hence the function returning a function,
-  // but that should no-longer be needed.
+  // start up the interface (allowing for restarts)
   //
   function wwtReadyFunc() {
     trace('in wwtReadyFunc (with restart)');
-    return function () {
 
-      createImageCollections();
-      createSettings();
-      addMW();
-      addFOV(inputStackData);
+    // It's not clear why we can't just use the return value from
+    // initControl(), but
+    // https://docs.worldwidetelescope.org/webgl-reference/latest/getting-started/
+    // does it this way.
+    //
+    wwt = wwtlib.WWTControl.scriptInterface;
 
-      setupUserSelection();
-      stopExcessScrolling();
+    createImageCollections();
+    createSettings();
+    addMW();
+    addFOV(inputStackData);
 
-      // We create and execute the download function here.
+    setupUserSelection();
+    stopExcessScrolling();
+
+    // We create and execute the download function here.
+    //
+    Object.keys(stackVersionTable).forEach(n => {
+      if (stackVersionTable[n] !== null) {
+	console.log(`INTERNAL ERROR: expected stackVersionTable.${n} to be null`);
+      }
+      const f = makeDownloadData(`wwtdata/version.${n}.json`,
+				 null, null,
+				 (d) => { stackVersionTable[n] = d; });
+      f();
+    });
+
+    downloadEnsData();
+
+    // TODO: should this only be changed once the ready function has
+    //       finished?
+    //
+    // Use the image choice from the display query parameter or, if
+    // not set, the saved setting.
+    //
+    const selImg = userDisplay === null ? getState(keyForeground) : userDisplay;
+    if (selImg !== null) {
+      const sel = document.querySelector('#imagechoice');
+
+      // Is there a neater way to do this? It is also not ideal
+      // for the case when selImg is not valid: what happens to
+      // the display?
       //
-      Object.keys(stackVersionTable).forEach(n => {
-	if (stackVersionTable[n] !== null) {
-	  console.log(`INTERNAL ERROR: expected stackVersionTable.${n} to be null`);
-	}
-	const f = makeDownloadData(`wwtdata/version.${n}.json`,
-				   null, null,
-				   (d) => { stackVersionTable[n] = d; });
-	f();
-      });
+      let found = false;
+      for (var idx = 0; idx < sel.options.length; idx++) {
+	const opt = sel.options[idx];
+	if (opt.value === selImg) { opt.selected = true; found = true; break; }
+      }
 
-      downloadEnsData();
-
-      // TODO: should this only be changed once the ready function has
-      //       finished?
-      //
-      // Use the image choice from the display query parameter or, if
-      // not set, the saved setting.
-      //
-      const selImg = userDisplay === null ? getState(keyForeground) : userDisplay;
-      if (selImg !== null) {
-	const sel = document.querySelector('#imagechoice');
-
-	// Is there a neater way to do this? It is also not ideal
-	// for the case when selImg is not valid: what happens to
-	// the display?
+      if (found) {
+	trace(`Trying to change the display to ${selImg}`);
+	// Assume this is supported in recent browsers; see
+	// https://stackoverflow.com/questions/19329978/change-selects-option-and-trigger-events-with-javascript/28296580
 	//
-	let found = false;
-	for (var idx = 0; idx < sel.options.length; idx++) {
-	  const opt = sel.options[idx];
-	  if (opt.value === selImg) { opt.selected = true; found = true; break; }
+	try {
+	  sel.dispatchEvent(new CustomEvent('change'));
 	}
-
-	if (found) {
-	  trace(`Trying to change the display to ${selImg}`);
-	  // Assume this is supported in recent browsers; see
-	  // https://stackoverflow.com/questions/19329978/change-selects-option-and-trigger-events-with-javascript/28296580
-	  //
-	  try {
-	    sel.dispatchEvent(new CustomEvent('change'));
-	  }
-	  catch (e) {
-	    // Try this
-	    trace(` - change event failed with ${e}`);
-            setImage(selImg);
-	  }
+	catch (e) {
+	  // Try this
+	  trace(` - change event failed with ${e}`);
+	  setImage(selImg);
 	}
       }
+    }
 
-      resetLocation();
-      removeSetupBanner();
+    resetLocation();
+    removeSetupBanner();
 
-      // Only start up SAMP if the state allows it.
-      if (isKeySet(keySAMP)) {
-	trace('setting up SAMP support');
-	wwtsamp.setup();
-      }
+    // Only start up SAMP if the state allows it.
+    if (isKeySet(keySAMP)) {
+      trace('setting up SAMP support');
+      wwtsamp.setup();
+    }
 
-      // setupShowHide('#preselected'); // width changes if show/hide
-      setupShowHide('#settings');
-      setupShowHide('#plot');
+    // setupShowHide('#preselected'); // width changes if show/hide
+    setupShowHide('#settings');
+    setupShowHide('#plot');
 
-      // Display the control panel
-      //
-      const panel = document.querySelector('#wwtusercontrol');
-      if (panel === null) {
-        console.log('Internal error: unable to find #wwtusercontrol!');
-      } else {
-        panel.style.display = 'block';
-      }
+    // Display the control panel
+    //
+    const panel = document.querySelector('#wwtusercontrol');
+    if (panel === null) {
+      console.log('Internal error: unable to find #wwtusercontrol!');
+    } else {
+      panel.style.display = 'block';
+    }
 
-      // Poll for the WWT display
-      //
-      setWWTStatePoll();
+    // Poll for the WWT display
+    //
+    setWWTStatePoll();
 
-      // So, can find out when zoom events finished, but do not need
-      // this at the moment (did this not used to work, or did I
-      // mis-understand its intent?)
-      //
-      /***
-      wwt.add_arrived((obj, eventArgs) => {
-	console.log("*** We have arrived...");
-	console.log("    ra = " + eventArgs.get_RA());
-	console.log("       = " + 15.0 * wwt.getRA());
-	console.log("   dec = " + eventArgs.get_dec());
-	console.log("       = " + wwt.getDec());
-	console.log("  zoom = " + wwt.get_fov()); // eventArg?
-      });
-      ***/
-
-      trace('Finished wwtReadyFunc');
-    };
+    trace('Finished wwtReadyFunc');
   }
 
   function decode(s) {
@@ -2939,7 +2928,7 @@ var wwt = (function () {
       pane.innerHTML = 'There was a problem initializing the WWT.' +
         '<br>Trying to restart.';
       pane.style.color = 'darkblue';
-      wwtReadyFunc()(); // NOTE: the use of '()()' is intentional.
+      wwtReadyFunc();
     }, 10 * 1000);
 
   }
@@ -3480,7 +3469,7 @@ var wwt = (function () {
     // the current status.
     //
     trace('initializing wwtlib...');
-    wwt = wwtlib.WWTControl.initControl('WWTCanvas');
+    const wwt_si = wwtlib.WWTControl.initControl('WWTCanvas');
     trace('...initialized wwtlib');
 
     addSetupBanner();
@@ -3495,7 +3484,7 @@ var wwt = (function () {
       const status = req.response;
       updateCompletionInfo(status, obsdata);
       trace(' - updatedCompletionInfo');
-      wwt.add_ready(wwtReadyFunc());
+      wwt_si.add_ready(wwtReadyFunc);
       trace(' - finished add_ready');
     }, false);
     req.addEventListener('error', () => {
@@ -4398,7 +4387,7 @@ var wwt = (function () {
   //
   return {
     initialize: initialize,
-    reinitialize: wwtReadyFunc(),
+    reinitialize: wwtReadyFunc,
     resize: resize,
     unload: unload,
 
