@@ -360,6 +360,20 @@ def make_converter(dtype):
 invalid_pre1_sources = [ '2CXO J034233.0-220806'
                        , '2CXO J174553.2-290138'
                        , '2CXO J175235.9-315012'
+
+                       # Running in Nov 2020, after the release of CSC 2.0.1
+                       # it looks like we need to remove these extra sources
+                       # (I have not checked why)
+                       , '2CXO J053512.2-691503'
+                       , '2CXO J053512.5-691501'
+                       , '2CXO J053513.2-691623'
+                       , '2CXO J053513.9-691228'
+                       , '2CXO J053529.8-691147'
+                       , '2CXO J053533.1-691427'
+                       , '2CXO J053546.3-691805'
+                       , '2CXO J053615.8-691308'
+                       , '2CXO J174714.1-295801'
+
                        ]
 
 invalid_db_sources = [ '2CXO J004224.1+411733'
