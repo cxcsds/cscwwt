@@ -4170,25 +4170,33 @@ var wwt = (function () {
   // Mapping from short to long names, based on an analysis of a WTML
   // file created by WWT on Windows.
   //
+  // It turns out most of these are already loaded, so we don't need
+  // to load them as part of csc2.wtml, EXCEPT that as of Nov 2020
+  // it looks like many if the in-built versions use http rather
+  // than https access, we I have manually edited the csc2.wtml
+  // for these. To show these have changed - and BECAUSE the name
+  // is not guaanteed to be unique, so it does not over-write the
+  // stored values - these names are prefixed by "X ".
+  //
   var wtml = {'wmap': 'WMAP ILC 5-Year Cosmic Microwave Background',
               'dust': 'SFD Dust Map (Infrared)',
               '2mass-cat': '2MASS: Catalog (Synthetic, Near Infrared)',
-              '2mass-image': '2Mass: Imagery (Infrared)',
-              'dss': 'Digitized Sky Survey (Color)',
-              'vlss': 'VLSS: VLA Low-frequency Sky Survey (Radio)',
-              'planck-cmb': 'Planck CMB',
-              'planck-dust-gas': 'Planck Dust & Gas',
+              '2mass-image': 'X 2Mass: Imagery (Infrared)',
+              'dss': 'X Digitized Sky Survey (Color)',
+              'vlss': 'X VLSS: VLA Low-frequency Sky Survey (Radio)',
+              'planck-cmb': 'X Planck CMB',
+              'planck-dust-gas': 'X Planck Dust & Gas',
               'iris': 'IRIS: Improved Reprocessing of IRAS Survey (Infrared)',
-              'wise': 'WISE All Sky (Infrared)',
-              'halpha': 'Hydrogen Alpha Full Sky Map',
+              'wise': 'X WISE All Sky (Infrared)',
+              'halpha': 'X Hydrogen Alpha Full Sky Map',
               'sdss': 'SDSS: Sloan Digital Sky Survey (Optical)',
               'tycho': 'Tycho (Synthetic, Optical)',
               'usnob1': 'USNOB: US Naval Observatory B 1.0 (Synthetic, Optical)',
               'galex4-nuv': 'GALEX 4 Near-UV',
               'galex4-fuv': 'GALEX 4 Far-UV',
               'galex': 'GALEX (Ultraviolet)',
-              'rass': 'RASS: ROSAT All Sky Survey (X-ray)',
-              'fermi3': 'Fermi Year Three (Gamma)'
+              'rass': 'X RASS: ROSAT All Sky Survey (X-ray)',
+              'fermi3': 'X Fermi Year Three (Gamma)'
              };
 
   // Special case the DSS image, since can just hide the foreground image
