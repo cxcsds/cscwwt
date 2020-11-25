@@ -14,6 +14,10 @@ the preliminary release list (FITS format).
 
 THE ADQL query is required to contain a NAME field of some sort.
 
+Convex-hull sources (those with a name ending in 'X') are removed
+from this list (since the properties in use are not much use to
+users).
+
 The flux_aper_w and flux_aper_b fluxes (and errors) are merged
 into flux_aper and band (since both can not be set at the same
 time as it is the "best" flux estimate). This should save some space.
@@ -34,11 +38,6 @@ over ra/dec). This way we avoid having to do matches.
 RA and Dec are limited to 4 and 5 decimal places, to save some space
 (this should be sub-arcsecond accuracy). This saves less than 1% space
 so actually don't do it.
-
-There is some attempt to "save" space by
-
-  - changing boolean fields from 'FALSE'/'TRUE' to 0/1
-  - changing the band field from ''/'broad'/'wide' to -1/0/1
 
 """
 
@@ -98,12 +97,12 @@ def get_colinfo(l):
         raise ValueError('Header line')
 
     toks = l.split('\t')
-    assert len(toks) == 7
+    assert len(toks) == 7, len(toks)
 
     # Not convinced about this check; it would be nice to add
     # boolean too, but not clear that is easily determined
     #
-    assert (toks[2].startswith('(') and toks[2].endswith(')'))
+    assert (toks[2].startswith('(') and toks[2].endswith(')')), toks[2]
     dchar = toks[2][1]
     if dchar == 'A':
         dtype = 'string'
@@ -124,6 +123,8 @@ def get_colinfo(l):
 
 
 _nmiss = 1
+_nbad = 0
+_nchs = 0
 
 
 def update_store(store, converters, ncols, l, pre):
@@ -139,9 +140,17 @@ def update_store(store, converters, ncols, l, pre):
 
     Special case handling for flux_aper_[b/w] and the _lolim/_hilim
     variants.
+
+    Skips rows known to be bad (should not be needed once the db is
+    finalised).
+
+    Skips rows containing a CHS - identified by the name ending in 'X'.
+
     """
 
     global _nmiss
+    global _nbad
+    global _nchs
 
     toks = l.split('\t')
     assert len(toks) == ncols, (len(toks), ncols, l)
@@ -149,9 +158,22 @@ def update_store(store, converters, ncols, l, pre):
     rowdata = dict(list(zip(store['order'], toks)))
     name = rowdata['name'].strip()
 
+    if name in invalid_db_sources:
+        _nbad += 1
+        return
+
+    if name.endswith('X'):
+        _nchs += 1
+        return
+
     if name not in pre:
-        print("[{}] Source {} not in ".format(_nmiss, name) +
-              "prerelease list")
+        if name in valid_but_not_in_pre:
+            print("[{}] Source {} not in ".format(_nmiss, name) +
+                  "prerelease list but is valid")
+        else:
+            print("[{}] Source {} not in ".format(_nmiss, name) +
+                  "prerelease list")
+
         _nmiss += 1
 
     # row = {}
@@ -169,20 +191,17 @@ def update_store(store, converters, ncols, l, pre):
 
     # extract flux values here, not in loop
     if fb != '':
-        # band = 'broad'
-        band = 0
+        band = 'broad'
         flux = rowdata['flux_aper_b']
         fluxlo = rowdata['flux_aper_lolim_b']
         fluxhi = rowdata['flux_aper_hilim_b']
     elif fw != '':
-        # band = 'wide'
-        band = 1
+        band = 'wide'
         flux = rowdata['flux_aper_w']
         fluxlo = rowdata['flux_aper_lolim_w']
         fluxhi = rowdata['flux_aper_hilim_w']
     else:
-        # band = ''
-        band = -1
+        band = ''
         flux = ''
         fluxlo = ''
         fluxhi = ''
@@ -192,7 +211,7 @@ def update_store(store, converters, ncols, l, pre):
     fluxhi = convert_to_float(fluxhi)
 
     for col, val in zip(store['order'], toks):
-        assert col not in row
+        assert col not in row, (col, row)
 
         # Need to handle conversion of flux values
         if col == 'flux_aper_b':
@@ -235,14 +254,18 @@ def add_unprocessed_sources(store, pre):
     pre_names = set(pre.keys())
 
     # Check there's no repeats
-    assert len(already_seen) == len(store['rows'])
-    assert len(pre_names) == len(pre)
+    assert len(already_seen) == len(store['rows']), (len(already_seen)
+                                                     , len(store['rows']))
+    assert len(pre_names) == len(pre), (len[pre_names], len(pre))
 
     # The names were not meant to change, but they did for one
     # source, so exclude that one from the error reporting.
     #
     # The key is the new name and the value the pre-release name
-    renames = {'2CXO J200718.6-482145': '2CXO J200718.6-482146'}
+    # renames = {'2CXO J200718.6-482145': '2CXO J200718.6-482146'}
+
+    # this has now been fixed
+    renames = {}
 
     for (newname, oldname) in renames.items():
         assert newname not in pre_names, newname
@@ -270,7 +293,7 @@ def add_unprocessed_sources(store, pre):
         # row = {}
         row = []
         for col in store['order']:
-            assert col not in row
+            assert col not in row, (col, row)
 
             # handle conversion to flux
             if col == 'flux_aper_b':
@@ -298,17 +321,6 @@ def add_unprocessed_sources(store, pre):
     print("There are {} unprocessed sources".format(nmiss))
 
 
-# Convert FALSE and TRUE to 0 and 1 respectively
-def convert_to_bool(v):
-    v = v.strip()
-    if v == 'FALSE':
-        return 0
-    elif v == 'TRUE':
-        return 1
-    else:
-        raise ValueError("FLAG = <{}>".format(v))
-
-
 def convert_to_int(v):
     v = v.strip()
     if v == '':
@@ -324,16 +336,13 @@ def convert_to_float(v):
     return float(v)
 
 
-def make_converter(name, dtype):
+def make_converter(dtype):
 
-    # The spaces may be important in the strings, but don't think
+    # The spaces may be important in the strings, bit don't think
     # they are for my use case, so remove them.
     #
     if dtype == 'string':
-        if name.endswith('_flag'):
-            return convert_to_bool
-        else:
-            return lambda v: v.strip()
+        return lambda v: v.strip()
     elif dtype == 'integer':
         return convert_to_int
     elif dtype == 'float':
@@ -342,8 +351,35 @@ def make_converter(name, dtype):
         raise ValueError(dtype)
 
 
+# started by Ian on catdev May 30 2019,
+# "[catdev] Comparison of catalog DB and prerelease source list - actions to correct the catalog DB"
+# along with corrections made in later responses.
+#
+# https://groups.google.com/a/cfa.harvard.edu/forum/#!topic/catdev/_tKZCljrXF0/discussion
+#
+invalid_pre1_sources = [ '2CXO J034233.0-220806'
+                       , '2CXO J174553.2-290138'
+                       , '2CXO J175235.9-315012'
+                       ]
+
+invalid_db_sources = [ '2CXO J004224.1+411733'
+                     , '2CXO J004224.3+411727'
+                     , '2CXO J004224.4+411731'
+                     , '2CXO J004224.5+411731'
+                     , '2CXO J004306.6+411917'
+                     , '2CXO J004306.7+411911'
+                     , '2CXO J095533.3+690355'
+                     ]
+
+valid_but_not_in_pre = ['2CXO J034220.4-220251']
+
+
 def read_tsv(infile, pre):
     """Convert to a dictionary, storing lists.
+
+    This removes "known bad" sources that will be removed before the
+    final release, and CHS sources (identified as ending
+    in 'X').
 
     Prefer the TSV values to the pre-release ones.
     """
@@ -371,10 +407,10 @@ def read_tsv(infile, pre):
                 hdr = get_colinfo(l)
                 name = hdr['name']
 
-                assert name not in store['metadata']
+                assert name not in store['metadata'], name
                 store['metadata'][name] = hdr
                 store['order'].append(name)
-                converters[name] = make_converter(name, hdr['datatype'])
+                converters[name] = make_converter(hdr['datatype'])
                 continue
 
             if in_header:
@@ -387,11 +423,23 @@ def read_tsv(infile, pre):
 
             update_store(store, converters, ncols, l, pre)
 
+    if _nchs != 0:
+        print("NOTE: removed {} CHS sources".format(_nchs))
+
+    if _nbad != 0:
+        nbad = len(invalid_db_sources)
+        if _nbad == nbad:
+            print("NOTE: removed all {} bad sources from db".format(_nbad))
+        else:
+            print("WARNING: expected to remove {} ".format(nbad) +
+                  "sources from db but removed {}".format(_nbad))
+
     add_unprocessed_sources(store, pre)
     return store
 
 
 def read_srclist(infile):
+    """This removes sources from pre1 if known to be 'bad'"""
 
     if fileio == 'pycrates':
         return read_srclist_crates(infile)
@@ -401,6 +449,8 @@ def read_srclist(infile):
         raise IOError("Unexpected fileio={}".format(fileio))
 
 
+# These sources are known to be "bad" in that they have been removed
+# from the list post pre1. This is taken from the email discussion
 def read_srclist_crates(infile):
     """Read in the pre-release list
 
@@ -423,7 +473,11 @@ def read_srclist_crates(infile):
 
         # SHOULD we strip the name?
         name = str(name)
-        assert name not in out
+
+        if name in invalid_pre1_sources:
+            continue
+
+        assert name not in out, name
         out[name] = {'name': name, 'ra': ra, 'dec': dec,
                      'err_ellipse_r0': r0}
 
@@ -450,7 +504,11 @@ def read_srclist_astropy(infile):
         r0 = row['ERR_ELLIPSE_R0']
 
         name = str(name).strip()
-        assert name not in out
+
+        if name in invalid_pre1_sources:
+            continue
+
+        assert name not in out, name
         out[name] = {'name': name, 'ra': ra, 'dec': dec,
                      'err_ellipse_r0': r0}
 

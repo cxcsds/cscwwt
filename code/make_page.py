@@ -701,11 +701,11 @@ def doit(progname, yscale='linear'):
                      nsrc_db, pcen_db, lastmod_db,
                      'wwt_status.json')
 
-    data = read_joe2()
-
     """
 
     No longer create .png files
+
+    data = read_joe2()
 
     # HARD CODE KNOWLEDGE OF matches ARRAY
     plot_stacks(data, matches[1][1])

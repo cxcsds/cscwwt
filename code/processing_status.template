@@ -109,6 +109,13 @@ div.cscimage {
       </tbody>
     </table>
 
+    <p>
+      The number of sources doesn't quite match the expected
+      number (which comes from the pre-release of the catalog)
+      as validation and verification of the catalog has meant
+      a small number of sources have been added and removed.
+    </p>
+
     <!--
     <div id="timeseries-sources" class="cscimage">
       <img src="timeplot.png" alt="[The increase in the number of processed sources as a function of time. It increases in bursts, as sets of overlapping stacks finish processing.]"/>

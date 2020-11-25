@@ -8,7 +8,9 @@ outdir=/data/da/Docs/cscweb/csc2
 outjsondir=${outdir}/wwtdata
 
 cd /data/dburke2/L3/rel2.0/status
-python make_page.py linear
+
+# no longer need to look at processing status
+# python make_page.py linear
 
 echo "# Starting csccli call: `date`"
 time curl -o source_properties.tsv --silent \
@@ -33,7 +35,9 @@ gzip -n wwt_srcprop.*.json
 #
 # cp processing_status.xml coverage_pcen.png timeplot.png ${outdir}/
 
-cp processing_status.xml ${outdir}/
+# no longer need to copy this over
+# cp processing_status.xml ${outdir}/
+
 # cp stacks.txt ${outdir}/   # as now all True, no need to copy
 cp wwt_status.json ${outjsondir}/
 
@@ -51,19 +55,31 @@ cd ${outjsondir}/
 # publish=/data/da/Docs/web4/ciao410/publish.pl
 publish=/data/da/Docs/web4/ciao411/publish.pl
 
-perl $publish wwt_status.json wwt_srcprop.*.json.gz
-perl $publish wwt_status.json wwt_srcprop.*.json.gz --type=live
+# With lagado replacement, something has changed which means that
+# (I *think&) /bin/perl rather than /usr/local/bin/perl is being
+# used, which doesn't have the LibXML/XSLT modules, and so everything
+# fails. See if we can fix this.
+#
+# perl=perl
+perl=/usr/local/bin/perl
+
+$perl $publish wwt_status.json wwt_srcprop.*.json.gz
+$perl $publish wwt_status.json wwt_srcprop.*.json.gz --type=live
 
 cd ..
 
-# perl $publish processing_status.xml coverage_pcen.png timeplot.png
+# $perl $publish processing_status.xml coverage_pcen.png timeplot.png
 
-# perl $publish processing_status.xml stacks.txt
-perl $publish processing_status.xml
+# $perl $publish processing_status.xml stacks.txt
 
-# perl $publish processing_status.xml coverage_pcen.png timeplot.png --type=live
+# no longer need to do this
+# $perl $publish processing_status.xml
 
-# perl $publish processing_status.xml stacks.txt  --type=live
-perl $publish processing_status.xml  --type=live
+# $perl $publish processing_status.xml coverage_pcen.png timeplot.png --type=live
+
+# $perl $publish processing_status.xml stacks.txt  --type=live
+
+# no lnger need to do this
+# $perl $publish processing_status.xml  --type=live
 
 # touch /home/dburke/stop-crontab-hack
