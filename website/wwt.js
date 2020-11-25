@@ -1986,6 +1986,9 @@ var wwt = (function () {
    * and it's not clear what happens in this case if the
    * collection is loaded twice. I would hope it just over-writes
    * the previous setting (as the name is the same).
+   *
+   * It looks like we can now ignore the image collection
+   * entirely and use the in-built set.
    */
   function createImageCollections() {
     trace('adding image collection ...');
@@ -4192,16 +4195,8 @@ var wwt = (function () {
     }
   }
 
-  // Mapping from short to long names, based on an analysis of a WTML
-  // file created by WWT on Windows.
-  //
-  // It turns out most of these are already loaded, so we don't need
-  // to load them as part of csc2.wtml, EXCEPT that as of Nov 2020
-  // it looks like many if the in-built versions use http rather
-  // than https access, we I have manually edited the csc2.wtml
-  // for these. To show these have changed - and BECAUSE the name
-  // is not guaanteed to be unique, so it does not over-write the
-  // stored values - these names are prefixed by "X ".
+  // Mapping from short to long names based on the output of
+  // wwtlib.WWTControl.imageSets.map(d => d._name)
   //
   var wtml = {'2mass-image': '2Mass: Imagery (Infrared)',
               'dss': 'Digitized Sky Survey (Color)',
