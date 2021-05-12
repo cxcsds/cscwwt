@@ -3,9 +3,15 @@
 { pkgs ? import <nixpkgs> {} } :
 let
   # buildInputs = [ pkgs.nodePackages.eslint ];
-  buildInputs = [ pkgs.nodejs ];
+  # buildInputs = [ pkgs.nodejs ];
+  buildInputs = [ pkgs.haskellPackages.wai-app-static ];
 
 in
   pkgs.mkShell {
     buildInputs = buildInputs;
+    shellHook = ''
+      echo "***"
+      echo "*** Use warp to serve local files"
+      echo "***"
+    '';
   }
