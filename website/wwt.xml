@@ -19,14 +19,6 @@
     </metalist>
 
     <htmlscripts>
-      <!-- needs to be proxied now we've moved to https
-      <htmlscript src="http://www.worldwidetelescope.org/scripts/wwtsdk.aspx"/>
-
-      and this is the proxy
-
-      <htmlscript src="/cgi-gen/borax/wwtsdk.aspx"/>
-      -->
-
       <htmlscript src="https://web.wwtassets.org/engine/7/wwtsdk.js"/>
 
       <!-- should probably specify a version -->
@@ -1251,9 +1243,6 @@ main#content div.wrap {
             <dd>
               <img class="thumbnail" alt="Planck logo"
                    src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=planck"/>
-<!--
-		   src="/cgi-gen/borax/planck"/>
--->
               <p>
 		Planck is a European Space Agency mission, with significant
 		participation from NASA. NASAs Planck Project Office is based at
@@ -1271,9 +1260,6 @@ main#content div.wrap {
             <dd>
               <img class="thumbnail" alt="VLA logo"
                    src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=VLA"/>
-<!--
-		   src="/cgi-gen/borax/VLA"/>
--->
               <p>
 		VLSS Cohen, A. S.; Lane, W. M.; Cotton, W. D.; Kassim, N. E.; Lazio, T. J. W.; Perley, R. A.; Condon, J. J.; Erickson, W. C.; Served From NASA Skyview
               </p>
@@ -1283,9 +1269,6 @@ main#content div.wrap {
             <dd>
               <img class="thumbnail" alt="WISE logo"
                    src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=wise"/>
-<!--
-                   src="/cgi-gen/borax/wise"/>
--->
               <p>
 		NASA/JPL-Caltech/UCLA
               </p>
@@ -1295,9 +1278,6 @@ main#content div.wrap {
             <dd>
               <img class="thumbnail" alt="2MASS logo"
                    src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=2mass"/>
-<!--
-                   src="/cgi-hen/borax/2mass"/>
--->
               <p>
 		This publication makes use of data products from the Two Micron
 		All Sky Survey, which is a joint project of the University of
@@ -1312,9 +1292,6 @@ main#content div.wrap {
             <dd>
               <img class="thumbnail" alt="DSS logo"
                    src="https://www.worldwidetelescope.org/thumbnails/DSS.png"/>
-<!--
-                   src="/cgi-gen/borax/DSS.png"/>
--->
               <p>
 		Copyright DSS Consortium
               </p>
@@ -1327,9 +1304,6 @@ main#content div.wrap {
             <dd>
               <img class="thumbnail" alt="Halpha survey logo"
                    src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=halpha"/>
-<!--
-                   src="/cgi-gen/borax/halpha"/>
--->
               <p>
 		Image Courtesy Douglas Finkbeiner. The full-sky H-alpha map (6'
 		FWHM resolution) is a composite of the Virginia Tech Spectral
@@ -1344,9 +1318,6 @@ main#content div.wrap {
             <dd>
               <img class="thumbnail" alt="RASS logo"
                    src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=rosatcolor"/>
-<!--
-                   src="/cgi-gen/borax/rosatcolor"/>
--->
               <p>
 		This is a composite of three RASS3 surveys from the ROSAT Data
 		Archive of the Max-Planck-Institut fur extraterrestrische Physik
@@ -1361,9 +1332,6 @@ main#content div.wrap {
             <dd>
               <img class="thumbnail" alt="Fermi logo"
                    src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=FermiYearThree"/>
-<!--
-                   src="/cgi-gen/borax/FermiYearThree"/>
--->
               <p>
 		NASA and the FERMI-LAT Team.
               </p>
