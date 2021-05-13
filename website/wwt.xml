@@ -33,7 +33,10 @@
       <htmlscript src="js/jscolor.js"/>
       <htmlscript src="js/samp.js"/>
 
+      <!--
       <htmlscript src="js/lookup.js"/>
+      -->
+
       <htmlscript src="js/spinner.js"/>
       <htmlscript src="js/draggable.js"/>
 
@@ -366,6 +369,24 @@ main#content div.wrap {
 	data) and copy it to the clipboard.
       </div>
       <div class="tooltip" id="targetName-tooltip">
+	Unfortunately we currently can not support using an
+	object name - such as <span class="term">M31</span> - so
+	the supported values are CSC 2.0 names, which begin
+	<span class="term">2CXO J</span> and require the
+	CSC 2.0 sources to have been loaded, or a position
+	in Right Ascension and Declination.
+	In this latter case
+	a limited variety of coordinate formats are supported,
+	including
+	<span class="term">205.842, -14.8367</span>;
+	<span class="term">13 43 22, -14 50 12</span>;
+	<span class="term">13:43:22, -14:50:12</span>;
+	<span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	and
+	<span class="term">13h 43m 22s, -14d 50' 12"</span>.
+	Note that the values <em>must</em> be separated by a comma!
+      </div>
+      <div class="tooltip" id="targetName-tooltip-old">
 	A name can be given (e.g.
 	<span class="term">Orion cluster</span>
 	or
@@ -389,7 +410,7 @@ main#content div.wrap {
       <!-- Inform the user when the stack status has been updated -->
       <div id="stackUpdateStatus"></div>
 
-      <!-- someplace to put messages from lookUP -->
+      <!-- someplace to put messages (primarily from target identification) -->
       <div id="targetSuccess"></div>
       <div id="targetFailure"></div>
 
@@ -736,6 +757,34 @@ main#content div.wrap {
 	  <h3>Searching for a name or position</h3>
 
 	  <p>
+	    Unfortunately we are currently unable to search by name,
+	    such as <span class="term">M31</span>, as the service we used
+	    for this had to be closed down because it was being misused.
+	    We hope to bring this feature soon.
+          </p>
+
+	  <p>
+	    The <tt>Enter a Name or Position</tt> box lets you quickly move
+	    around the sky. Positions are in Right Ascension and Declination
+	    (ICRS) and <strong>must be separated by a comma</strong>.
+	    The support
+	    for positions is limited to the following formats:
+	    <span class="term">205.842, -14.8367</span>;
+	    <span class="term">13 43 22, -14 50 12</span>;
+	    <span class="term">13:43:22, -14:50:12</span>;
+	    <span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	    or
+	    <span class="term">13h 43m 22s, -14d 50' 12"</span>.
+	  </p>
+
+	  <p>
+	    An alternative is to use the name of a CSC 2.0 source,
+	    which begins <span class="term">2CXO J</span>. This is only
+	    supported once the CSC 2.0 sources have been loaded.
+          </p>
+
+<!--
+	  <p>
 	    The <tt>Enter a Name or Position</tt> box lets you quickly move
 	    around the sky. Positions are in Right Ascension and Declination
 	    (ICRS) and <strong>must be separated by a comma</strong>, otherwise
@@ -751,6 +800,7 @@ main#content div.wrap {
 	    or
 	    <span class="term">13h 43m 22s, -14d 50' 12"</span>.
 	  </p>
+-->
 
 	  <h3>Selecting a stack</h3>
 
@@ -1160,15 +1210,15 @@ main#content div.wrap {
             <extlink target="_blank"
 		     href="https://www.worldwidetelescope.org/About/">American
 	    Astronomical Society</extlink>.
-            The target search uses the
+            The target search used to use the
             <extlink target="_blank"
-		     href="https://www.strudel.org.uk/lookUP/about.html">LookUP
+		     href="https://www.strudel.org.uk/lookUP/">LookUP
             service</extlink>,
             operated by
             <extlink target="_blank"
 		     href="https://www.strudel.org.uk/">Stuart R. Lowe</extlink>,
-            which
-            provides a simple way to search Astronomical targets by name.
+	    but unfortunately this service has had to be closed down due to
+	    misuse by the community.
             The Milky Way outline is from the
             <extlink target="_blank"
 		     href="https://github.com/ofrohn/d3-celestial">d3-celestial

@@ -4063,6 +4063,8 @@ var wwt = (function () {
   // - is it a position; if so jump to it
   // - otherwise send it to the lookUP service
   //
+  // For the moment we do not support a name resolver.
+  //
   function findTargetName() {
     const target = document.querySelector('#targetName').value.trim();
     if (target === '') {
@@ -4131,6 +4133,10 @@ var wwt = (function () {
     if (host === null) {
       return;
     }
+
+    const noMsg = '<p>The name lookup is currently disabled thanks to the misuse of the lookUp service by some users.</p>';
+    reportLookupFailure(noMsg);
+    return;
 
     startSpinner();
 
