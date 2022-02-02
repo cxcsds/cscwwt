@@ -366,7 +366,7 @@ main#content div.wrap {
 	zoom level, and selected wavelength for the background
 	data) and copy it to the clipboard.
       </div>
-      <div class="tooltip" id="targetName-tooltip">
+      <div class="tooltip" id="targetName-tooltip-no-nameserver">
 	Unfortunately we currently can not support using an
 	object name - such as <span class="term">M31</span> - so
 	the supported values are CSC 2.0 names, which begin
@@ -384,7 +384,7 @@ main#content div.wrap {
 	<span class="term">13h 43m 22s, -14d 50' 12"</span>.
 	Note that the values <em>must</em> be separated by a comma!
       </div>
-      <div class="tooltip" id="targetName-tooltip-old">
+      <div class="tooltip" id="targetName-tooltip">
 	A name can be given (e.g.
 	<span class="term">Orion cluster</span>
 	or
