@@ -4074,12 +4074,11 @@ var wwt = (function () {
     }
 
     // Maybe it's a 2CXO name?
-    // We can only do this if the catalog data has been downloaded.
-    // For now we know the 2CXO names have not made it through to
-    // Simbad or NED, so no point in continuing to them if we
-    // have no match.
+    // We have support for this if the catalog data has been loaded,
+    // but we can also now rely on NED for when the data has not been
+    // loaded.
     //
-    if (target.startsWith('2CXO J')) {
+    if (target.startsWith('2CXO J') && catalogProps.csc20.loaded) {
       find2CXO(target);
       return;
     }

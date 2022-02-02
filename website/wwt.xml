@@ -777,8 +777,10 @@ main#content div.wrap {
 
 	  <p>
 	    An alternative is to use the name of a CSC 2.0 source,
-	    which begins <span class="term">2CXO J</span>. This is only
-	    supported once the CSC 2.0 sources have been loaded.
+	    which begins <span class="term">2CXO J</span>. If the
+	    CSC 2.0 sources have been loaded then we search directly
+	    from this list, otherwise we use the name server to try and
+	    identify the location (which will be slower).
           </p>
 
 	  <p>
