@@ -43,10 +43,10 @@ const lookup = (() => {
         if (lup.status === 200) {
           try {
             const response = JSON.parse(lup.responseText);
+            process(objectName, callback, errhandle, response);
           } catch (e) {
             errhandle('Unable to decode the response from the name server.');
           }
-          process(objectName, callback, errhandle, response);
         } else {
 	  errhandle('There was a problem calling the name server.');
         }
@@ -59,7 +59,7 @@ const lookup = (() => {
 
   function process(objectname, callback, errhandle, d) {
 
-    if (typeof d === 'undefined' || typeof d.status === 'undefined')) {
+    if (typeof d === 'undefined' || typeof d.status === 'undefined') {
       errhandle('There was a problem querying the name server.');
       return;
     }

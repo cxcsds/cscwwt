@@ -4134,10 +4134,6 @@ var wwt = (function () {
       return;
     }
 
-    const noMsg = '<p>The name lookup is currently disabled thanks to the misuse of the lookUp service by some users.</p>';
-    reportLookupFailure(noMsg);
-    return;
-
     startSpinner();
 
     reportLookupSuccess(`Searching for ${target}`, false);
