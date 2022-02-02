@@ -34,6 +34,7 @@ var wwt = (function () {
   //     - "select sources with a polygon"
   //     - show nearest stacks
   //     - show nearest sources
+  //     - allow source-selection to be toggled/faceted
   //
   // We flip these all to true if run on the test server (TEMPORARILY
   // DISABLED).
@@ -43,6 +44,7 @@ var wwt = (function () {
   let displayPolygonSelect = false;
   let displayNearestStacks = false;
   let displayNearestSources = false;
+  let displaySourceToggles = false;
 
   // What options has the user provided via query parameters?
   let userLocation = null;
@@ -2245,9 +2247,15 @@ var wwt = (function () {
   // fields that toStore needs (getPos is called once per item,
   // so can be used to increase a counter if required).
   //
+  // If the xs elements contain a shown field, then we skip
+  // elements for which this field is false. This is to support
+  // the "toggle subsets of the display" functionality.
+  //
   function findNearestTo(ra0, dec0, maxSep, xs, getPos, toStore) {
     const store = [];
     xs.forEach(a => {
+      if ((typeof a.shown !== 'undefined') && !a.shown) { return; }
+
       const pos = getPos(a);
       const sep = separation(ra0, dec0, pos.ra, pos.dec);
       if (sep <= maxSep) {
@@ -3293,6 +3301,7 @@ var wwt = (function () {
       displayCHS = true;
       displayNearestStacks = true;
       displayNearestSources = true;
+      displaySourceToggles = true;
     }
     **/
 
@@ -3302,6 +3311,7 @@ var wwt = (function () {
     displayCHS = displayCHS || params.has('chs');
     displayNearestStacks = displayNearestStacks || params.has('stack');
     displayNearestSources = displayNearestSources || params.has('source');
+    displaySourceToggles = displaySourceToggles || params.has('toggles');
 
     trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
 
@@ -4491,6 +4501,8 @@ var wwt = (function () {
 
     click: addAnnotationClicked,
     unclick: removeAnnotationClicked,
+
+    showSourceToggles: () => displaySourceToggles,
 
     clearState: clearState,
     switchSelectionMode: switchSelectionMode
