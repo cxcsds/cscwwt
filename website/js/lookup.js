@@ -2,11 +2,12 @@
 
 /* global XMLHttpRequest */
 
-// Query the LookUP service for converting Astronomical names to
-// RA/Dec values: https://www.strudel.org.uk/lookUP/
+// This used to use the lookUP service for converting Astronomical names to
+// RA/Dec values -  https://www.strudel.org.uk/lookUP/ - but this service
+// was shut down due to inconsiderate users.
 //
-// The following code is based on
-// https://raw.githubusercontent.com/slowe/astro.js/master/astro.lookup.js
+// I am currently using a basic nameserver I've cobbled together. It is not
+// as useful as the lookUP service.
 //
 const lookup = (() => {
 
@@ -21,13 +22,9 @@ const lookup = (() => {
   }
 
   // Look up the name and if there is a success call
-  //      callback(ra, dec, service, category)
+  //      callback(ra, dec)
   // and error handler (string argument, representing HTML for the
   // message).
-  //
-  // The service argument is the name of the service which returned
-  // the location, and may not be set. The category argument is the
-  // category information from lookUP and may be null.
   //
   function lookupName(objectName, callback, errhandle) {
 
@@ -37,7 +34,7 @@ const lookup = (() => {
       return;
     }
 
-    var src = 'https://www.strudel.org.uk/lookUP/json/?name=' +
+    var src = 'https://namesky.herokuapp.com/name/' +
       cleanQueryValue(objectName);
 
     // Why am I not using d here?
@@ -47,11 +44,11 @@ const lookup = (() => {
           try {
             const response = JSON.parse(lup.responseText);
           } catch (e) {
-            errhandle('Unable to decode the response from the lookUP service.');
+            errhandle('Unable to decode the response from the name server.');
           }
           process(objectName, callback, errhandle, response);
         } else {
-	  errhandle('There was a problem calling the lookUP service.');
+	  errhandle('There was a problem calling the name server.');
         }
       }
     };
@@ -62,42 +59,30 @@ const lookup = (() => {
 
   function process(objectname, callback, errhandle, d) {
 
-    if (typeof d === 'undefined' || (d.type && d.type === 'error')) {
-      errhandle('There was a problem querying the lookUP service.');
+    if (typeof d === 'undefined' || typeof d.status === 'undefined')) {
+      errhandle('There was a problem querying the name server.');
       return;
     }
 
-    if (d.target && d.target.suggestion) {
-      let msg = '<p>Target "' + objectname + '" not found.</p>' +
-	'<p>Did you mean "' + d.target.suggestion + '"?</p>';
-      errhandle(msg);
+    if (!d.status) {
+      errhandle(`Target "${objectname}" not found.`);
       return;
     }
 
-    if (d.ra) {
-      let service = null;
-      if (d.service) {
-	service = d.service.name;
-      }
-
-      let category = null;
-      if (d.category) {
-	category = d.category;
-      }
-
-      callback(d.ra.decimal, d.dec.decimal, service, category);
+    if (typeof d.location !== 'object') {
+      // Would it make sense to dump d to the console here?
+      errhandle('The name server is apparently rather confused.');
       return;
     }
 
-    let msg;
-    if (d.message) {
-      /* Could add objectname here, but not sure what
-         LookUp is returning */
-      msg = d.message;
-    } else {
-      msg = 'Target "' + objectname + '" not found.';
+    const loc = d.location;
+    if (typeof loc.ra === 'undefined' || typeof loc.dec === 'undefined') {
+      // Would it make sense to dump d to the console here?
+      errhandle('The name server is apparently rather confused.');
+      return;
     }
-    errhandle(msg);
+
+    callback(loc.ra, loc.dec);
   }
 
   return { lookupName: lookupName };

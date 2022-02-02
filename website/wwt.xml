@@ -33,9 +33,7 @@
       <htmlscript src="js/jscolor.js"/>
       <htmlscript src="js/samp.js"/>
 
-      <!--
       <htmlscript src="js/lookup.js"/>
-      -->
 
       <htmlscript src="js/spinner.js"/>
       <htmlscript src="js/draggable.js"/>
@@ -368,7 +366,7 @@ main#content div.wrap {
 	zoom level, and selected wavelength for the background
 	data) and copy it to the clipboard.
       </div>
-      <div class="tooltip" id="targetName-tooltip">
+      <div class="tooltip" id="targetName-tooltip-no-nameserver">
 	Unfortunately we currently can not support using an
 	object name - such as <span class="term">M31</span> - so
 	the supported values are CSC 2.0 names, which begin
@@ -386,12 +384,12 @@ main#content div.wrap {
 	<span class="term">13h 43m 22s, -14d 50' 12"</span>.
 	Note that the values <em>must</em> be separated by a comma!
       </div>
-      <div class="tooltip" id="targetName-tooltip-old">
+      <div class="tooltip" id="targetName-tooltip">
 	A name can be given (e.g.
 	<span class="term">Orion cluster</span>
 	or
-	<span class="term">M31</span>), which is passed to the
-	LookUp service, or a location can be given using a comma
+	<span class="term">M31</span>), which is passed to an
+	Astronomical name server, or a location can be given using a comma
 	to separate the Right Ascension from the Declination.
 	In this latter case
 	a limited variety of coordinate formats are supported,
@@ -783,15 +781,12 @@ main#content div.wrap {
 	    supported once the CSC 2.0 sources have been loaded.
           </p>
 
-<!--
 	  <p>
 	    The <tt>Enter a Name or Position</tt> box lets you quickly move
 	    around the sky. Positions are in Right Ascension and Declination
 	    (ICRS) and <strong>must be separated by a comma</strong>, otherwise
-	    the text is sent to the
-	    <extlink target="_blank"
-		     href="https://www.strudel.org.uk/lookUP/about.html">LookUP
-	    service</extlink> to try and identify a location. The support
+	    the text is sent to a name server
+	    to try and identify a location. The support
 	    for positions is limited to the following formats:
 	    <span class="term">205.842, -14.8367</span>;
 	    <span class="term">13 43 22, -14 50 12</span>;
@@ -800,7 +795,6 @@ main#content div.wrap {
 	    or
 	    <span class="term">13h 43m 22s, -14d 50' 12"</span>.
 	  </p>
--->
 
 	  <h3>Selecting a stack</h3>
 
@@ -1212,13 +1206,14 @@ main#content div.wrap {
 	    Astronomical Society</extlink>.
             The target search used to use the
             <extlink target="_blank"
-		     href="https://www.strudel.org.uk/lookUP/">LookUP
+		     href="https://www.strudel.org.uk/lookUP/">lookUP
             service</extlink>,
             operated by
             <extlink target="_blank"
 		     href="https://www.strudel.org.uk/">Stuart R. Lowe</extlink>,
-	    but unfortunately this service has had to be closed down due to
-	    misuse by the community.
+	    but unfortunately it had to be closed down due to
+	    misuse by the community, so an alternative solution has been
+	    created, but it does not provide all the features that lookUP did.
             The Milky Way outline is from the
             <extlink target="_blank"
 		     href="https://github.com/ofrohn/d3-celestial">d3-celestial

@@ -4152,32 +4152,14 @@ var wwt = (function () {
     targetName.setAttribute('disabled', 'disabled');
     targetFind.setAttribute('disabled', 'disabled');
 
-    const success = (ra, dec, service, category) => {
+    const success = (ra, dec) => {
 
       stopSpinner();
       targetName.removeAttribute('disabled');
       targetFind.removeAttribute('disabled');
 
       setPosition(ra, dec, target);
-
-      var msg;
-      if (service) {
-        msg = `<p>Location provided for ${target} by ${service}.</p>`;
-      } else {
-        msg = '<p>Location found.</p>';
-      }
-
-      // Augment this with ancillary information if available.
-      //
-      // Could search on avmdesc !== "" but then can get
-      // "Object of unknown category" which doesn't look good.
-      //
-      if (category && category.avmcode !== '') {
-        msg += '<p>Source category: <span class="source-category">' +
-          category.avmdesc + '</span></p>';
-      }
-
-      reportLookupSuccess(msg);
+      reportLookupSuccess('<p>Location found.</p>');
     };
 
     const failure = (msg) => {
