@@ -3692,7 +3692,13 @@ var wwt = (function () {
     }, false);
 
     // Do I need to add a cache-busting identifier?
-    req.open('GET', 'wwtdata/wwt_status.json' + cacheBuster());
+    // During development I wanted to make sure there was no caching
+    // but this file is not currently being updated.
+    //
+    // req.open('GET', 'wwtdata/wwt_status.json' + cacheBuster());
+
+    req.open('GET', 'wwtdata/wwt_status.json');
+
     req.responseType = 'json';
     req.send();
   }

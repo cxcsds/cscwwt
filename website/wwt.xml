@@ -477,7 +477,7 @@ main#content div.wrap {
 		     href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
 	    is running on
 	    the same machine as the web browser.
-	    The positions of detections from release 1.1 of the CSC and the latest
+	    The positions of detections from release 1.1 of the CSC and a recent
 	    <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
 	    source catalog</extlink>
 	    can also be displayed.
@@ -487,7 +487,11 @@ main#content div.wrap {
 	    <span class="example-button">Help</span>
 	    and
 	    <span class="example-button">Credits</span>
-	    buttons.
+	    buttons. A number of settings can be changed with the
+	    <span class="example-button">Show Settings</span>
+	    button, including turning off this "Welcome banner"
+	    (this information is stored by your browser and not saved
+	    anywhere else).
 	  </p>
 	</div>
       </div>
