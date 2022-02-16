@@ -156,6 +156,16 @@ main#content div.wrap {
 		   alt="Bookmark this location (copy URL to clipboard)"
 		   class="icon end-of-line"/>
 	    </p>
+
+	    <div>
+              <button class="button"
+                      type="button" id="search-ned"
+                      onclick="wwt.searchNED()">NED</button>
+              <button class="button"
+                      type="button" id="search-simbad"
+                      onclick="wwt.searchSIMBAD()">Simbad</button>
+	    </div>
+
 	  </div>
 
 	</div>
@@ -323,15 +333,6 @@ main#content div.wrap {
             </button>
 	  </div>
 	  -->
-
-	  <div>
-            <button class="button"
-                    type="button" id="search-ned"
-                    onclick="wwt.searchNED()">NED</button>
-            <button class="button"
-                    type="button" id="search-simbad"
-                    onclick="wwt.searchSIMBAD()">Simbad</button>
-	  </div>
 
 	  <div>
             <button class="button"

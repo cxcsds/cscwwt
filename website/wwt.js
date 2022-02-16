@@ -4594,7 +4594,7 @@ var wwt = (function () {
 	  '&radius=' + rmax.toString() +
 	  '&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=5&img_stamp=YES';
 
-    console.log(`url=${url}`);
+    trace(`url=${url}`);
     window.open(url);
   }
 
@@ -4614,7 +4614,7 @@ var wwt = (function () {
           "&Radius.unit=arcmin" +
           "&submit=submit+query&CoordList=";
 
-    console.log(`url=${url}`);
+    trace(`url=${url}`);
     window.open(url);
   }
 
