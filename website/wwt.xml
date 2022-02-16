@@ -326,6 +326,15 @@ main#content div.wrap {
 
 	  <div>
             <button class="button"
+                    type="button" id="search-ned"
+                    onclick="wwt.searchNED()">NED</button>
+            <button class="button"
+                    type="button" id="search-simbad"
+                    onclick="wwt.searchSIMBAD()">Simbad</button>
+	  </div>
+
+	  <div>
+            <button class="button"
                     type="button" id="showabout"
                     onclick="wwt.showBlockElement('about')">Help</button>
             <button class="button"

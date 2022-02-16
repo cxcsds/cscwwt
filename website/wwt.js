@@ -4560,6 +4560,64 @@ var wwt = (function () {
     trace('Loaded XMM data');
   }
 
+  // Search near the current location in NED in a new tab.
+  //
+  // rmax is in arcminutes
+  //
+  function searchNED(rmax=2) {
+    const ra = 15.0 * wwt.getRA();
+    const dec = wwt.getDec();
+
+    const raElems = wwtprops.raToTokens(ra);
+    const decElems = wwtprops.decToTokens(dec);
+
+    const raStr = i2(raElems.hours) + "h" +
+          i2(raElems.minutes) + "m" +
+          f2(raElems.seconds, 2) + "s";
+
+    const decStr = decElems.sign +
+          i2(decElems.degrees) + "d" +
+          i2(decElems.minutes) + "'" +
+          f2(decElems.seconds, 1) + '"';
+
+    /*** I can not get the "new" version to work, in that it
+         seems to not submit the actual search
+
+         url = 'https://ned.ipac.caltech.edu/conesearch?search_type=Near%20Position%20Search&iau_style=liberal&coordinates=' +
+         raStr + '%20' + decStr +
+         '&radius=1&in_csys=Equatorial&in_equinox=J2000.0&in_csys_IAU=Equatorial&in_equinox_IAU=B1950&z_constraint=Unconstrained&z_unit=z&ot_include=ANY&nmp_op=ANY&hconst=67.8&omegam=0.308&omegav=0.692&wmap=4&corr_z=1&out_csys=Same%20as%20Input&out_equinox=Same%20as%20Input&obj_sort=Distance%20to%20search%20center';
+    ***/
+
+    const url = 'https://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0' +
+	  '&lon=' + raStr +
+	  '&lat=' + decStr +
+	  '&radius=' + rmax.toString() +
+	  '&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=5&img_stamp=YES';
+
+    console.log(`url=${url}`);
+    window.open(url);
+  }
+
+  // Search near the current location in Simbad in a new tab.
+  //
+  // rmax is in arcminutes
+  //
+  function searchSIMBAD(rmax=2) {
+    const ra = 15.0 * wwt.getRA();
+    const dec = wwt.getDec();
+
+    const url = "https://simbad.harvard.edu/simbad/sim-coo?Coord=" +
+          ra.toString() + "+" +
+          dec.toString() + "&CooFrame=FK5&CooEpoch=2000" +
+          "&CooEqui=2000&CooDefinedFrames=none" +
+          "&Radius=" + rmax.toString() +
+          "&Radius.unit=arcmin" +
+          "&submit=submit+query&CoordList=";
+
+    console.log(`url=${url}`);
+    window.open(url);
+  }
+
   // Most of these are likely to be removed or replaced
   // as they are here for debugging, or historical "accident"
   // (i.e. not removed when no-longer needed).
@@ -4569,6 +4627,9 @@ var wwt = (function () {
     reinitialize: wwtReadyFunc,
     resize: resize,
     unload: unload,
+
+    searchNED: searchNED,
+    searchSIMBAD: searchSIMBAD,
 
     getHost: getHost,
 

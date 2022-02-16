@@ -877,11 +877,11 @@ div.grid-2-cols {
  * Want the about/credits buttons to be on the same line; this is
  * not pretty CSS...
  */
-#showabout {
+#showabout , #search-ned{
   width: 48%;
 }
 
-#showcredits {
+#showcredits , #search-simbad {
   float: right;
   width: 48%;
 }
