@@ -4241,6 +4241,7 @@ var wwt = (function () {
   // then we can try and guess the location.
   //
   function isStackLike(target) {
+    trace(`is this an invalid stack name: ${target}`);
     const is_acis = target.startsWith("acisfJ");
     const is_hrc = target.startsWith("hrcfJ");
     if (!is_acis && !is_hrc) {
@@ -4273,7 +4274,7 @@ var wwt = (function () {
     let decs = parseInt(decstr.slice(4, 6));
 
     let ra = 15 * (rah + (ram + (ras / 60.0)) / 60.0);
-    let dec = decd + (decm + (decs / 60.0)) / 60.0);
+    let dec = decd + (decm + (decs / 60.0)) / 60.0;
     if (sign === "m") {
       dec = -dec;
     }
@@ -4281,9 +4282,7 @@ var wwt = (function () {
     let raVal = wwtprops.raToHTML(ra);
     let decVal = wwtprops.decToHTML(dec);
 
-    const lbl = toks[0].trim() + ', ' + toks[1].trim();
-
-    setPosition(ra, dec, lbl);
+    setPosition(ra, dec, target);
     reportLookupSuccess(`Moving to ${raVal} ${decVal}`);
     return true;
   }
@@ -4301,7 +4300,7 @@ var wwt = (function () {
     const target = document.querySelector('#targetName').value.trim();
     if (target === '') {
       // this should not happen, but just in case
-      console.log(`Unexpected targetName=[${target}]`);
+      trace(`Unexpected targetName=[${target}]`);
       return;
     }
 
@@ -4443,7 +4442,7 @@ var wwt = (function () {
     }
     const fullName = wtml[name];
     if (typeof fullName === 'undefined') {
-      console.log(`Unknown name: ${name}`);
+      trace(`Unknown name: ${name}`);
       return;
     }
     wwt.setForegroundImageByName(fullName);
@@ -4456,7 +4455,7 @@ var wwt = (function () {
   //
   function processCatalogData(chunks, ctr, json) {
     if (json === null) {
-      console.log(`WARNING: unable to download catalog data ${ctr}`);
+      trace(`WARNING: unable to download catalog data ${ctr}`);
       return;
     }
 
