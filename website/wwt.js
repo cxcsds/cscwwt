@@ -4234,6 +4234,60 @@ var wwt = (function () {
     return true;
   }
 
+  // Is it a stack-like name that may be
+  // - missing the version
+  // - mis-typed
+  // - from a new release
+  // then we can try and guess the location.
+  //
+  function isStackLike(target) {
+    const is_acis = target.startsWith("acisfJ");
+    const is_hrc = target.startsWith("hrcfJ");
+    if (!is_acis && !is_hrc) {
+      return false;
+    }
+
+    let coords;
+    if (is_acis) {
+      coords = target.slice(6);
+    } else {
+      coords = target.slice(5);
+    }
+
+    let re = /(\d\d\d\d\d\d\d)([pm])(\d\d\d\d\d\d)_?/;
+    let matches = coords.match(re);
+    if (matches === null) {
+      return false;
+    }
+
+    let rastr = matches[1];
+    let sign = matches[2];
+    let decstr = matches[3];
+
+    let rah = parseInt(rastr.slice(0, 2));
+    let ram = parseInt(rastr.slice(2, 4));
+    let ras = parseInt(rastr.slice(4, 7)) / 10.0;
+
+    let decd = parseInt(decstr.slice(0, 2));
+    let decm = parseInt(decstr.slice(2, 4));
+    let decs = parseInt(decstr.slice(4, 6));
+
+    let ra = 15 * (rah + (ram + (ras / 60.0)) / 60.0);
+    let dec = decd + (decm + (decs / 60.0)) / 60.0);
+    if (sign === "m") {
+      dec = -dec;
+    }
+
+    let raVal = wwtprops.raToHTML(ra);
+    let decVal = wwtprops.decToHTML(dec);
+
+    const lbl = toks[0].trim() + ', ' + toks[1].trim();
+
+    setPosition(ra, dec, lbl);
+    reportLookupSuccess(`Moving to ${raVal} ${decVal}`);
+    return true;
+  }
+
   // click handler for targetFind.
   // - get user-selected name
   // - is it a stack name (CSC2, only if loaded)
@@ -4301,6 +4355,11 @@ var wwt = (function () {
     if (smatches.length > 0) {
       setPosition(smatches[0].pos[0], smatches[0].pos[1], target);
       reportLookupSuccess(`Moving to stack ${target}`);
+      return;
+    }
+
+    // Maybe it's a typo
+    if (isStackLike(target)) {
       return;
     }
 
