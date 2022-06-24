@@ -821,7 +821,7 @@ var wwt = (function () {
     wwt.gotoRaDecZoom(ra, dec, fov, moveFlag);
   }
 
-  const zoomFactor = 1.25;
+  const zoomFactor = 2;
   function zoomIn() {
     var fov = wwt.get_fov() / zoomFactor;
     zoomTo(fov);
@@ -3664,6 +3664,33 @@ var wwt = (function () {
 			    false);
       }
     });
+
+    // Keyboard support (experimental)
+    //
+    // We add to the document since initial experiments with
+    // the host element didn't work and I don't have the energy
+    // to investigate further
+    //
+    // Based on
+    // https://www.gavsblog.com/blog/detect-single-and-multiple-keypress-events-javascript
+    //
+    // Should we make this configurable (e.g. turn on/off the
+    // key press support, not change the keys being used)?
+    //
+    document.addEventListener('keyup', (event) => {
+
+	if (event.key === 'z') {
+	    zoomIn();
+	    return;
+	}
+
+	if (event.key === 'Z') {
+	    zoomOut();
+	    return;
+	}
+
+    });
+    trace('.. keyboard support');
 
     // Start up the WWT initialization and then load in
     // the current status.
