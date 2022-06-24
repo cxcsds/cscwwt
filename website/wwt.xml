@@ -19,6 +19,11 @@
     </metalist>
 
     <htmlscripts>
+
+      <!-- see https://github.com/WorldWideTelescope/wwt-web-client/issues/350 -->
+      <htmlscript src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.3/pako_inflate.min.js"/>
+      <htmlscript src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"/>
+
       <htmlscript src="https://web.wwtassets.org/engine/7/wwtsdk.js"/>
 
       <!-- should probably specify a version -->
