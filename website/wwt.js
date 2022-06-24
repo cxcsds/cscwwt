@@ -811,6 +811,40 @@ var wwt = (function () {
     });
   }
 
+  // Keyboard support (experimental)
+  //
+  // We add to the document since initial experiments with
+  // the host element didn't work and I don't have the energy
+  // to investigate further
+  //
+  // Based on
+  // https://www.gavsblog.com/blog/detect-single-and-multiple-keypress-events-javascript
+  //
+  // Should we make this configurable (e.g. turn on/off the
+  // key press support, not change the keys being used)?
+  //
+  function setup_keyboard_support() {
+    document.addEventListener('keyup', (event) => {
+
+	if (event.key === 'h') {
+	    toggleBlockElement("about");
+	    return;
+	}
+
+	if (event.key === 'z') {
+	    zoomIn();
+	    return;
+	}
+
+	if (event.key === 'Z') {
+	    zoomOut();
+	    return;
+	}
+
+    });
+    trace('.. keyboard support');
+  }
+
   // Change the zoom level if it is not too small or large
   //
   function zoomTo(fov) {
@@ -1308,6 +1342,24 @@ var wwt = (function () {
 
   function hideElement(name) {
     setDisplay(name, 'none');
+  }
+
+  // If the element is shown, hide it, otherwise display it.
+  //
+  function toggleBlockElement(name) {
+    const sel = `#${name}`;
+    const el = document.querySelector(sel);
+    if (el !== null) {
+      var display;
+      if (el.style.display === "block") {
+          display = "none";
+      } else {
+          display = "block";
+      }
+      el.style.display = display;
+    } else {
+      console.log(`Internal error: unable to find "${sel}"`);
+    }
   }
 
   function setDisplay(name, display) {
@@ -3665,32 +3717,7 @@ var wwt = (function () {
       }
     });
 
-    // Keyboard support (experimental)
-    //
-    // We add to the document since initial experiments with
-    // the host element didn't work and I don't have the energy
-    // to investigate further
-    //
-    // Based on
-    // https://www.gavsblog.com/blog/detect-single-and-multiple-keypress-events-javascript
-    //
-    // Should we make this configurable (e.g. turn on/off the
-    // key press support, not change the keys being used)?
-    //
-    document.addEventListener('keyup', (event) => {
-
-	if (event.key === 'z') {
-	    zoomIn();
-	    return;
-	}
-
-	if (event.key === 'Z') {
-	    zoomOut();
-	    return;
-	}
-
-    });
-    trace('.. keyboard support');
+    setup_keyboard_support();
 
     // Start up the WWT initialization and then load in
     // the current status.
@@ -4766,6 +4793,7 @@ var wwt = (function () {
 
     showBlockElement: showBlockElement,
     hideElement: hideElement,
+    toggleBlockElement: toggleBlockElement,
 
     setImage: setImage,
     setSelectionMode: setSelectionMode,
