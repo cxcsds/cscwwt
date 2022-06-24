@@ -823,11 +823,19 @@ var wwt = (function () {
   // Should we make this configurable (e.g. turn on/off the
   // key press support, not change the keys being used)?
   //
+  const keyboard_toggles = {
+      // Not entirely sure about the h/c/a keys.
+      //
+      a: "welcome",
+      c: "credits",
+      h: "about"
+  };
+
   function setup_keyboard_support() {
     document.addEventListener('keyup', (event) => {
 
-	if (event.key === 'h') {
-	    toggleBlockElement("about");
+	if (event.key in keyboard_toggles) {
+	    toggleBlockElement(keyboard_toggles[event.key]);
 	    return;
 	}
 
