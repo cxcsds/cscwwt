@@ -6,8 +6,12 @@
 // RA/Dec values -  https://www.strudel.org.uk/lookUP/ - but this service
 // was shut down due to inconsiderate users.
 //
-// I am currently using a basic nameserver I've cobbled together. It is not
-// as useful as the lookUP service.
+// I was using a basic nameserver I cobbled together. It is not
+// as useful as the lookUP service: https://namesky.herokuapp.com/name/<name>
+// but it looks like we can query the CDS service directly (but then
+// we need to deal with the response not being easily parseable).
+//
+// Details at: http://vizier.u-strasbg.fr/vizier/doc/sesame.htx
 //
 const lookup = (() => {
 
@@ -34,7 +38,8 @@ const lookup = (() => {
       return;
     }
 
-    var src = 'https://namesky.herokuapp.com/name/' +
+    // This should use the caching that Sesame supports
+    var src = 'https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-ox/SNV?' +
       cleanQueryValue(objectName);
 
     // Why am I not using d here?
@@ -42,8 +47,7 @@ const lookup = (() => {
       if (lup.readyState === XMLHttpRequest.DONE) {
         if (lup.status === 200) {
           try {
-            const response = JSON.parse(lup.responseText);
-            process(objectName, callback, errhandle, response);
+            process(objectName, callback, errhandle, lup.responseXML);
           } catch (e) {
             errhandle('Unable to decode the response from the name server.');
           }
@@ -57,32 +61,30 @@ const lookup = (() => {
     lup.send();
   }
 
+  // Could target the Resolver element and then the ra/dec using that, but
+  // for now just grab them both separately.
+  //
+  const raPath = "/Sesame/Target/Resolver/jradeg";
+  const decPath = "/Sesame/Target/Resolver/jdedeg";
+
   function process(objectname, callback, errhandle, d) {
 
-    if (typeof d === 'undefined' || typeof d.status === 'undefined') {
+    if (typeof d === 'undefined') {
       errhandle('There was a problem querying the name server.');
       return;
     }
 
-    if (!d.status) {
+    // See https://developer.mozilla.org/en-US/docs/Web/XPath/Introduction_to_using_XPath_in_JavaScript
+    //
+    var ra = d.evaluate(raPath, d, null, XPathResult.NUMBER_TYPE, null).numberValue;
+    var dec = d.evaluate(decPath, d, null, XPathResult.NUMBER_TYPE, null).numberValue;
+
+    if (Number.isNaN(ra) || Number.isNaN(dec)) {
       errhandle(`Target "${objectname}" not found.`);
       return;
     }
 
-    if (typeof d.location !== 'object') {
-      // Would it make sense to dump d to the console here?
-      errhandle('The name server is apparently rather confused.');
-      return;
-    }
-
-    const loc = d.location;
-    if (typeof loc.ra === 'undefined' || typeof loc.dec === 'undefined') {
-      // Would it make sense to dump d to the console here?
-      errhandle('The name server is apparently rather confused.');
-      return;
-    }
-
-    callback(loc.ra, loc.dec);
+    callback(ra, dec);
   }
 
   return { lookupName: lookupName };
