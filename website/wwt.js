@@ -617,8 +617,13 @@ var wwt = (function () {
   //    makeShape is a function that takes color, size, data item
   //      and returns a WWT annotation.
   //
+  // The sourcetype field is only needed for the XMM catalog, but is
+  // included for all of them. It indicates whether we are looking at
+  // sources or detections.
+  //
   const catalogProps = {
     csc20: { label: 'CSC2.0', button: '#togglesources',
+             sourcetype: 'Sources',
              changeWidget: '#sourceprops',
              color: 'cyan', size: 5.0 / 3600.0,
 	     loaded: false, data: null,
@@ -626,6 +631,7 @@ var wwt = (function () {
 	     makeShape: makeSource,
              annotations: null },
     csc11: { label: 'CSC1.1', button: '#togglesources11',
+             sourcetype: 'Sources',
              changeWidget: 'source11props',
              color: 'orange', size: 7.0 / 3600.0,
 	     loaded: false, data: null,
@@ -633,6 +639,7 @@ var wwt = (function () {
 	     makeShape: makeSource11,
              annotations: null },
     xmm: { label: 'XMM', button: '#toggleXMMsources',
+           sourcetype: 'Detections',
            changeWidget: 'xmmsourceprops',
            color: 'green', size: 10.0 / 3600.0,
 	   loaded: false, data: null,
@@ -1523,7 +1530,7 @@ var wwt = (function () {
       props.annotations = shown.map(d => d[1]);
 
       document.querySelector(props.button).innerHTML =
-        `Hide ${props.label} Sources`;
+        `Hide ${props.label} ${props.sourcetype}`;
     };
   }
 
@@ -1548,7 +1555,7 @@ var wwt = (function () {
       props.annotations = null;
 
       document.querySelector(props.button).innerHTML =
-        `Show ${props.label} Sources`;
+        `Show ${props.label} ${props.sourcetype}`;
 
       hideElement(props.changeWidget);
 
@@ -4669,7 +4676,7 @@ var wwt = (function () {
     // Let the user know they can "show XMM sources"
     //
     const el = document.querySelector('#toggleXMMsources');
-    el.innerHTML = `Show ${props.label} Sources`;
+    el.innerHTML = `Show ${props.label} ${props.sourcetype}`;
     el.disabled = false;
 
     showBlockElement('xmmsourcecolor');
