@@ -512,6 +512,11 @@ main#content div.wrap {
 	    (this information is stored by your browser and not saved
 	    anywhere else).
 	  </p>
+	  <p>
+	    The <tt>k</tt> key will display the available keyboard
+	    actions, which mainly let you display this information
+	    and the "help" page.
+	  </p>
 	</div>
       </div>
 
@@ -554,6 +559,13 @@ main#content div.wrap {
 	    XMM-Newton source catalog can be displayed, and summary plots
 	    of the CSC 2.0 source properties can be shown.
 	  </p>
+
+	  <p>
+	    A number of actions can be performed with the keyboard. Use the
+	    <tt>k</tt> key to view the options. This can be turned off
+	    in the settings area, if needed.
+	  </p>
+
 <!--
 	  <p>
 	    The <cxclink target="_blank"
@@ -738,7 +750,7 @@ main#content div.wrap {
 	    browser and machine - but this option can be turned off.
 	    Note that this <strong>only</strong> saves information on
 	    your machine; it is <strong>not</strong> stored by the
-	    Chandra X-ray Center.
+	    Chandra X-ray Center or any other web site.
 	  </p>
 
 	  <p>
@@ -746,6 +758,8 @@ main#content div.wrap {
 	  </p>
 
 	  <list>
+	    <li>Can keys ne used to control parts of the display
+	    (default is yes, use the <tt>k</tt> key to view the options)?</li>
 	    <li>Is the Milky Way outline shown (default is no)?</li>
 	    <li>Is a cross-hair shown at the center of the field
 	    (default is yes)?</li>
@@ -1000,6 +1014,59 @@ main#content div.wrap {
 	</div>
       </div>
 
+      <div id="keypresses" class="settingspane">
+	<div class="controlElements controlElementsShown">
+          <span class="title">Key presses:</span>
+	  <span class="closable" onclick="wwt.hideKeypresses();">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+	  <span class="switchable hideable">
+            <img alt="Hide" class="icon"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img alt="Show" class="icon" style="display: none;"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
+	  </span>
+	</div>
+
+	<div class="main">
+	  <table class="standard-table">
+	    <caption>What do the various keys do?</caption>
+	    <thead>
+	      <tr>
+		<th>Key</th><th>Action</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      <tr>
+		<td>a</td><td>toggle the welcome information</td>
+	      </tr>
+	      <tr>
+		<td>c</td><td>toggle the credits information</td>
+	      </tr>
+	      <tr>
+		<td>h</td><td>toggle the about information</td>
+	      </tr>
+	      <tr>
+		<td>k</td><td>toggle this page (keypresses)</td>
+	      </tr>
+	      <tr>
+		<td>o</td><td>toggle the CSC outlines</td>
+	      </tr>
+	      <tr>
+		<td>s</td><td>toggle the settings</td>
+	      </tr>
+	      <tr>
+		<td>z</td><td>zoom in</td>
+	      </tr>
+	      <tr>
+		<td>Z</td><td>zoom out</td>
+	      </tr>
+	    </tbody>
+	  </table>
+	</div>
+      </div> <!-- id=keypresses -->
+
       <div id="settings" class="settingspane pane-pos-left pane-pos-top">
 	<div class="controlElements controlElementsShown">
           <span class="title">Settings:</span>
@@ -1032,7 +1099,8 @@ main#content div.wrap {
 	      If the "Remember position and settings" checkbox is set
 	      below, then these settings will be used when you next view
 	      this page with the same browser (this information is
-	      <strong>only</strong> saved on your machine).
+	      <strong>only</strong> saved on your machine and is not
+	      sent to any website).
 	    </p>
 	  </div>
 
@@ -1041,6 +1109,12 @@ main#content div.wrap {
 	      <input id="togglesavestate" name="togglesavestate"
 		     type="checkbox" checked="true"/>
 	      <label for="togglesavestate">Remember position and settings?</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglekeypress" name="togglekeypress"
+		     type="checkbox" checked="true"/>
+	      <label for="togglekeypress">Respond to keypresses (like k)?</label>
 	    </div>
 
 	    <div class="checkbox">
