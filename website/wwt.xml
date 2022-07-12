@@ -758,7 +758,7 @@ main#content div.wrap {
 	  </p>
 
 	  <list>
-	    <li>Can keys ne used to control parts of the display
+	    <li>Can keys be used to control parts of the display
 	    (default is yes, use the <tt>k</tt> key to view the options)?</li>
 	    <li>Is the Milky Way outline shown (default is no)?</li>
 	    <li>Is a cross-hair shown at the center of the field
