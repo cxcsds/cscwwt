@@ -316,6 +316,18 @@ div.sourceinfopane td.labellimit {
   padding-right: 2em;
 }
 
+table.standard-table thead tr {
+  background: rgba(153, 204, 102, 0.8);
+}
+
+table.standard-table thead th {
+  padding: 0.2em 0.5em;
+}
+
+table.standard-table tbody tr:nth-child(even) {
+  background: rgba(153, 204, 102, 0.8);
+}
+
 div.name {
   background: rgba(255, 255, 255, 0.6);
   float: left;
@@ -925,6 +937,22 @@ div.pane {
 
 div#about , div#credits {
   z-index: 250;
+}
+
+/*
+ * Unlike the other settingspane we want this centered
+ * on the screen.
+ */
+div#keypresses {
+  cursor: default;  /* we do not allow this pane to be dragged so need to reset the cursor */
+  left: 50%;
+  max-height: 80%;
+  max-width: 50em;
+  overflow: auto;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 400;  /* try to appear above everything */
+  -webkit-transform: translate(-50%, -50%);
 }
 
 img.thumbnail {

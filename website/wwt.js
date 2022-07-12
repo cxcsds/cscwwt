@@ -65,6 +65,7 @@ var wwt = (function () {
   const keyWelcome = 'wwt-welcome';
   const keyMilkyWay = 'wwt-milkyway';
   const keyClipboardFormat = 'wwt-clipboardformat';
+  const keyKeypressFlag = "wwt-keypressflag";
   const keyMoveFlag = 'wwt-moveflag';
 
   // Remove any user-stored values.
@@ -75,7 +76,7 @@ var wwt = (function () {
 		  keyCoordinateGrid,
 		  keyCrosshairs, keyConstellations, keyBoundaries,
 		  keySAMP, keyWelcome,
-		  keyMilkyWay, keyClipboardFormat, keyMoveFlag];
+		  keyMilkyWay, keyClipboardFormat, keyMoveFlag, keyKeypressFlag];
 
     keys.forEach(key => {
       trace(`-- clearing state for key=${key}`);
@@ -272,6 +273,14 @@ var wwt = (function () {
     }
     clipboardFormat = format;
     saveState(keyClipboardFormat, clipboardFormat);
+  }
+
+  // Do we respond to keypresses?
+  //
+  var keypressFlag = true;
+  function setKeypressFlag(flag) {
+    keypressFlag = flag;
+    saveState(keyKeypressFlag, keypressFlag);
   }
 
   // Do we move straight to a location or do the fancy zoom out/move/zoom in
@@ -751,6 +760,8 @@ var wwt = (function () {
   const toggleInfo = [
     {key: keySave, sel: '#togglesavestate',
      change: setSaveState, defval: true},
+    {key: keyKeypressFlag, sel: '#togglekeypress',
+     change: setKeypressFlag, defval: true},
     {key: keyMoveFlag, sel: '#togglemoveflag',
      change: setMoveFlag, defval: false},
     {key: keyClipboardFormat, sel: '#clipboardformat',
@@ -830,19 +841,44 @@ var wwt = (function () {
   // Should we make this configurable (e.g. turn on/off the
   // key press support, not change the keys being used)?
   //
+  // The behavior is gated by the keypressFlag global flag.
+  //
   const keyboard_toggles = {
       // Not entirely sure about the h/c/a keys.
       //
       a: "welcome",
       c: "credits",
-      h: "about"
+      h: "about",
+      k: "keypresses",
+      s: "settings"
   };
 
   function setup_keyboard_support() {
     document.addEventListener('keyup', (event) => {
 
+	if (!keypressFlag) {
+	    trace('.. keyboard support is turned off');
+            return;
+        }
+
 	if (event.key in keyboard_toggles) {
 	    toggleBlockElement(keyboard_toggles[event.key]);
+	    return;
+	}
+
+	if (event.key === 'f') {
+            // Do we have a nice way to do this? Apparently not,
+            // in particular toggling the settings setting.
+            //
+            var toggle = true;
+            if (wwtscreen.isFullScreen()) {
+                toggle = false;
+            }
+            wwtscreen.toggleFullScreen(toggle);
+	    const el = document.querySelector("#togglefullscreen");
+	    if (el !== undefined) {
+	        el.checked = toggle;
+            }
 	    return;
 	}
 
@@ -1356,6 +1392,22 @@ var wwt = (function () {
     wwtscreen.toggleFullScreen(flag);
   }
 
+  function checkFullscreenStatus(host) {
+    // Try to work out if the user has exited full-screen mode
+    //
+    const el = host.querySelector('#togglefullscreen');
+    if (wwtscreen.isFullScreen()) {
+      if (wwtscreen.isEnteringFullScreen()) {
+        wwtscreen.clearEnteringFullScreen();
+      } else {
+	el.checked = false;
+        wwtscreen.clearFullScreen();
+      }
+    } else {
+      if (el.checked) { el.checked = false; }
+    }
+  }
+
   // NOTE: do not include the leading '#' in the element name.
   //
   function showBlockElement(name) {
@@ -1791,6 +1843,36 @@ var wwt = (function () {
     showPre = true;
   }
 
+  // Show the pane with the keypress information.
+  //
+  // Unlike the other settings there's no "toggle button" which can be
+  // used to determine the location of the pane, so select the center
+  // of the screen.
+  //
+  // We only really need hideKeypresses but leave the others for now.
+  //
+  var showKeypress = false;
+  function toggleKeypresses(event) {
+    if (showKeypress) {
+      hideKeypresses();
+    } else {
+      showKeypresses(event);
+    }
+  }
+
+  function hideKeypresses() {
+    hideElement('keypresses');
+    showKeypress = false;
+  }
+
+  function showKeypresses(event) {
+    var pane = document.querySelector('#keypresses');
+    pane.style.display = 'block';
+    showKeypresses = true;
+  }
+
+  // Stacks
+  //
   function toggleStacks() {
     let func, label, selMode;
     if (stacksShown) {
@@ -2692,7 +2774,12 @@ var wwt = (function () {
                           event => event.preventDefault(), false);
     host.addEventListener('drop', draggable.stopDrag, false);
 
-    const panes = ['#preselected', '#settings', '#plot'
+    const panes = ['#preselected', '#settings',
+                   // '#keypresses',  we don't drag this as currently it is
+                   // centered and this messes up the drag code and I am too
+                   // lazy to try and improve things
+                   //
+                   '#plot'
 		   // , '#neareststackinfo', '#nearestsourceinfo'
 		   // for now not draggable
 		   // as need to sort out window size properly
@@ -2930,6 +3017,7 @@ var wwt = (function () {
 
     // setupShowHide('#preselected'); // width changes if show/hide
     setupShowHide('#settings');
+    setupShowHide('#keypresses');
     setupShowHide('#plot');
 
     // Display the control panel
@@ -3830,19 +3918,7 @@ var wwt = (function () {
       host.style.height = hstr;
     }
 
-    // Try to work out if the user has exited full-screen mode
-    //
-    const el = host.querySelector('#togglefullscreen');
-    if (wwtscreen.isFullScreen()) {
-      if (wwtscreen.isEnteringFullScreen()) {
-        wwtscreen.clearEnteringFullScreen();
-      } else {
-	el.checked = false;
-        wwtscreen.clearFullScreen();
-      }
-    } else {
-      if (el.checked) { el.checked = false; }
-    }
+    checkFullscreenStatus(host);
 
   }
 
@@ -4810,6 +4886,8 @@ var wwt = (function () {
 
     hideSettings: hideSettings,
     toggleSettings: toggleSettings,
+
+    hideKeypresses: hideKeypresses,
 
     findNearestStack: findNearestStack,
 
