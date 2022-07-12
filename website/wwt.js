@@ -846,6 +846,11 @@ var wwt = (function () {
 	    return;
 	}
 
+	if (event.key === 'o') {
+	    toggleStacks();
+	    return;
+	}
+
 	if (event.key === 'z') {
 	    zoomIn();
 	    return;
@@ -855,6 +860,8 @@ var wwt = (function () {
 	    zoomOut();
 	    return;
 	}
+
+	// console.log(`pressed=${event.key}`);
 
     });
     trace('.. keyboard support');
@@ -1373,7 +1380,7 @@ var wwt = (function () {
       }
       el.style.display = display;
     } else {
-      console.log(`Internal error: unable to find "${sel}"`);
+      console.log(`Internal error [toggleBlockElement]: unable to find "${sel}"`);
     }
   }
 
@@ -1383,7 +1390,7 @@ var wwt = (function () {
     if (el !== null) {
       el.style.display = display;
     } else {
-      console.log(`Internal error: unable to find "${sel}"`);
+      console.log(`Internal error [setDisplay]: unable to find "${sel}"`);
     }
   }
 
@@ -1674,7 +1681,7 @@ var wwt = (function () {
     const sel = `#${elname}`;
     const el = document.querySelector(sel);
     if (el === null) {
-      console.log(`Internal error: unable to find "${elname}"`);
+      console.log(`Internal error [toggleSourceProps]: unable to find "${elname}"`);
       return;
     }
 
