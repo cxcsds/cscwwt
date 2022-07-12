@@ -1,0 +1,41 @@
+
+% wget http://xmmssc.irap.omp.eu/Catalogue/3XMM-DR8/3XMM_DR8cat_slim_v1.0.fits.gz
+
+Now, this turns out to contain a lot of crud, which is "not fair", so
+apply some filters - from the table at http://xmmssc.irap.omp.eu/Catalogue/3XMM-DR8/3XMM_DR8.html
+
+  
+  3XMM catalog (slim) has 531454 rows
+
+  full 3XMM catalog has 
+      775153   all rows
+      417089   with obs_class < 3
+      633733   with sum_flag < 3
+      403669   with obs_class < 3, sum_flag < 3
+
+It's not clear how these map to the slim case.
+
+Have the output of
+
+% dmcopy 3XMM_DR8cat_v1.0.fits.gz"[2][obs_class=:2,sum_flag=:2][cols ra,dec]" 3xmm-dr8-filtered.fits cl+
+
+% python cat2json.py 3xmm-dr8-filtered.fits > xmm.filtered.json
+
+
+% ls -lt xmm*json
+-rw-r--r-- 1 dburke head  8768084 Aug 12 17:41 xmm.filtered.json
+-rw-r--r-- 1 dburke head 11597699 Aug  8 09:12 xmm.slim.json
+-rw-r--r-- 1 dburke head 19537898 Aug  8 09:07 xmm.full.json
+
+So, use filtered for now.
+
+Hmm, ESA Sky using dr7 and just a "quality" of 0 or 1. Let's just use SUM_FLAG < 3 then
+(ie drop the OBS_CLASS filter for now).
+
+% python cat2json.py 3xmm-dr8-filtered.fits > xmm.filtered.json
+% ls -lt *json
+-rw-r--r-- 1 dburke head 13795585 Aug 12 17:49 xmm.filtered.json
+-rw-r--r-- 1 dburke head 11597699 Aug  8 09:12 xmm.slim.json
+-rw-r--r-- 1 dburke head 19537898 Aug  8 09:07 xmm.full.json
+
+

@@ -1,0 +1,75 @@
+
+# Use 4XMM-DR11
+
+This is based on the code written for 3XMM-DR8.
+
+From http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR11/4XMM_DR11.html
+
+we have
+
+    The slimline version of the catalogue contains one row per unique source
+    (while the the main catalogue has one row per detection) and thus has 602543 rows.
+
+% wget http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR11/4XMM_DR11cat_slim_v1.0.fits.gz
+% wget http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR11/4XMM_DR11cat_v1.0.fits.gz
+
+The slim columns are described at
+
+    http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR11/col_unsrc.html
+
+We are probably interested in
+
+    SC_SUM_FLAG (J)
+    The summary flag for the unique source SRCID is taken to be the worst flag of all
+    detections of this source (SUM_FLAG).
+
+The SUM_FLAG value is described at
+
+    http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR11/col_flags.html#sumflag
+
+and is
+
+    SUM_FLAG (J)
+
+    The summary flag of the detection is derived from the EPIC flag (EP_FLAG, see 2XMM UG Sec. 3.1.2 h)
+    and Sec. 3.2.6  but note also sections 3XMM-DR4 UG 3.11 and 3.7). It is 0 if none of the nine flags
+    was set; it is set to 1 if at least one of the warning flags (flag 1, 2, 3, 9) was set but no
+    possible-spurious-detection flag (flag 7, 8); it is set to 2 if at least one of the possible-spurious-detection flags (
+    flag 7, 8) was set but not the manual flag (flag 11); it is set to 3 if the manual flag (flag 11) was
+    set but no possible-spurious-detection flags (flag 7, 8); it is set to 4 if the manual flag (flag 11)
+    as well as one of the possible-spurious-detection flags (flag 7, 8) is set. The meaning is thus:
+    
+    0 = good,
+    1 = source parameters may be affected,
+    2 = possibly spurious,
+    3 = located in a area where spurious detection may occur,
+    4 = located in a area where spurious detection may occur and possibly spurious.
+
+    For details see 2XMM UG Sec. 3.2.7 but note that flag 12 is now used to indicate that the source is on
+    or near warm pixels (see Webb et al. (2020))
+
+The 4XMM documentation suggests using SUMMARY<3 as a determinant
+
+The 4XMM-DR11 table lists
+
+    895415    detections
+    787963    'clean' detections (SUM_FLAG < 3)
+    602543    Number of sources
+
+% dmlist 4XMM_DR11cat_slim_v1.0.fits.gz"[2]" counts
+602543  
+% dmlist 4XMM_DR11cat_slim_v1.0.fits.gz"[2][sc_sum_flag=:2]" counts
+521669  
+
+% dmlist 4XMM_DR11cat_v1.0.fits.gz"[2]" counts
+895415  
+% dmlist 4XMM_DR11cat_v1.0.fits.gz"[2][sum_flag=:2]" counts
+787963  
+
+Let's follow the DR8 approach and use detections, rather than sources, and
+just apply the SUM_FLAG filter.
+
+% dmcopy 4XMM_DR11cat_v1.0.fits.gz"[2][sum_flag=:2]" 4xmm-dr11-filtered.fits
+% python cat2json.py 4xmm-dr11-filtered.fits > xmm.filtered.json
+% ls -lt xmm.filtered.json 
+-rw-rw-r-- 1 dburke dburke 17162732 Jul 12 10:13 xmm.filtered.json
