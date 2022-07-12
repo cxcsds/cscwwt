@@ -830,13 +830,13 @@ const wwtprops = (function () {
   }
 
   // Hide the element, remove its children, and return it.
-  // The selector is assumed to be valid, but if not null is returned
-  // and a message is logged.
+  // The selector is assumed to be valid, but if it is not
+  // then null is returned and a message is logged.
   //
   function clearElement(selector) {
     const el = document.querySelector(selector);
     if (el === null) {
-      console.log(`INTERNAL ERROR: unable to find ${selector}`);
+      console.log(`INTERNAL ERROR [clearElement]: unable to find ${selector}`);
       return null;
     }
     el.style.display = 'none';

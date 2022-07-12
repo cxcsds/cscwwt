@@ -274,7 +274,7 @@ main#content div.wrap {
               Load CHS Sources
             </button>
 	    <!--
-		<button type="button" id="togglesourceprops"
+		<button type="button" id="togglesourceprops" would need to change this id
 		onclick="wwt.toggleFlexById('sourceprops')">
 		<img src="wwtimg/fa/cog.svg" class="icon"
 		alt="Change Properties"
