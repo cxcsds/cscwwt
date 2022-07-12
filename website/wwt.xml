@@ -1045,6 +1045,9 @@ main#content div.wrap {
 		<td>c</td><td>toggle the credits information</td>
 	      </tr>
 	      <tr>
+		<td>f</td><td>toggle fullscreen (if supported)</td>
+	      </tr>
+	      <tr>
 		<td>h</td><td>toggle the about information</td>
 	      </tr>
 	      <tr>

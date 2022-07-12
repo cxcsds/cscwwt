@@ -866,6 +866,22 @@ var wwt = (function () {
 	    return;
 	}
 
+	if (event.key === 'f') {
+            // Do we have a nice way to do this? Apparently not,
+            // in particular toggling the settings setting.
+            //
+            var toggle = true;
+            if (wwtscreen.isFullScreen()) {
+                toggle = false;
+            }
+            wwtscreen.toggleFullScreen(toggle);
+	    const el = document.querySelector("#togglefullscreen");
+	    if (el !== undefined) {
+	        el.checked = toggle;
+            }
+	    return;
+	}
+
 	if (event.key === 'o') {
 	    toggleStacks();
 	    return;
@@ -1374,6 +1390,22 @@ var wwt = (function () {
    */
   function setFullScreen(flag) {
     wwtscreen.toggleFullScreen(flag);
+  }
+
+  function checkFullscreenStatus(host) {
+    // Try to work out if the user has exited full-screen mode
+    //
+    const el = host.querySelector('#togglefullscreen');
+    if (wwtscreen.isFullScreen()) {
+      if (wwtscreen.isEnteringFullScreen()) {
+        wwtscreen.clearEnteringFullScreen();
+      } else {
+	el.checked = false;
+        wwtscreen.clearFullScreen();
+      }
+    } else {
+      if (el.checked) { el.checked = false; }
+    }
   }
 
   // NOTE: do not include the leading '#' in the element name.
@@ -3886,19 +3918,7 @@ var wwt = (function () {
       host.style.height = hstr;
     }
 
-    // Try to work out if the user has exited full-screen mode
-    //
-    const el = host.querySelector('#togglefullscreen');
-    if (wwtscreen.isFullScreen()) {
-      if (wwtscreen.isEnteringFullScreen()) {
-        wwtscreen.clearEnteringFullScreen();
-      } else {
-	el.checked = false;
-        wwtscreen.clearFullScreen();
-      }
-    } else {
-      if (el.checked) { el.checked = false; }
-    }
+    checkFullscreenStatus(host);
 
   }
 
