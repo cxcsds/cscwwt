@@ -861,6 +861,14 @@ var wwt = (function () {
             return;
         }
 
+        // Ensure we don't trigger on keyboard events to the name search.
+        // It would be nice if we had a better way to check this.
+        //
+        if (event.target.id === "targetName") {
+	    trace(`.. skipping keyboard event ${event.key} as in targetName`);
+	    return;
+        }
+
 	if (event.key in keyboard_toggles) {
 	    toggleBlockElement(keyboard_toggles[event.key]);
 	    return;
