@@ -1520,7 +1520,7 @@ var wwt = (function () {
 
     for (var ctr = 1; ctr <= NCHUNK; ctr++) {
       // Try without any cache-busting identifier
-      const url = `wwtdata/wwt_srcprop.${ctr}.json.gz`;
+      const url = `wwtdata/wwt20_srcprop.${ctr}.json.gz`;
       const func = makeDownloadData(url, '#togglesources',
 				    'CSC2.0 catalog',
 				    processChunk(ctr));
@@ -3881,9 +3881,9 @@ var wwt = (function () {
     // During development I wanted to make sure there was no caching
     // but this file is not currently being updated.
     //
-    // req.open('GET', 'wwtdata/wwt_status.json' + cacheBuster());
+    // req.open('GET', 'wwtdata/wwt20_status.json' + cacheBuster());
 
-    req.open('GET', 'wwtdata/wwt_status.json');
+    req.open('GET', 'wwtdata/wwt20_status.json');
 
     req.responseType = 'json';
     req.send();

@@ -30,9 +30,9 @@
       <htmlscript src="https://cdn.plot.ly/plotly-latest.min.js"/>
 
       <htmlscript src="wwt.js"/>
-      <htmlscript src="wwtdata/wwt_outlines_base.js"/>
-      <htmlscript src="wwtdata/wwt_obis.js"/>
-      <htmlscript src="wwtdata/wwt_names.js"/>
+      <htmlscript src="wwtdata/wwt20_outlines_base.js"/>
+      <htmlscript src="wwtdata/wwt20_obis.js"/>
+      <htmlscript src="wwtdata/wwt20_names.js"/>
       <htmlscript src="wwtdata/mw.js"/>
 
       <htmlscript src="js/jscolor.js"/>
