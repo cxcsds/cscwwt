@@ -1487,9 +1487,14 @@ var wwt = (function () {
 
       startSpinner();
       req.addEventListener('load', () => {
-	trace(`-- downloaded: ${url}`);
-	processData(req.response);
 	stopSpinner();
+        if (req.status === 200) {
+	    trace(`-- downloaded: ${url}`);
+	    processData(req.response);
+        } else {
+	    trace(`-- unable to download: ${url} status=${req.status}`);
+            reportUpdateMessage(`Unable to download ${url}`);
+        }
       }, false);
       req.addEventListener('error', () => {
 	trace(`-- error downloading: ${url}`);
@@ -3857,11 +3862,16 @@ var wwt = (function () {
     }
     req.addEventListener('load', () => {
       trace(' - in load listener');
-      const status = req.response;
-      updateCompletionInfo(status, obsdata);
-      trace(' - updatedCompletionInfo');
-      wwt_si.add_ready(wwtReadyFunc);
-      trace(' - finished add_ready');
+      if (req.status === 200) {
+          const status = req.response;
+          updateCompletionInfo(status, obsdata);
+          trace(' - updatedCompletionInfo');
+          wwt_si.add_ready(wwtReadyFunc);
+          trace(' - finished add_ready');
+      } else {
+          trace(` - unable to download CSC status: ${req.status}`);
+          alert('Unable to download the status of the CSC!');
+      }
     }, false);
     req.addEventListener('error', () => {
       alert('Unable to download the status of the CSC!');
