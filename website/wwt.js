@@ -50,6 +50,8 @@ var wwt = (function () {
 
   var wwt;
 
+  const DO_NOT_PROCESS_KEYPRESSES = 'do-not-process-keypresses';
+
   // keys for local storage values; not guaranteed all in use yet.
   //
   const keySchema = 'wwt-schema';
@@ -861,12 +863,12 @@ var wwt = (function () {
             return;
         }
 
-        // Ensure we don't trigger on keyboard events to the name search.
+        // Ensure we don't trigger on keyboard events to certain elements.
         // It would be nice if we had a better way to check this.
         //
-        if (event.target.id === "targetName") {
-	    trace(`.. skipping keyboard event ${event.key} as in targetName`);
-	    return;
+	if (event.target.classList.contains(DO_NOT_PROCESS_KEYPRESSES)) {
+            trace(`.. skipping keyboard event ${event.key} as class prohibits it`);
+            return;
         }
 
 	if (event.key in keyboard_toggles) {
@@ -1157,6 +1159,8 @@ var wwt = (function () {
     const text = document.createElement('input');
     text.setAttribute('type', 'text');
     text.setAttribute('value', str);
+    text.setAttribute('readonly', true);
+    text.setAttribute('class', DO_NOT_PROCESS_KEYPRESSES);
     parent.appendChild(text);
 
     host.appendChild(parent);
@@ -1483,9 +1487,14 @@ var wwt = (function () {
 
       startSpinner();
       req.addEventListener('load', () => {
-	trace(`-- downloaded: ${url}`);
-	processData(req.response);
 	stopSpinner();
+        if (req.status === 200) {
+	    trace(`-- downloaded: ${url}`);
+	    processData(req.response);
+        } else {
+	    trace(`-- unable to download: ${url} status=${req.status}`);
+            reportUpdateMessage(`Unable to download ${url}`);
+        }
       }, false);
       req.addEventListener('error', () => {
 	trace(`-- error downloading: ${url}`);
@@ -1511,7 +1520,7 @@ var wwt = (function () {
 
     for (var ctr = 1; ctr <= NCHUNK; ctr++) {
       // Try without any cache-busting identifier
-      const url = `wwtdata/wwt_srcprop.${ctr}.json.gz`;
+      const url = `wwtdata/wwt20_srcprop.${ctr}.json.gz`;
       const func = makeDownloadData(url, '#togglesources',
 				    'CSC2.0 catalog',
 				    processChunk(ctr));
@@ -2964,7 +2973,7 @@ var wwt = (function () {
       if (stackVersionTable[n] !== null) {
 	console.log(`INTERNAL ERROR: expected stackVersionTable.${n} to be null`);
       }
-      const f = makeDownloadData(`wwtdata/version.${n}.json`,
+      const f = makeDownloadData(`wwtdata/version20.${n}.json`,
 				 null, null,
 				 (d) => { stackVersionTable[n] = d; });
       f();
@@ -3853,11 +3862,16 @@ var wwt = (function () {
     }
     req.addEventListener('load', () => {
       trace(' - in load listener');
-      const status = req.response;
-      updateCompletionInfo(status, obsdata);
-      trace(' - updatedCompletionInfo');
-      wwt_si.add_ready(wwtReadyFunc);
-      trace(' - finished add_ready');
+      if (req.status === 200) {
+          const status = req.response;
+          updateCompletionInfo(status, obsdata);
+          trace(' - updatedCompletionInfo');
+          wwt_si.add_ready(wwtReadyFunc);
+          trace(' - finished add_ready');
+      } else {
+          trace(` - unable to download CSC status: ${req.status}`);
+          alert('Unable to download the status of the CSC!');
+      }
     }, false);
     req.addEventListener('error', () => {
       alert('Unable to download the status of the CSC!');
@@ -3867,9 +3881,9 @@ var wwt = (function () {
     // During development I wanted to make sure there was no caching
     // but this file is not currently being updated.
     //
-    // req.open('GET', 'wwtdata/wwt_status.json' + cacheBuster());
+    // req.open('GET', 'wwtdata/wwt20_status.json' + cacheBuster());
 
-    req.open('GET', 'wwtdata/wwt_status.json');
+    req.open('GET', 'wwtdata/wwt20_status.json');
 
     req.responseType = 'json';
     req.send();

@@ -201,7 +201,7 @@ if __name__ == "__main__":
     # Create the output files
     fhs = {}
     for option in all_options:
-        fh = open('version.{}'.format(option), 'w')
+        fh = open('version20.{}'.format(option), 'w')
         fh.write('# stack filename\n')
         fhs[option] = fh
 
@@ -219,4 +219,4 @@ if __name__ == "__main__":
 
     for option, fh in fhs.items():
         fh.close()
-        print('Created: version.{}'.format(option))
+        print('Created: version20.{}'.format(option))
