@@ -50,6 +50,8 @@ var wwt = (function () {
 
   var wwt;
 
+  const DO_NOT_PROCESS_KEYPRESSES = 'do-not-process-keypresses';
+
   // keys for local storage values; not guaranteed all in use yet.
   //
   const keySchema = 'wwt-schema';
@@ -861,12 +863,12 @@ var wwt = (function () {
             return;
         }
 
-        // Ensure we don't trigger on keyboard events to the name search.
+        // Ensure we don't trigger on keyboard events to certain elements.
         // It would be nice if we had a better way to check this.
         //
-        if (event.target.id === "targetName") {
-	    trace(`.. skipping keyboard event ${event.key} as in targetName`);
-	    return;
+	if (event.target.classList.contains(DO_NOT_PROCESS_KEYPRESSES)) {
+            trace(`.. skipping keyboard event ${event.key} as class prohibits it`);
+            return;
         }
 
 	if (event.key in keyboard_toggles) {
@@ -1157,6 +1159,8 @@ var wwt = (function () {
     const text = document.createElement('input');
     text.setAttribute('type', 'text');
     text.setAttribute('value', str);
+    text.setAttribute('readonly', true);
+    text.setAttribute('class', DO_NOT_PROCESS_KEYPRESSES);
     parent.appendChild(text);
 
     host.appendChild(parent);

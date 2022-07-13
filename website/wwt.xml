@@ -181,6 +181,7 @@ main#content div.wrap {
           <div id="userSelection" class="with-tooltip-static centered">
             <label for="targetName">
 	      <input type="text" id="targetName"
+                     class="do-not-process-keypresses"
                      placeholder="Enter Name or Position..."/>
 	    </label>
 	    <button type="submit"
