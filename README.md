@@ -41,11 +41,11 @@ No sensity data for stacks: ['acisfJ2154551m305657_001']
 No stkevt3 data for stacks: ['acisfJ2154551m305657_001']
 No stkecorrimg data for stacks: ['acisfJ2154551m305657_001']
 
-Created: version.stkbkgimg
-Created: version.stkexpmap
-Created: version.sensity
-Created: version.stkevt3
-Created: version.stkecorrimg
+Created: version20.stkbkgimg
+Created: version20.stkexpmap
+Created: version20.sensity
+Created: version20.stkevt3
+Created: version20.stkecorrimg
 1.578u 0.539s 2:03:55.67 0.0%	0+0k 0+14904io 0pf+0w
 ```
 
@@ -90,7 +90,7 @@ No stkecorrimg data for stacks: ['acisfJ2154551m305657_001']
 
 ```
 foreach option ( stkevt3 stkecorrimg stkbkgimg stkexpmap sensity )
-  set out = version.${option}.json
+  set out = version20.${option}.json
   if ( -e $out ) rm $out
   python code/parse_stack_names.py $option version.$option > $out
 end
@@ -125,8 +125,8 @@ Version breakdown
 ### To update a single "data type" (aka OPTION)
 
 ```
-% python code/get_stack_names.py code/stacks.pd2.txt OPTION > version.OPTION
-% python code/parse_stack_names.py OPTION version.OPTION > version.OPTION.json
+% python code/get_stack_names.py code/stacks.pd2.txt OPTION > version20.OPTION
+% python code/parse_stack_names.py OPTION version.OPTION > version20.OPTION.json
 Version breakdown
   version=  24  count= 3997
   version=  25  count= 896
@@ -163,7 +163,7 @@ there are no sources in the stack and this means the CSCCLI doesn't "find"
 them - are given a default version (matching either the smallest version or
 the version with the most matches).
 
-The version.OPTION.json is then copied to /data/da/Docs/cscweb/csc2/wwtdata/
+The version20.OPTION.json is then copied to /data/da/Docs/cscweb/csc2/wwtdata/
 and published to the test and/or live site.
 
 ## CSC data
@@ -178,6 +178,9 @@ For 2.0 we have
 
 We used to also create `wwt_status.json` which was used to indicate the
 processing state and was created through `code/make_page.py`
+
+These have now been renamed `wwt20_xxx` from `wwt_xxx` to make it
+easier to have different versions around.
 
 ## `wwt_obis.js`
 
