@@ -2973,7 +2973,7 @@ var wwt = (function () {
       if (stackVersionTable[n] !== null) {
 	console.log(`INTERNAL ERROR: expected stackVersionTable.${n} to be null`);
       }
-      const f = makeDownloadData(`wwtdata/version.${n}.json`,
+      const f = makeDownloadData(`wwtdata/version20.${n}.json`,
 				 null, null,
 				 (d) => { stackVersionTable[n] = d; });
       f();
