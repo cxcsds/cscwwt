@@ -60,7 +60,7 @@ only one stack per line
 ```
 
 ```
-% grep stkecorr missing.lis 
+% grep stkecorr missing.lis
 No stkecorrimg data for stacks: ['acisfJ0040431m111007_001']
 No stkecorrimg data for stacks: ['acisfJ0629306p720429_001']
 No stkecorrimg data for stacks: ['acisfJ0738192p275012_001']
@@ -140,7 +140,7 @@ Version breakdown
   version=  32  count= 12
 ```
 
-where OPTION is one of 
+where OPTION is one of
 
     stkevt3
     stkecorrimg
@@ -156,7 +156,7 @@ to be really slow.
 
 ### And then
 
-The screen output of parse_stack_names provides information on how the 
+The screen output of parse_stack_names provides information on how the
 version numbers are distributed. This is partly relevant because missing
 files - that is, those that the CSCCLI doesn't report information in because
 there are no sources in the stack and this means the CSCCLI doesn't "find"
@@ -206,7 +206,7 @@ This is a mapping between stack name and identifier (as used by the original
 proposer, so is now out of date thanks to the updates by the CDA team).
 
 ```
-% head -5 wwt_names.js 
+% head -5 wwt_names.js
 var stack_name_map = {
 "acisfJ1700532m421048_001": ["AX J170052-4210"]
 ,"acisfJ0834591p553527_001": ["4C55.16"]
@@ -225,7 +225,7 @@ This provides information about the stacks, including the outline
 data. It should probably have been split into several files.
 
 ```
-% head wwt_outlines_base.js 
+% head wwt_outlines_base.js
 var outlines = {
 "stacks": [
 {"stackid": "acisfJ1139516m315920_001",
@@ -297,7 +297,7 @@ the information needed to generate this.
 There is code to generate this file in
 
     /data/dburke2/L3/rel2.0/status
-	
+
 which I should merge into this repository.
 
 ## `wwt_status.json`
@@ -319,3 +319,18 @@ data" files.
 The `completed` dictionary only contained completed stacks and the value
 was a string representation of the completed time.
 
+## CSC 2.1
+
+Scripts in `code/csc21/`/
+
+These files need to be updated once the final release has been made as
+they rely on data provided by Ian on 2022-02-07 during processiung.
+
+
+| Script                     | Output           |
+| -------------------------- | ---------------- |
+| `identify_stacks_obis.py`  | `wwt21_obis.js`  |
+| `identify_stacks_names.py` | `wwt21_names.js` |
+
+These map from the stack name to the list of obis and the target names
+of these observations (with duplicates removed from the latter).
