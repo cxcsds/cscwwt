@@ -1,8 +1,8 @@
 'use strict';
 
-/* global alert, XMLHttpRequest, CustomEvent */
+/* global alert, CustomEvent */
 /* global wwtlib, wwtscreen, wwtprops, wwtsamp */
-/* global draggable, lookup, spinner */
+/* global draggable, lookup, spinner, download */
 /* global mw */
 
 /*
@@ -1474,36 +1474,23 @@ var wwt = (function () {
   function makeDownloadData(url, toggleSel, dataLabel, processData) {
 
     return () => {
-      const req = new XMLHttpRequest();
-      if (!req) {
-	console.log('ERROR: unable to create a request object!');
-
-	if (toggleSel !== null) {
-	  document.querySelector(toggleSel)
-            .innerHTML = `Unable to load ${dataLabel}`;
-	}
-	return;
+      if (download.getJSON(url, processData,
+			   (flag) => {
+                             reportUpdateMessage(`Unable to download ${url}`);
+                             if (toggleSel !== null) {
+                               document.querySelector(toggleSel)
+                                 .innerHTML = `Unable to load ${dataLabel}`;
+                             }
+			   })) {
+        return;
       }
 
-      startSpinner();
-      req.addEventListener('load', () => {
-	stopSpinner();
-        if (req.status === 200) {
-	    trace(`-- downloaded: ${url}`);
-	    processData(req.response);
-        } else {
-	    trace(`-- unable to download: ${url} status=${req.status}`);
-            reportUpdateMessage(`Unable to download ${url}`);
-        }
-      }, false);
-      req.addEventListener('error', () => {
-	trace(`-- error downloading: ${url}`);
-	stopSpinner();
-      }, false);
-
-      req.open('GET', url);
-      req.responseType = 'json';
-      req.send();
+      // Unable to create the request.
+      //
+      if (toggleSel !== null) {
+        document.querySelector(toggleSel)
+          .innerHTML = `Unable to load ${dataLabel}`;
+      }
     };
   }
 
@@ -3510,52 +3497,36 @@ var wwt = (function () {
   function loadOutline21() {
     trace("Asked to load outline21 data");
 
-    var httpRequest = new XMLHttpRequest();
-    if (!httpRequest) {
-      console.log("ERROR: unable to download outline21 data.");
-      outlines21_new = null;
-      outlines21_updated = null;
-      return;
-    }
-
-    var httpRequest2 = new XMLHttpRequest();
-    if (!httpRequest2) {
-      console.log("ERROR: unable to download outline21 data.");
-      outlines21_new = null;
-      outlines21_updated = null;
-      return;
-    }
-
-    httpRequest.addEventListener("load", function() {
-      trace("-- downloaded outline (new) data");
-      processOutline21Data(httpRequest.response);
-      trace("-- added outline data (new)");
-    });
-    httpRequest.addEventListener("error", function() {
-      trace("-- error downloading outline (new) data");
-      outlines21_new = null;
-    });
+    outlines21_new = null;
+    outlines21_updated = null;
 
     // As this islikely to change, ensure we add a cache-busting term
-    httpRequest.open('GET', 'wwtdata/coverage.csc21-development.new.json' + cacheBuster());
-    httpRequest.responseType = 'json';
-    httpRequest.send();
-
-    httpRequest2.addEventListener("load", function() {
-      trace("-- downloaded outline (updated) data");
-      processOutline21DataUpdated(httpRequest2.response);
-      trace("-- added outline data (updated)");
-    });
-    httpRequest2.addEventListener("error", function() {
-      trace("-- error downloading outline (updated) data");
-      outlines21_updated = null;
-    });
-
-    // As this islikely to change, ensure we add a cache-busting term
-    httpRequest2.open('GET', 'wwtdata/coverage.csc21-development.updated.json' + cacheBuster());
-    httpRequest2.responseType = 'json';
-    httpRequest2.send();
-
+    if (!download.getJSON('wwtdata/coverage.csc21-development.new.json' + cacheBuster(),
+			  (response) => {
+			      trace("-- downloaded outline (new) data");
+			      processOutline21Data(response);
+			      trace("-- added outline data (new)");
+			  },
+			  (flag) => {
+			      trace(`-- error downloading outline (new) data: flag=${flag}`);
+			      reportUpdateMessage("Unable to download CSC 2.1 outline data (new)");
+			  })) {
+      return;
+    }
+     
+    if (!download.getJSON('wwtdata/coverage.csc21-development.updated.json' + cacheBuster(),
+			  (response) => {
+			      trace("-- downloaded outline (updated) data");
+                              processOutline21DataUpdated(response);
+			      trace("-- added outline data (updated)");
+			  },
+			  (flag) => {
+			      trace(`-- error downloading outline (new) data: flag=${flag}`);
+			      reportUpdateMessage("Unable to download CSC 2.1 outline data (updated)");
+			  })) {
+      return;
+    }
+ 
   }
 
   // Pull out the ra/dec handling so that we don't stop parsing
@@ -3855,38 +3826,30 @@ var wwt = (function () {
 
     addSetupBanner();
 
-    var req = new XMLHttpRequest();
-    if (!req) {
-      alert('Unable to create a XMLHttpRequest!');
-      return;
-    }
-    req.addEventListener('load', () => {
-      trace(' - in load listener');
-      if (req.status === 200) {
-          const status = req.response;
-          updateCompletionInfo(status, obsdata);
-          trace(' - updatedCompletionInfo');
-          wwt_si.add_ready(wwtReadyFunc);
-          trace(' - finished add_ready');
-      } else {
-          trace(` - unable to download CSC status: ${req.status}`);
-          alert('Unable to download the status of the CSC!');
-      }
-    }, false);
-    req.addEventListener('error', () => {
-      alert('Unable to download the status of the CSC!');
-    }, false);
-
     // Do I need to add a cache-busting identifier?
     // During development I wanted to make sure there was no caching
     // but this file is not currently being updated.
     //
-    // req.open('GET', 'wwtdata/wwt20_status.json' + cacheBuster());
+    // const url = 'wwtdata/wwt20_status.json' + cacheBuster();
+    const url = 'wwtdata/wwt20_status.json';
 
-    req.open('GET', 'wwtdata/wwt20_status.json');
+    // Finish off by submitting the data to process the CSC status.
+    //
+    if (download.getJSON(url,
+			 (response) => {
+                           updateCompletionInfo(response, obsdata);
+                           trace(' - updatedCompletionInfo');
+                           wwt_si.add_ready(wwtReadyFunc);
+                           trace(' - finished add_ready');
+			 },
+			 (flag) => {
+                           alert('Unable to download the status of the CSC!');
+			 })) {
+      return;
+    }
 
-    req.responseType = 'json';
-    req.send();
+    // If this happens then it's not realy worth trying to fix
+    alert('Unable to create a XMLHttpRequest!');
   }
 
   function unload() {
@@ -4945,6 +4908,10 @@ var wwt = (function () {
 
     clearState: clearState,
     switchSelectionMode: switchSelectionMode,
+
+    startSpinner: startSpinner,
+    stopSpinner: stopSpinner,
+    trace: trace,
 
     outlines21_new: () => { return outlines21_new; },
     outlines21_updated: () => { return outlines21_updated; },

@@ -35,6 +35,8 @@
       <htmlscript src="wwtdata/wwt20_names.js"/>
       <htmlscript src="wwtdata/mw.js"/>
 
+      <htmlscript src="js/download.js"/>
+
       <htmlscript src="js/jscolor.js"/>
       <htmlscript src="js/samp.js"/>
 
