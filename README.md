@@ -331,7 +331,6 @@ they rely on data provided by Ian on 2022-02-07 during processiung.
 | ----------------------------- | ------------------------ |
 | `identify_stacks_obis.py`     | `wwt21_obis.js`          |
 | `identify_stacks_names.py`    | `wwt21_names.js`         |
-| `identify_stacks_outlines.py` | `wwt21_outlines_base.js` |
 
 These map from the stack name to the list of obis and the target names
 of these observations (with duplicates removed from the latter).
@@ -344,3 +343,20 @@ The outline version is based on an earlier version I wrote:
 
 Care will be needed to update the outlines with the processed FOV files
 rather than the minimally-processed FOV files I used here.
+
+## outlines
+
+In CSC 2.0 I had `wwt20_outlines_base.js` which contained the
+FOV outlines as well as data on each stack. However, we can generate
+the non-outline data based on the `wwt20_obis.js` and `wwt20_names.js`
+field, so it would make sense to just have a mapping for the outlines.
+
+It turns out that we only need the outlines to create the WWT
+annotations, so we can save some memory by deleting this outline
+data once the annotations are created.
+
+As I don't know how I created the `wwt20_outlines_base.js` file,
+I have created a script just to extract the outline data from
+it: `hack_outline_base.py`
+
+    % ./code/hack_outline_base.py wwt20_outlines_base.js > wwt20_outlines.json

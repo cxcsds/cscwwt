@@ -936,12 +936,12 @@ var wwt = (function () {
 
   // zoom factor to use has been guessed at
   function zoomToStack(stackname) {
-    for (var stack of inputStackData.stacks) {
-      if (stack.stackid !== stackname) { continue; }
-      wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, moveFlag);
-      wwtsamp.moveTo(stack.pos[0], stack.pos[1]);
+    const stack = inputStackData.stacks[stackname];
+    if (typeof stack === 'undefined') {
       return;
     }
+    wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, moveFlag);
+    wwtsamp.moveTo(stack[0], stack.pos[1]);
   }
 
   function zoomToSource(sourcename) {
@@ -1171,7 +1171,11 @@ var wwt = (function () {
 
   // This updates the stackAnnotations dict
   //
-  function addStackFOV(stack) {
+  // All we care about from stack are
+  //    stack.status
+  //    stack.stackid
+  //
+  function addStackFOV(stack, polygons) {
 
     let edgeColor;
     let fillColor = 'white';
@@ -1189,10 +1193,10 @@ var wwt = (function () {
 
     const annotations = [];
     // var ctr = 1;
-    for (var i = 0; i < stack.polygons.length; i++) {
+    for (var i = 0; i < polygons.length; i++) {
 
       // First is inclusive, the rest are exclusive
-      const shapes = stack.polygons[i];
+      const shapes = polygons[i];
 
       for (var j = 0; j < shapes.length; j++) {
         const fov = wwt.createPolygon(fillFlag);
@@ -1252,9 +1256,15 @@ var wwt = (function () {
   }
 
   // Let's see how the WWT does with all the stacks
-  function addFOV(stackdata) {
-    for (let stack of stackdata.stacks) {
-      addStackFOV(stack);
+  function addFOV(stackpolygons) {
+
+    for (let stackid in inputStackData.stacks) {
+      const polygons = stackpolygons[stackid];
+      if (typeof polygons === 'undefined') {
+        trace(`Unable to find polygons for [${stack.stackid}]`);
+      } else {
+        addStackFOV(inputStackData.stacks[stackid], polygons);
+      }
     }
     stacksShown = true;
 
@@ -2094,11 +2104,13 @@ var wwt = (function () {
   // as the now-removed update functionality. Should really
   // rename.
   //
-  function updateCompletionInfo(status, stackdata) {
+  function updateCompletionInfo(status) {
 
     let lmodStart = null;
     let lmodEnd = null;
-    stackdata.stacks.forEach(stack => {
+
+    for (var stackid in inputStackData.stacks) {
+      const stack = inputStackData.stacks[stackid];
       stack.status = status.stacks[stack.stackid];
       /* if not completed then no element in the completed array */
       const completed = status.completed[stack.stackid]
@@ -2113,11 +2125,11 @@ var wwt = (function () {
           lmodEnd = completed;
         }
       }
-    });
+    }
 
     // The assumption is that these are both set
-    stackdata.completed_start = lmodStart;
-    stackdata.completed_end = lmodEnd;
+    inputStackData.completed_start = lmodStart;
+    inputStackData.completed_end = lmodEnd;
 
     // Update the "Help" page (if still needed).
     const el = document.querySelector('#lastmod');
@@ -2453,14 +2465,12 @@ var wwt = (function () {
   //       and so call processStackSelection directly
   //
   function processStackSelectionByName(stackid) {
-    const smatches = inputStackData.stacks.filter(d => d.stackid === stackid);
-    if (smatches.length === 0) {
+    const stack = inputStackData.stacks[stackid];
+    if (typeof stack === 'undefined') {
       console.log(`INTERNAL ERROR: unknown stackid=${stackid}`);
       return;
     }
 
-    // Assume only one match
-    const stack = smatches[0];
     processStackSelection(stack.pos[0], stack.pos[1]);
   }
 
@@ -2504,7 +2514,15 @@ var wwt = (function () {
 
     const getPos = stack => { return {ra: stack.pos[0], dec: stack.pos[1]}; };
     const toStore = (stack, p) => stack;
-    const seps = findNearestTo(sra0, sdec0, maxSep, inputStackData.stacks,
+
+    // We used to have a list ot stacks but now we have it stored
+    // as a dictionary, so for now just create a temporary list.
+    //
+    var stacklist = [];
+    for (let stackid in inputStackData.stacks) {
+      stacklist.push(inputStackData.stacks[stackid]);
+    }
+    const seps = findNearestTo(sra0, sdec0, maxSep, stacklist,
 			       getPos, toStore);
     if (seps.length === 0) {
       return;
@@ -2949,7 +2967,14 @@ var wwt = (function () {
     createImageCollections();
     createSettings();
     addMW();
-    addFOV(inputStackData);
+
+    // Download the stack polygons and add the annotations.
+    // download.getJSON("wwtdata/wwt20_outlines.json" + cacheBuster(),
+    download.getJSON("wwtdata/wwt20_outlines.json",
+		     addFOV,
+		     (flag) => {
+			 alert("Unable to dowload the stack outlines");
+		     });
 
     setupUserSelection();
     stopExcessScrolling();
@@ -3286,7 +3311,7 @@ var wwt = (function () {
     { stackid: 'acisfJ0618409m705956_001',
       nobs: 4,
       pos: decodeStackName('acisfJ0618409m705956_001'),
-      description: 'The stack contains 4 ACIS observations',
+      description: 'The stack contains 4 ACIS observations.',
       status: true};
 
   // '2CXO J061859.6-705831'
@@ -3646,11 +3671,92 @@ var wwt = (function () {
     }
   }
 
+  // Take the obis and names data, which have already been
+  // loaded into the stack_name_map and obi_map dictionaries,
+  // and create the general stack data (this used to be loaded
+  // in as wwt20_outlines_base.js but we can generate the non-outline
+  // data here, and the outline data is now loaded in separately).
+  //
+  function createStackData() {
+
+    inputStackData = {stacks: {}};
+
+    // Assume that obi_map and stack_name_map have the same keys,
+    // although we only need to deal with obi_map here.
+    //
+    for (let stackid in obi_map) {
+      var inst;
+      if (stackid.startsWith("hrcfJ")) {
+        inst = "HRC";
+      } else {
+        inst = "ACIS";
+      }
+
+      const obis = obi_map[stackid];
+      const nobi = obis.length;
+      let num;
+      let suffix = "s";
+      switch (nobi) {
+        case 1:
+          num = "one";
+          suffix = "";
+          break;
+
+        case 2:
+          num = "two";
+          break;
+
+        case 3:
+          num = "three";
+          break;
+
+        case 4:
+          num = "four";
+          break;
+
+        case 5:
+          num = "five";
+          break;
+
+        case 6:
+          num = "six";
+          break;
+
+        case 7:
+          num = "seven";
+          break;
+
+        case 8:
+          num = "eight";
+          break;
+
+        case 9:
+          num = "nine";
+          break;
+
+        default:
+          num = `${nobi}`;
+      }
+
+      var desc = `The stack contains ${num} ${inst} observation${suffix}.`;
+
+      inputStackData.stacks[stackid] = {
+        stackid: stackid,
+        pos: decodeStackName(stackid),
+        nobs: nobi,
+        description: desc,
+      };
+
+    }
+
+    trace('created inputStackData');
+  }
+
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
   //
-  function initialize(obsdata) {
+  function initialize() {
 
     const host = getHost();
     if (host === null) {
@@ -3685,15 +3791,7 @@ var wwt = (function () {
     // At present this just changes the box size/height
     resize();
 
-    /* should have the stack "location" in the input file,
-       but for now re-create it */
-    for (let stack of obsdata.stacks) {
-      stack.pos = decodeStackName(stack.stackid);
-    }
-
-    trace('recoded positions');
-
-    inputStackData = obsdata;
+    createStackData();
 
     // Add in the example panes to the help page
 
@@ -3837,7 +3935,7 @@ var wwt = (function () {
     //
     if (download.getJSON(url,
 			 (response) => {
-                           updateCompletionInfo(response, obsdata);
+                           updateCompletionInfo(response);
                            trace(' - updatedCompletionInfo');
                            wwt_si.add_ready(wwtReadyFunc);
                            trace(' - finished add_ready');
@@ -4487,9 +4585,9 @@ var wwt = (function () {
 
     // Maybe it's a stack name?
     //
-    const smatches = inputStackData.stacks.filter(d => d.stackid === target);
-    if (smatches.length > 0) {
-      setPosition(smatches[0].pos[0], smatches[0].pos[1], target);
+    const stack = inputStackData.stacks[target];
+    if (typeof stack !== 'undefined') {
+      setPosition(stack.pos[0], stack.pos[1], target);
       reportLookupSuccess(`Moving to stack ${target}`);
       return;
     }
@@ -4912,6 +5010,8 @@ var wwt = (function () {
     startSpinner: startSpinner,
     stopSpinner: stopSpinner,
     trace: trace,
+
+    inputStackData: () => { return inputStackData; },
 
     outlines21_new: () => { return outlines21_new; },
     outlines21_updated: () => { return outlines21_updated; },

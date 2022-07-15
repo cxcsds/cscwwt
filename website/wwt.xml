@@ -30,7 +30,6 @@
       <htmlscript src="https://cdn.plot.ly/plotly-latest.min.js"/>
 
       <htmlscript src="wwt.js"/>
-      <htmlscript src="wwtdata/wwt20_outlines_base.js"/>
       <htmlscript src="wwtdata/wwt20_obis.js"/>
       <htmlscript src="wwtdata/wwt20_names.js"/>
       <htmlscript src="wwtdata/mw.js"/>
@@ -63,7 +62,7 @@ main#content div.wrap {
 
   </info>
 
-  <text onload="wwt.initialize(outlines);"
+  <text onload="wwt.initialize();"
 	onunload="wwt.unload();"
 	onresize="wwt.resize();">
 
