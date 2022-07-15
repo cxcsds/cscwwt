@@ -327,10 +327,20 @@ These files need to be updated once the final release has been made as
 they rely on data provided by Ian on 2022-02-07 during processiung.
 
 
-| Script                     | Output           |
-| -------------------------- | ---------------- |
-| `identify_stacks_obis.py`  | `wwt21_obis.js`  |
-| `identify_stacks_names.py` | `wwt21_names.js` |
+| Script                        | Output                   |
+| ----------------------------- | ------------------------ |
+| `identify_stacks_obis.py`     | `wwt21_obis.js`          |
+| `identify_stacks_names.py`    | `wwt21_names.js`         |
+| `identify_stacks_outlines.py` | `wwt21_outlines_base.js` |
 
 These map from the stack name to the list of obis and the target names
 of these observations (with duplicates removed from the latter).
+
+The outline version is based on an earlier version I wrote:
+
+    /data/dburke2/L3/rel2.1/outline/create_stack_outline.py
+
+(and has been added to this repository).
+
+Care will be needed to update the outlines with the processed FOV files
+rather than the minimally-processed FOV files I used here.
