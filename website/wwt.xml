@@ -66,18 +66,6 @@ main#content div.wrap {
 	onunload="wwt.unload();"
 	onresize="wwt.resize();">
 
-<!-- TEST: remove for now
-    <div class="pagetitle">
-      <h1>Processing status of CSC 2.0: view in WWT</h1>
-      <div class="qlinkbar">
-	<cxclink href="about.html">About the CSC</cxclink> |
-	<cxclink href="processing_status.html">Processing Status</cxclink> |
-	<cxclink href="news.html">What's New?</cxclink> |
-	<cxclink href="caveats.html">Watch Out</cxclink>
-      </div>
-    </div>
--->
-
     <div id="WorldWideTelescopeControlHost">
 
       <!-- seems to need in-line style -->
