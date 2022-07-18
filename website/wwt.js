@@ -3756,7 +3756,7 @@ var wwt = (function () {
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
   //
-  function initialize() {
+  function initialize(statusfile) {
 
     const host = getHost();
     if (host === null) {
@@ -3928,8 +3928,8 @@ var wwt = (function () {
     // During development I wanted to make sure there was no caching
     // but this file is not currently being updated.
     //
-    // const url = 'wwtdata/wwt20_status.json' + cacheBuster();
-    const url = 'wwtdata/wwt20_status.json';
+    // const url = statusfile + cacheBuster();
+    const url = statusfile;
 
     // Finish off by submitting the data to process the CSC status.
     //
