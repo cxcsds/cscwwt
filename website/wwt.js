@@ -1458,13 +1458,17 @@ var wwt = (function () {
     }
   }
 
+  // Note that an element not existing should no-longer be considered
+  // an "error"; it could be refering to an element that is not used in
+  // this particular version of the site.
+  //
   function setDisplay(name, display) {
     const sel = `#${name}`;
     const el = document.querySelector(sel);
     if (el !== null) {
       el.style.display = display;
     } else {
-      console.log(`Internal error [setDisplay]: unable to find "${sel}"`);
+      trace(`Note [setDisplay]: unable to find "${sel}"`);
     }
   }
 
@@ -2952,10 +2956,26 @@ var wwt = (function () {
     }, false);
   }
 
-  // start up the interface (allowing for restarts)
+  // Start up the interface, allowing for restarts. Hopefully the
+  // WWT problem causing the need for restarts has been fixed but
+  // I can not guarantee this, so leave the restart support in.
   //
+  // Unfortunately, this means that we need to somehow store the
+  // names of files we need to download, which means either
+  // using "global" variables or some other means.
+  //
+  // Conversion to a "generic" routine (to be used by CSC 2.0
+  // and 2.1 interfaces) is an ongoing process.
+  //
+  var outlineLocation = undefined;
+
   function wwtReadyFunc() {
     trace('in wwtReadyFunc (with restart)');
+
+    if (typeof outlineLocation === 'undefined') {
+      alert("Unable to initialize WWT as outlines not set up");
+      return;
+    }
 
     // It's not clear why we can't just use the return value from
     // initControl(), but
@@ -2969,8 +2989,8 @@ var wwt = (function () {
     addMW();
 
     // Download the stack polygons and add the annotations.
-    // download.getJSON("wwtdata/wwt20_outlines.json" + cacheBuster(),
-    download.getJSON("wwtdata/wwt20_outlines.json",
+    // download.getJSON(outlineLocation + cacheBuster(),
+    download.getJSON(outlineLocation,
 		     addFOV,
 		     (flag) => {
 			 alert("Unable to dowload the stack outlines");
@@ -3756,7 +3776,14 @@ var wwt = (function () {
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
   //
-  function initialize(statusfile) {
+  function initialize(statusfile, outlinefile) {
+
+    // Would like to send this around via callback rather than store
+    // the value, but the way wwtReadyFunc is structured (and the desire
+    // to allow it to be called multiple times in case of an initialization
+    // problem which is hopefully no-longer present) we do it this way.
+    //
+    outlineLocation = outlinefile;
 
     const host = getHost();
     if (host === null) {
