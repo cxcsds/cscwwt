@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-"""
-
-Usage:
+"""Usage:
 
  ./create_stack_outline.py stack-list fovdir outfile
 
@@ -11,7 +9,10 @@ Aim:
 Create the stack outline data for the WWT process.
 
 The data is restricted to 4 decimal places as this is ~ 0.5 arcsecond
-resolution.
+resolution. Need to check this as it may have changed.
+
+This originally reported several bits of info about each stack, but it
+is now just the outlines.
 
 """
 
@@ -24,22 +25,27 @@ import pycrates
 
 
 def read_fov(fovdir, stack, ndp=4):
+    """Create a list of regions, where each region begins with an
+    included shape and any subsequent regions are excluded.
 
-    # Drop the excluded regions
+    This assumes that the region file is listed in this order!
+    """
+
     fovfile = fovdir / f"{stack}.fov"
-    cr = pycrates.read_file(str(fovfile) + "[shape=Polygon][cols eqpos]")
+    cr = pycrates.read_file(str(fovfile) + "[cols shape,eqpos]")
     if cr.get_nrows() == 0:
         raise OSError(str(fovfile))
 
     fmt = f"{{:.{ndp}f}}"
 
-    # Limit to 6 decimal places, and store as strings; we assume
+    # Store as strings to ensure we limmit the number of decimal places; we assume
     # NaN values indicate invalid points and so we do not need to
     # bother closing out a polygon.
     #
-    out = []
-    for eqpos in cr.EQPOS.values:
-        shape = []
+    store = []
+    out = None
+    for shape, eqpos in zip(cr.SHAPE.values, cr.EQPOS.values):
+        polygon = []
         last_coords = []
         ra = eqpos[0]
         dec = eqpos[1]
@@ -52,12 +58,25 @@ def read_fov(fovdir, stack, ndp=4):
                 # save space by avoiding repeated points
                 continue
 
-            shape.append(coords)
+            polygon.append(coords)
             last_coords = coords
 
-        out.append(shape)
+        if shape == "Polygon":
+            if out is not None:
+                store.append(out)
 
-    return out
+            out = [polygon]
+
+        elif shape == "!Polygon":
+            assert out is not None
+            out.append(polygon)
+
+        else:
+            raise ValueError(f"Unknown shape {shape} in {fovfile}")
+
+    # Save the last set of shapes
+    store.append(out)
+    return store
 
 
 def doit(stackfile, fovdir, outfile):
@@ -103,41 +122,48 @@ def doit(stackfile, fovdir, outfile):
     # let's be lazy.
     #
     with open(outfile, 'wt') as ofh:
-        ofh.write("[")
+        ofh.write("{\n")
         first = True
-        for shape in stacks.values():
+        for stackdata in stacks.values():
             if first:
                 first = False
             else:
                 ofh.write(",")
 
-            stack = shape["stack"]
-            obsids = shape["obsids"]
-            ofh.write(f'{{"stackid": "{stack}",')
-            ofh.write(f'"nobs": "{len(obsids)}",')
-            ofh.write('"polygons": [')
+            stack = stackdata["stack"]
+            ofh.write(f'"{stack}": [\n')
             fshape = True
-            for poly in shape["polygons"]:
+            for shapes in stackdata["polygons"]:
                 if fshape:
                     fshape = False
                 else:
                     ofh.write(",")
 
                 ofh.write("[")
-                fpoly = True
-                for ra, dec in poly:
-                    if fpoly:
-                        fpoly = False
+                fargh = True
+                for shape in shapes:
+                    if fargh:
+                        fargh = False
                     else:
-                        ofh.write(",")
+                        ofh.write("\n,")
 
-                    ofh.write(f"[{ra},{dec}]")
+                    fpoly = True
+                    ofh.write("[")
+                    for ra, dec in shape:
+                        if fpoly:
+                            fpoly = False
+                        else:
+                            ofh.write(",")
 
-                ofh.write("]")
+                        ofh.write(f"[{ra},{dec}]")
 
-            ofh.write("]}")
+                    ofh.write("]\n")
 
-        ofh.write("]\n")
+                ofh.write("]\n")
+
+            ofh.write("]\n")
+
+        ofh.write("}\n")
 
     print(f"Created: {outfile}")
 
