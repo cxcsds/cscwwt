@@ -1531,7 +1531,7 @@ var wwt = (function () {
 
   // VERY experimental: load in the ensemble data for CXC testing
   //
-  const downloadEnsData = makeDownloadData('wwtdata/ens.json.gz',
+  const downloadEnsData = makeDownloadData('wwtdata/ens20.json.gz',
 					   null, null,
 					   processEnsData);
 
