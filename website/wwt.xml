@@ -62,7 +62,8 @@ main#content div.wrap {
 
   </info>
 
-  <text onload="wwt.initialize('wwtdata/wwt20_status.json',
+  <text onload="wwt.initialize('2.0',
+                               'wwtdata/wwt20_status.json',
                                'wwtdata/wwt20_outlines.json');"
 	onunload="wwt.unload();"
 	onresize="wwt.resize();">

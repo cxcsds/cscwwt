@@ -3776,7 +3776,11 @@ var wwt = (function () {
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
   //
-  function initialize(statusfile, outlinefile) {
+  var versionString = undefined;
+
+  function initialize(version, statusfile, outlinefile) {
+
+    versionString = version;
 
     // Would like to send this around via callback rather than store
     // the value, but the way wwtReadyFunc is structured (and the desire
@@ -4972,7 +4976,9 @@ var wwt = (function () {
 
     // debug/testing access below
     //
-    getWWTControl: function () { return wwt; },
+    getWWTControl: () => { return wwt; },
+
+    getVersion: () => { return versionString; },
 
     getCSCObject: getCSCObject,
 
