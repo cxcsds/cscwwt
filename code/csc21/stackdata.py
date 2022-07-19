@@ -160,3 +160,31 @@ def find_stack_obis(indir):
         stacks[stack20] = stacks20[stack20]
 
     return stacks
+
+
+def find_stack_status(indir):
+    """Is this new/updated/unchanged?
+
+    Should have been part of find_stack_obis but I can't
+    be bothered to retro-fit things.
+    """
+
+    if not indir.is_dir():
+        raise ValueError(f"'{indir} is not a directory")
+
+    stacks = {}
+    for inst in ["acis", "hrc"]:
+
+        infile = indir / f"{inst}_stacks_unchanged.txt"
+        for stack in read_unchanged(infile):
+            assert stack not in stacks
+            stacks[stack] = "unchanged"
+
+        for status in ["updated", "new"]:
+            infile = indir / f"{inst}_stacks_{status}.txt"
+
+            for stack in read_changed(infile):
+                assert stack not in stacks
+                stacks[stack] = status
+
+    return stacks

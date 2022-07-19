@@ -335,6 +335,15 @@ they rely on data provided by Ian on 2022-02-07 during processiung.
 These map from the stack name to the list of obis and the target names
 of these observations (with duplicates removed from the latter).
 
+They are being replaced by `identify_stacks_basic.py`:
+
+| Script                        | Output                   |
+| ----------------------------- | ------------------------ |
+| `identify_stacks_basic.py`    | `wwt21_stacks.json`      |
+
+I have manually combined the `wwt20_obis.js` and `wwt20_names.js`
+files to create an equivalent for `wwt20_stacks.json`.
+
 The outline version is based on an earlier version I wrote:
 
     /data/dburke2/L3/rel2.1/outline/create_stack_outline.py
