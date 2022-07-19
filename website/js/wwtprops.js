@@ -1,17 +1,11 @@
 'use strict';
 
 /* global alert, CustomEvent */
-/* global stack_name_map, obi_map */
 /* global draggable */
 /* global wwt, wwtsamp, wwtplots */
 
 //
 // Display properties about a stack or a source.
-//
-// TODO: should have a package-local version of obi_map and
-//       stack_name_map, as stack_name_map is currently a
-//       global created by wwt_names.js and obi_map is
-//       from wwt_obis.js. This needs cleaning up.
 //
 const wwtprops = (function () {
 
@@ -443,6 +437,8 @@ const wwtprops = (function () {
   // download (and must match the value field of the opts array
   // below).
   //
+  // We do not add anything if there's no data to export.
+  //
   function addSendStackEvtFile(active, parent, stack, versionTable) {
     const clientListId = 'export-clientlist-stkevt';
     const mtype = 'image.load.fits';
@@ -570,6 +566,9 @@ const wwtprops = (function () {
   // versionTable - fields with version numbers (or null)
   // active - boolean, if true then links and handlers are used
   //
+  // The text depends on the available data, which depends on the
+  // catalog version (2.0 vs 2.1).
+  //
   function addStackInfoContents(parent, stack, versionTable, active) {
 
     const mainDiv = addControlElements(parent,
@@ -595,34 +594,29 @@ const wwtprops = (function () {
     //
     nDiv.appendChild(addLocation(stack.pos[0], stack.pos[1], active));
 
-    // Target name (if available)
+    // Target name
     //
-    // Note that a stack may be missing field names for technical
-    // reasons.
-    //
-    if (stack.stackid in stack_name_map) {
-      const tgtDiv = mkDiv('targetname');
-      mainDiv.appendChild(tgtDiv);
+    const tgtDiv = mkDiv('targetname');
+    mainDiv.appendChild(tgtDiv);
 
-      const names = stack_name_map[stack.stackid];
+    const names = stack.names;
 
-      if (names.length === 1) {
-	addText(tgtDiv, `Target name: ${names[0]} `);
-	addNEDNameLink(tgtDiv, names[0], active);
-	addText(tgtDiv, ' ');
-	addSIMBADNameLink(tgtDiv, names[0], active);
-      } else {
-	addText(tgtDiv, 'Target names: ');
-	let i;
-	for (i = 0; i < names.length; i++) {
-          if (i > 0) {
-	    addText(tgtDiv, ', ');
-	  }
-	  addText(tgtDiv, names[i] + ' ');
-	  addNEDNameLink(tgtDiv, names[i], active);
-	  addText(tgtDiv, ' ');
-	  addSIMBADNameLink(tgtDiv, names[i], active);
-	}
+    if (names.length === 1) {
+      addText(tgtDiv, `Target name: ${names[0]} `);
+      addNEDNameLink(tgtDiv, names[0], active);
+      addText(tgtDiv, ' ');
+      addSIMBADNameLink(tgtDiv, names[0], active);
+    } else {
+      addText(tgtDiv, 'Target names: ');
+      let i;
+      for (i = 0; i < names.length; i++) {
+        if (i > 0) {
+          addText(tgtDiv, ', ');
+        }
+        addText(tgtDiv, names[i] + ' ');
+        addNEDNameLink(tgtDiv, names[i], active);
+        addText(tgtDiv, ' ');
+        addSIMBADNameLink(tgtDiv, names[i], active);
       }
     }
 
@@ -662,7 +656,7 @@ const wwtprops = (function () {
 
     // What obis are in this stack?
     //
-    const obis = obi_map[stack.stackid];
+    const obis = stack.obis;
     const nobis = obis.length;
 
     // Since hide the few multi-obi datasets (i.e. treat as a
@@ -694,6 +688,13 @@ const wwtprops = (function () {
 
     addText(seenDiv, ': ');
 
+    // Do we have CSC 2.1 "new obsids" data?
+    //
+    let new_obis = [];
+    if (typeof stack.new_obis !== "undefined") {
+        new_obis = stack.new_obis;
+    }
+
     const seen2 = Object.create(null);
     let first = true;
     for (i = 0; i < nobis; i++) {
@@ -718,6 +719,12 @@ const wwtprops = (function () {
 	}
 	addText(a, obsid.toString());
 	seenDiv.appendChild(a);
+
+        // If this is new in 2.1 note this
+        //
+        if (new_obis.indexOf(obis[i]) !== -1) {
+           addText(seenDiv, " [new]");
+        }
 
 	seen2[obsidstr] = 1;
       }

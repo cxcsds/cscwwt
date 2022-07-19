@@ -9,13 +9,13 @@
   <info>
 
     <title>
-      <short>Explore CSC 2.0 using WWT</short>
+      <short>Explore CSC 2.1 using WWT</short>
     </title>
-    <version>2.0</version>
+    <version>2.1</version>
 
     <metalist>
       <meta name="keywords" content="chandra, axaf, x-ray, astronomy, astrophysics, catalog, csc, wwt, visualization, samp, ivoa, virtual observatory"/>
-      <meta name="description" content="Explore the Chandra X-ray Observatory Source Catalog (CSC version 2.0) using the World Wide Telescope (WWT), to see sky coverage and source properties."/>
+      <meta name="description" content="Explore the Chandra X-ray Observatory Source Catalog (CSC version 2.1) using the World Wide Telescope (WWT), to see sky coverage and source properties."/>
     </metalist>
 
     <htmlscripts>
@@ -30,8 +30,8 @@
       <htmlscript src="https://cdn.plot.ly/plotly-latest.min.js"/>
 
       <htmlscript src="wwt.js"/>
-      <htmlscript src="wwtdata/wwt20_obis.js"/>
-      <htmlscript src="wwtdata/wwt20_names.js"/>
+      <htmlscript src="wwtdata/wwt21_obis.js"/>
+      <htmlscript src="wwtdata/wwt21_names.js"/>
       <htmlscript src="wwtdata/mw.js"/>
 
       <htmlscript src="js/download.js"/>
@@ -62,16 +62,11 @@ main#content div.wrap {
 
   </info>
 
-  <text onload="wwt.initialize('2.0',
-                               'wwtdata/wwt20_stacks.json',
-                               'wwtdata/wwt20_status.json',
-                               'wwtdata/wwt20_outlines.json',
-  {stkevt3: 'wwtdata/version20.stkevt3.json',
-   sensity: 'wwtdata/version20.sensity.json',
-   stkecorrimg: 'wwtdata/version20.stkecorrimg.json',
-   stkexpmap: 'wwtdata/version20.stkexpmap.json',
-   stkbkgimg: 'wwtdata/version20.stkbkgimg.json'}
-);"
+  <text onload="wwt.initialize('2.1',
+                               'wwtdata/wwt21_stacks.json',
+                               'wwtdata/wwt21_status.json',
+                               'wwtdata/wwt21_outlines.json',
+                               {});"
 	onunload="wwt.unload();"
 	onresize="wwt.resize();">
 
@@ -134,7 +129,8 @@ main#content div.wrap {
 
 	<div>
 	  <p class='title'>
-	    <cxclink href="/csc2/">Chandra Source Catalog 2.0</cxclink>
+	    <cxclink href="/csc2/">Chandra Source Catalog 2.1</cxclink>
+	    <br/><em>provisional</em> <!-- TODO: How best to point this out? -->
 	  </p>
 
 	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
@@ -266,22 +262,17 @@ main#content div.wrap {
 	  </div>
 
 	  <!-- how to style CHS -->
+<!-- We don't have the CHS data for CSC 2.1
 	  <div id="chsbar">
             <button class="button"
                     type="button" id="togglechs"
                     onclick="wwt.toggleCHS()">
               Load CHS Sources
             </button>
-	    <!--
-		<button type="button" id="togglesourceprops" would need to change this id
-		onclick="wwt.toggleFlexById('sourceprops')">
-		<img src="wwtimg/fa/cog.svg" class="icon"
-		alt="Change Properties"
-		/>
-		</button>
-	    -->
 	  </div>
+-->
 
+<!-- Let's not bother with CSC 1.1 here
 	  <div id="source11bar">
             <button class="button"
                     type="button" id="togglesources11"
@@ -305,6 +296,7 @@ main#content div.wrap {
 		   onchange="wwt.changeSource11Size(this.valueAsNumber)"
 		   />
 	  </div>
+-->
 
 	  <div id="xmmsourcebar">
 	    <!-- note the difference between the JS names (sources) and the
@@ -384,6 +376,8 @@ main#content div.wrap {
 	zoom level, and selected wavelength for the background
 	data) and copy it to the clipboard.
       </div>
+<!-- TODO: this needs re-working since the names will work
+     thanks to NED but we now have 2.0 vs 2.1 to worry about -->
       <div class="tooltip" id="targetName-tooltip-no-nameserver">
 	Unfortunately we currently can not support using an
 	object name - such as <span class="term">M31</span> - so
@@ -444,6 +438,14 @@ main#content div.wrap {
 	</div>
 
 	<div class="pane-body">
+
+	  <p style="background: rgba(240, 0, 0, 0.2); border: solid red 1px; margin: 1em; padding: 0.5em;">
+	    This page provides access to the pre-release catalog. It is regularly
+	    updated with new data from the CSC 2.1 processing, but the results
+	    should not be relied on until the catalog has been fully processed
+	    and released.
+	  </p>
+
 	  <p>
 	    This page uses the
 	    <extlink target="_blank"
@@ -451,7 +453,7 @@ main#content div.wrap {
 	    Astronomical Society's World Wide Telescope</extlink>
 	    interface to let you explore the
 	    sky coverage and source properties of
-	    <cxclink target="_blank" href="/csc2/">version 2.0 of
+	    <cxclink target="_blank" href="/csc2/">version 2.1 of
 	    the Chandra Source Catalog</cxclink>.
 	  </p>
 	  <p>
@@ -470,15 +472,15 @@ main#content div.wrap {
 	  </p>
 	  <p>
 	    Polygons indicate areas observed by Chandra that are included
-	    in CSC 2.0 ("stacks"), and the default behavior -
+	    in CSC 2.1 ("stacks"), and the default behavior -
 	    <span class="example-text">Select nearest stack</span> - is
 	    that selecting an area of sky will highlight the nearest
 	    polygon and provide information on the observations that
 	    form the stack.
-	    The locations of sources in CSC 2.0 can be loaded
-	    (<span class="example-button">Load CSC2.0 Sources</span>),
+	    The locations of sources in CSC 2.1 can be loaded
+	    (<span class="example-button">Load CSC2.1 Sources</span>),
 	    after which the button will change to
-	    <span class="example-button">Show CSC2.0 Sources</span>,
+	    <span class="example-button">Show CSC2.1 Sources</span>,
 	    which will show all sources close to the current location
 	    and create a window which can be used to
 	    display several plots and send their properties to
@@ -495,7 +497,7 @@ main#content div.wrap {
 		     href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
 	    is running on
 	    the same machine as the web browser.
-	    The positions of detections from release 1.1 of the CSC and a recent
+	    The positions of detections from a recent
 	    <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
 	    source catalog</extlink>
 	    can also be displayed.
@@ -544,7 +546,7 @@ main#content div.wrap {
             The 'Please explore the Chandra Source Catalog' page shows
 	    the Chandra observations
 	    (<dictionary id="stack">stacks</dictionary>)
-	    included in version 2.0 of the
+	    included in version 2.1 of the
 	    CSC as polygons on the sky.
 	    The display - which is based on the
 	    <extlink target="_blank" href="https://aas.org/publications/aas-worldwide-telescope">American
@@ -553,10 +555,10 @@ main#content div.wrap {
 	    whole sky, and the background data can also be changed,
 	    showing the sky in a range of wavelengths from
 	    the Cosmic Microwave Background to Gamma Rays.
-	    Positions of sources from the CSC (2.0 and the previous release, 1.1)
+	    Positions of sources from the CSC (2.1)
 	    and from the latest
 	    XMM-Newton source catalog can be displayed, and summary plots
-	    of the CSC 2.0 source properties can be shown.
+	    of the CSC 2.1 source properties can be shown.
 	  </p>
 
 	  <p>
@@ -578,7 +580,7 @@ main#content div.wrap {
 	  <p>
 	    There are a number of icons that can appear throughout
 	    the display (most of them at the top of the control panel,
-	    above the "Chandra Source Catalog 2.0" title):
+	    above the "Chandra Source Catalog 2.1" title):
 	  </p>
 
 	  <dl>
@@ -867,13 +869,13 @@ main#content div.wrap {
 	  <h3>Selecting a source</h3>
 
 	  <p>
-	    When the "Show CSC2.0 Sources" button has been selected, the
+	    When the "Show CSC 2.1 Sources" button has been selected, the
 	    selction mode - which is displayed in the second row of the
 	    menu bar on the left of the page - changes to
 	    "<span class="term">Select nearest source</span>" - and
 	    the nearest <em>displayed</em> source from CSC2 will be
 	    selected. A different window is created, this time containing
-	    summary details about the source from CSC 2.0.
+	    summary details about the source from CSC 2.1.
 	  </p>
 
 	  <div class="infocontainer">
@@ -931,15 +933,13 @@ main#content div.wrap {
 	  <p>
 	    Since the data files can take some time to load, the
 	    source catalogs must be loaded - using the
-	    "<span class="term">Load CSC2.0 Sources</span>",
-	    "<span class="term">Load CSC1.1 Sources</span>",
+	    "<span class="term">Load CSC2.1 Sources</span>"
 	    or
 	    "<span class="term">Load 4XMM-DR11 Detections</span>"
 	    buttons - before they can be shown. Once the data
 	    has loaded the button will change its label.
 	    Selecting the
-	    "<span class="term">Show CSC2.0 Sources</span>",
-	    "<span class="term">Show CSC1.1 Sources</span>"
+	    "<span class="term">Show CSC2.0 Sources</span>"
 	    or
 	    "<span class="term">Show 4XMM-DR11 Detections</span>"
 	    button will add circles, indicating the sources, close
@@ -950,10 +950,9 @@ main#content div.wrap {
 	  </p>
 
 	  <p>
-	    By default, the CSC2.0 sources are drawn as cyan circles with
+	    By default, the CSC2.1 sources are drawn as cyan circles with
 	    a radius
-	    of 5 arcseconds, the CSC1.1 sources are drawn as orange circles
-	    with a radius of 7 arcseconds, and the XMM sources are green
+	    of 5 arcseconds and the XMM sources are green
 	    circles with a radius of 10 arcseconds. These radii are
 	    generally <em>significantly larger</em> than the positional
 	    error on the location, as they were chosen to
@@ -966,7 +965,7 @@ main#content div.wrap {
 	  </p>
 
 	  <p>
-	    When the CSC 2.0 sources are displayed, a panel will appear
+	    When the CSC 2.1 sources are displayed, a panel will appear
 	    which lets you
 	    display summary plots of the displayed
 	    sources or send the source properties for the selected

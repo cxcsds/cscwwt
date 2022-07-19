@@ -1561,10 +1561,18 @@ var wwt = (function () {
   // and displayed to the user (if available). So to just stick
   // to the event file remove all but the stkevt3 setting.
   //
+  // We want the keys to match the stackURLs argument sent to
+  // initialize (these are stored in stackVersionURLs).
+  //
   const stackVersionTable = {stkevt3: null, sensity: null,
 			     stkecorrimg: null,
 			     stkexpmap: null,
 			     stkbkgimg: null};
+
+  const stackVersionURLs = {stkevt3: null, sensity: null,
+			    stkecorrimg: null,
+			    stkexpmap: null,
+			    stkbkgimg: null};
 
   // Create the function to show the catalog.
   //   properties is the catalogProps.catalog field
@@ -3005,10 +3013,14 @@ var wwt = (function () {
       if (stackVersionTable[n] !== null) {
 	console.log(`INTERNAL ERROR: expected stackVersionTable.${n} to be null`);
       }
-      const f = makeDownloadData(`wwtdata/version20.${n}.json`,
-				 null, null,
-				 (d) => { stackVersionTable[n] = d; });
-      f();
+      const url = stackVersionURLs[n];
+      if (url !== null) {
+        const f = makeDownloadData(url, null, null,
+                                   (d) => { stackVersionTable[n] = d; });
+        f();
+      } else {
+        trace(` - unable to download version info for ${n}`);
+      }
     });
 
     downloadEnsData();
@@ -3329,7 +3341,10 @@ var wwt = (function () {
    */
   const stackExample =
     { stackid: 'acisfJ0618409m705956_001',
+      stacktype: "unchanged", /* CSC 2.1 */
       nobs: 4,
+      obis: ["13794_000","13795_000","14469_000","15541_000"],
+      names: ["GRB 120711A"],
       pos: decodeStackName('acisfJ0618409m705956_001'),
       description: 'The stack contains 4 ACIS observations.',
       status: true};
@@ -3691,20 +3706,62 @@ var wwt = (function () {
     }
   }
 
-  // Take the obis and names data, which have already been
-  // loaded into the stack_name_map and obi_map dictionaries,
-  // and create the general stack data (this used to be loaded
-  // in as wwt20_outlines_base.js but we can generate the non-outline
-  // data here, and the outline data is now loaded in separately).
+  // Try to make "small" integers use "proper" names.
   //
-  function createStackData() {
+  function intToStr(n) {
+    var num;
+    switch (n) {
+      case 1:
+        num = "one";
+        break;
+
+      case 2:
+        num = "two";
+        break;
+
+      case 3:
+        num = "three";
+        break;
+
+      case 4:
+        num = "four";
+        break;
+
+      case 5:
+        num = "five";
+        break;
+
+      case 6:
+        num = "six";
+        break;
+
+      case 7:
+        num = "seven";
+        break;
+
+      case 8:
+        num = "eight";
+        break;
+
+      case 9:
+        num = "nine";
+        break;
+
+      default:
+        num = `${n}`;
+    }
+
+    return num;
+  }
+
+  // Process the wwt<n>_stacks.json file. Note that the fields
+  // differ depending on the versionString.
+  //
+  function createStackData(json) {
 
     inputStackData = {stacks: {}};
 
-    // Assume that obi_map and stack_name_map have the same keys,
-    // although we only need to deal with obi_map here.
-    //
-    for (let stackid in obi_map) {
+    for (let stackid in json) {
       var inst;
       if (stackid.startsWith("hrcfJ")) {
         inst = "HRC";
@@ -3712,82 +3769,77 @@ var wwt = (function () {
         inst = "ACIS";
       }
 
-      const obis = obi_map[stackid];
+      const stackData = json[stackid];
+      const obis = stackData.obsids;
       const nobi = obis.length;
-      let num;
+      const num = intToStr(nobi);
       let suffix = "s";
-      switch (nobi) {
-        case 1:
-          num = "one";
-          suffix = "";
-          break;
+      if (nobi === 1) { suffix = ""; }
 
-        case 2:
-          num = "two";
-          break;
-
-        case 3:
-          num = "three";
-          break;
-
-        case 4:
-          num = "four";
-          break;
-
-        case 5:
-          num = "five";
-          break;
-
-        case 6:
-          num = "six";
-          break;
-
-        case 7:
-          num = "seven";
-          break;
-
-        case 8:
-          num = "eight";
-          break;
-
-        case 9:
-          num = "nine";
-          break;
-
-        default:
-          num = `${nobi}`;
-      }
+      var store = {
+        stackid: stackid,
+        pos: decodeStackName(stackid),
+        obis: obis,
+        names: stackData.names,
+        nobs: nobi,
+      };
 
       var desc = `The stack contains ${num} ${inst} observation${suffix}.`;
 
-      inputStackData.stacks[stackid] = {
-        stackid: stackid,
-        pos: decodeStackName(stackid),
-        nobs: nobi,
-        description: desc,
-      };
+      if (versionString === "2.1") {
+        store.stacktype = stackData.stacktype;
+        store.new_obis = stackData.new_obsids;
 
+	if (stackData.stacktype === "new") {
+          desc = `The stack is new in CSC 2.1 and contains ${num} ${inst} observation${suffix}.`;
+        } else if (stackData.stacktype === "unchanged") {
+          desc = `The stack has not changed from CSC 2.0 and contains ${num} ${inst} observation${suffix}.`;
+	} else {
+          const nold = store.obis.length - store.new_obis.length;
+          var osuffix = "s";
+          if (nold === 1) {
+	    osuffix = "";
+          }
+	  const ostr = intToStr(nold);
+          desc += ` In CSC 2.0 it contained ${ostr} observation${osuffix}.`;
+        }
+      }
+
+      store.description = desc;
+
+      inputStackData.stacks[stackid] = store;
     }
 
     trace('created inputStackData');
   }
 
+  var versionString = undefined;
+
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
   //
-  var versionString = undefined;
+  // The stackURLs argument is a dictinoary with keys matching
+  // the keys of stackVersionTable, and contains the data files used
+  // to download the data.
+  //
+  function initialize(version, stacksfile, statusfile, outlinefile, stackURLs) {
 
-  function initialize(version, statusfile, outlinefile) {
-
-    versionString = version;
-
-    // Would like to send this around via callback rather than store
-    // the value, but the way wwtReadyFunc is structured (and the desire
-    // to allow it to be called multiple times in case of an initialization
-    // problem which is hopefully no-longer present) we do it this way.
+    // It would be nice to send this information via callbacks, but
+    // some time we need them as "global" variables and in other cases
+    // using a callback would involve serious re-structuring of the
+    // code.
     //
+    versionString = version;
     outlineLocation = outlinefile;
+
+    for (const key in stackURLs) {
+      if (stackVersionURLs[key] === null) {
+        stackVersionURLs[key] = stackURLs[key];
+      } else {
+	trace(`** unsupported key for stackURLs argument: ${key} - ${stackURLs[key]}`);
+      }
+    }
 
     const host = getHost();
     if (host === null) {
@@ -3822,10 +3874,27 @@ var wwt = (function () {
     // At present this just changes the box size/height
     resize();
 
-    createStackData();
+    // We don't care about the return value here.
+    //
+    download.getJSON(stacksfile,
+    		     (response) => {
+    		       createStackData(response);
+    		       continueInitalize(host, statusfile);
+    		     },
+    		     (flag) => {
+    		       alert('Unable to download the stack data for the CSC!');
+    		      });
+
+  }
+
+  // Continue processing once the basic stack data has been
+  // loaded.
+  //
+  function continueInitalize(host, statusfile) {
+
+    trace(' -- continueInitalize[start]');
 
     // Add in the example panes to the help page
-
     wwtprops.addSourceSelectionHelp(raExample, decExample, rExample,
 				    makeSourceSelectionExample());
     wwtprops.addStackInfoHelp(stackExample);
