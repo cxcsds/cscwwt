@@ -10,6 +10,13 @@ h1 {
   margin-bottom: 0.3em;
 }
 
+.warning-block {
+  background-color: rgba(240, 0, 0, 0.2);
+  border: solid red 1px;
+  margin: 1em;
+  padding: 0.5em;
+}
+
 /* Tweak the header/footer for this page */
 
 body { margin: 0; }

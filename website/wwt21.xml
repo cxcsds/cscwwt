@@ -128,7 +128,7 @@ main#content div.wrap {
 	</div>
 
 	<div>
-	  <p class='title'>
+	  <p class='title warning-block'>
 	    <cxclink href="/csc2/">Chandra Source Catalog 2.1</cxclink>
 	    <br/><em>provisional</em> <!-- TODO: How best to point this out? -->
 	  </p>
@@ -439,7 +439,7 @@ main#content div.wrap {
 
 	<div class="pane-body">
 
-	  <p style="background: rgba(240, 0, 0, 0.2); border: solid red 1px; margin: 1em; padding: 0.5em;">
+	  <p class="warning-block">
 	    This page provides access to the pre-release catalog. It is regularly
 	    updated with new data from the CSC 2.1 processing, but the results
 	    should not be relied on until the catalog has been fully processed
