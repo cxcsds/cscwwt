@@ -3015,11 +3015,12 @@ var wwt = (function () {
       }
       const url = stackVersionURLs[n];
       if (url !== null) {
+        trace(` - downloading version info from ${url}`);
         const f = makeDownloadData(url, null, null,
                                    (d) => { stackVersionTable[n] = d; });
         f();
       } else {
-        trace(` - unable to download version info for ${n}`);
+        trace(` - WARNING: unable to download version info for ${n}`);
       }
     });
 
