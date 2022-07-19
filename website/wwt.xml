@@ -950,7 +950,7 @@ main#content div.wrap {
 	    generally <em>significantly larger</em> than the positional
 	    error on the location, as they were chosen to
 	    make sure that the sources are visible!
-	    The XMM source locations are taken from the DR8 list
+	    The XMM source locations are taken from the DR11 list
 	    as described on the
 	    <cxclink href="#"
 		     onclick="wwt.showBlockElement('credits')"
