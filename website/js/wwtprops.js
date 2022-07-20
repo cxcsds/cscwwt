@@ -9,6 +9,14 @@
 //
 const wwtprops = (function () {
 
+  // Argh: this is old code that I'm trying to resurrect.
+  //
+  const dayName = ["Sunday", "Monday", "Tuesday", "Wednesday",
+		   "Thursday", "Friday", "Saturday"];
+  const monthName = ["January", "February", "March", "April",
+		     "May", "June", "July", "August", "September",
+		     "October", "November", "December"];
+
   // Convert RA (in degrees) into hour, minutes, seconds. The
   // return value is an object.
   //
@@ -625,32 +633,25 @@ const wwtprops = (function () {
     const descPara = document.createElement('p');
     descPara.setAttribute('class', 'description');
 
-    // No longer bother with information on when the
-    // stack was completed.
+    // Do we want to note the completed date?
     //
-    /***
-	var desc = stack.description;
-	if (desc.endsWith('.')) {
-	desc = desc.substr(0, desc.length - 1);
-	}
-	desc += ' and ';
-	if (stack.status) {
-	// Do not need the exact time, just the day
-	var date = new Date(stack.lastmod * 1e3);
-	desc += 'processing was completed on '
-	+ dayName[date.getUTCDay()] + ', '
-	+ date.getUTCDate().toString() + ' '
-	+ monthName[date.getUTCMonth()] + ', '
-	+ date.getUTCFullYear().toString()
-	+ '.';
-	} else {
-	desc += 'has not been fully processed.';
-	}
+    var desc = stack.description;
+    if (wwt.getVersion() === "2.1") {
+      if (stack.status) {
+        // Do not need the exact time, just the day
+        var date = new Date(stack.lastmod * 1e3);
+        desc += ' The stack was processed on '
+             + dayName[date.getUTCDay()] + ', '
+             + date.getUTCDate().toString() + ' '
+             + monthName[date.getUTCMonth()] + ', '
+             + date.getUTCFullYear().toString()
+             + '.';
+      } else {
+        desc += ' The stack has not been fully processed.';
+      }
+    }
 
-	addText(descPara, desc);
-    ***/
-
-    addText(descPara, stack.description);
+    addText(descPara, desc);
 
     mainDiv.appendChild(descPara);
 

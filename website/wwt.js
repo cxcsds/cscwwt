@@ -4029,8 +4029,13 @@ var wwt = (function () {
     // During development I wanted to make sure there was no caching
     // but this file is not currently being updated.
     //
-    // const url = statusfile + cacheBuster();
-    const url = statusfile;
+    // Actually, we do want to not cache it for 2.1 but not for
+    // 2.0.
+    //
+    var url = statusfile;
+    if (versionString === "2.1") {
+	url += cacheBuster();
+    }
 
     // Finish off by submitting the data to process the CSC status.
     //
