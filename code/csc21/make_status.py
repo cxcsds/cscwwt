@@ -158,11 +158,10 @@ def write_xml(processing, lmod_db):
 
     <!-- see https://datatables.net/download/index -->
     <htmlscripts>
-      <htmlscript src="https://cdn.datatables.net/v/dt/jq-3.6.0/dt-1.12.1/datatables.min.js"/>
+      <htmlscript src="https://cdn.datatables.net/v/dt/jq-3.6.0/jszip-2.5.0/dt-1.12.1/b-2.2.3/b-colvis-2.2.3/b-html5-2.2.3/b-print-2.2.3/sl-1.4.0/datatables.min.js"/>
     </htmlscripts>
 
-    <css src="https://cdn.datatables.net/v/dt/jq-3.6.0/dt-1.12.1/datatables.min.css"/>
-
+    <css src="https://cdn.datatables.net/v/dt/jq-3.6.0/jszip-2.5.0/dt-1.12.1/b-2.2.3/b-colvis-2.2.3/b-html5-2.2.3/b-print-2.2.3/sl-1.4.0/datatables.min.css"/>
 """)
 
         # As about to write CSS, and hence lots of { } pairs,
@@ -179,12 +178,23 @@ td { text-align: center; }
   text-align: center;
 }
 
+/* style the datatable elements; may need to be updated if the code changes */
+div.dt-buttons {
+  float: none;
+  padding: 0.5em 0;
+  text-align: center;
+}
     </css>
   </info>
 """)
 
+        # We could set up new div blocks here but it's complicated as it requires <
+        # character, so we rely on the existing styling.
+        #
         fh.write(f"""
-  <text onload="let table = new DataTable('#csc21-status', {{ pageLength: 25 }});">
+  <text onload="let table = new DataTable('#csc21-status', {{
+  dom: 'Blfrtip', pageLength: 25, select: true, buttons: ['colvis', 'copy', 'csv', 'excel']
+}});">
 
     <h1>Processing status of CSC 2.1</h1>
     <div class="qlinkbar">
@@ -254,7 +264,7 @@ td { text-align: center; }
             ra, dec = get_stack_pos(stack)
 
             fh.write("<tr><td>")
-            fh.write(f"<cxclink href='../wwt21.html?stackid={stack}&amp;ra={ra:.5f}&amp;dec={dec:.5f}'>{stack}</cxclink>")
+            fh.write(f"<cxclink target='_blank' href='../wwt21.html?stackid={stack}&amp;ra={ra:.5f}&amp;dec={dec:.5f}'>{stack}</cxclink>")
             fh.write("</td>")
             fh.write(f"<td>{len(obis)}</td>")  # note: could use len(set(obis))
             fh.write(f"<td>{nstr}</td>")
