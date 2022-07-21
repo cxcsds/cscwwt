@@ -46,6 +46,7 @@ var wwt = (function () {
 
   // What options has the user provided via query parameters?
   let userLocation = null;
+  let userStackId = null;
   let userDisplay = null;
 
   var wwt;
@@ -351,6 +352,8 @@ var wwt = (function () {
   // same location as 'Clip Location' uses), zoom level,
   // and display. Copy it to the clipboard.
   //
+  // If a stack has been selected then we include it as well.
+  //
   function getPageURL() {
     const el = document.querySelector('#coordinate');
     if (el === null) {
@@ -383,6 +386,21 @@ var wwt = (function () {
     }
     if (display === null) { return null; }
 
+    let terms = `ra=${ra}&dec=${dec}&zoom=${zoomStr}&display=${display}`;
+
+    // Add in the stack selection (if present).
+    //
+    const stackpane = document.querySelector("#stackinfo");
+    if (stackpane !== null &&
+	stackpane.style !== null &&
+	typeof stackpane.style.display !== "undefined" &&
+	stackpane.style.display === "block") {
+      const stackid = stackpane.getAttribute('data-stackid');
+      if (stackid !== null) {
+	terms += `&stackid=${stackid}`;
+      }
+    }
+
     // Need to remove any existing search term
     //
     let url = null;
@@ -396,7 +414,7 @@ var wwt = (function () {
     // Clear out previous terms
     url.search = '';
     url.hash = '';
-    return `${url.href}?ra=${ra}&dec=${dec}&zoom=${zoomStr}&display=${display}`;
+    return `${url.href}?${terms}`;
   }
 
   function clipBookmark(event) {
@@ -1269,6 +1287,17 @@ var wwt = (function () {
     stacksShown = true;
 
     trace('Added FOV');
+
+    // If we are highlighting a stack then we can now do it.
+    //
+    if (userStackId !== null) {
+      const stack = inputStackData.stacks[userStackId];
+      if (typeof stack !== "undefined") {
+	trace(`Found stack ${userStackId} in stack data`);
+	processStackSelectionByStack(stack);
+      }
+    }
+
   }
 
   // Add outlines based on the Milky Way, data is from the
@@ -2473,7 +2502,7 @@ var wwt = (function () {
   // reason this wouldn't hold would be numerical errors, and the way the
   // stacks are created should mean this won't happen.
   //
-  // TODO: shold be able to rewrite calling code to send in ra/dec
+  // TODO: should be able to rewrite calling code to send in ra/dec
   //       and so call processStackSelection directly
   //
   function processStackSelectionByName(stackid) {
@@ -2546,22 +2575,9 @@ var wwt = (function () {
     const el0 = seps.shift();
     const stack0 = el0[1];
 
-    const fovs = stackAnnotations[stack0.stackid];
-    fovs.forEach(fov => nearestFovs.push(changeFov(fov, true, 'cyan', 4)));
+    processStackSelectionByStack(stack0);
 
-    // What version info do we have (aka can we export the data products
-    // via SAMP) for this stack?
-    //
-    const versionInfo = {};
-    Object.keys(stackVersionTable).forEach(n => {
-      if (stackVersionTable[n] === null) { return; }
-      versionInfo[n] = getVersion(stackVersionTable[n], stack0);
-    });
-    wwtprops.addStackInfo(stack0, versionInfo);
-
-    if (seps.length === 0) { return; }
-
-    if (!displayNearestStacks) { return; }
+    if (seps.length === 0 || !displayNearestStacks) { return; }
 
     // Apply a tolerance to identify if we have "close" stacks. This
     // is a heuristic. Note that we are actually interested in stacks
@@ -2588,6 +2604,28 @@ var wwt = (function () {
 
     wwtprops.addNearestStackTable(stackAnnotations, stack0, nearest,
 				  nearestFovs);
+
+    console.log("DBG-START: nearest"); console.log(nearest); console.log("DBG-END:   nearest");
+  }
+
+  // This does not support the "display nearest stacks" option.
+  //
+  function processStackSelectionByStack(stack) {
+
+    clearNearestStack();
+
+    const fovs = stackAnnotations[stack.stackid];
+    fovs.forEach(fov => nearestFovs.push(changeFov(fov, true, 'cyan', 4)));
+
+    // What version info do we have (aka can we export the data products
+    // via SAMP) for this stack?
+    //
+    const versionInfo = {};
+    Object.keys(stackVersionTable).forEach(n => {
+      if (stackVersionTable[n] === null) { return; }
+      versionInfo[n] = getVersion(stackVersionTable[n], stack);
+    });
+    wwtprops.addStackInfo(stack, versionInfo);
   }
 
   // Can we lasso a region?
@@ -2843,6 +2881,20 @@ var wwt = (function () {
     return outval;
   }
 
+  // Get the stored FOV value (or a default if not set).
+  //
+  function restoreFOV() {
+    let zoom = getState(keyFOV);
+    if (zoom !== null) { zoom = toNumber(zoom); }
+    if (zoom === null) {
+      return startFOV;
+    }
+    if (zoom < minFOV) { zoom = minFOV; }
+    else if (zoom > maxFOV) { zoom = maxFOV; }
+    trace(`Setting zoom to: ${zoom}`);
+    return zoom;
+  }
+
   // This will go to (in order of preference)
   //   location specified in URL
   //   user's last-selected position
@@ -2856,8 +2908,9 @@ var wwt = (function () {
     // reliably.
     setTargetName('');
 
+    // The validity of the argument depends on the mode.
+    //
     if (userLocation !== null) {
-      // assume userLocation has been validated
       wwt.gotoRaDecZoom(userLocation.ra,
 			userLocation.dec,
 			userLocation.zoom, moveFlag);
@@ -2880,15 +2933,7 @@ var wwt = (function () {
       }
     }
 
-    let zoom = getState(keyFOV);
-    if (zoom !== null) { zoom = toNumber(zoom); }
-    if (zoom === null) {
-      zoom = startFOV;
-    } else {
-      if (zoom < minFOV) { zoom = minFOV; }
-      else if (zoom > maxFOV) { zoom = maxFOV; }
-      trace(`Setting zoom to: ${zoom}`);
-    }
+    const zoom = restoreFOV();
 
     if ((ra === null) || (dec === null)) {
       wwt.gotoRaDecZoom(ra0, dec0, zoom, moveFlag);
@@ -3574,7 +3619,7 @@ var wwt = (function () {
 			  })) {
       return;
     }
-     
+
     if (!download.getJSON('wwtdata/coverage.csc21-development.updated.json' + cacheBuster(),
 			  (response) => {
 			      trace("-- downloaded outline (updated) data");
@@ -3587,15 +3632,11 @@ var wwt = (function () {
 			  })) {
       return;
     }
- 
+
   }
 
-  // Pull out the ra/dec handling so that we don't stop parsing
-  // other elements in the query if one of these fails.
-  //
-  // There is some special-case handling for development work.
-  // No-one should rely on this behavior and there is no attempt
-  // to provide meaningful results.
+  // Locations can be handled by
+  //    ra=decimal&dec=decimal[&zoom=factor]
   //
   function handleQueryLocation(params) {
 
@@ -3608,39 +3649,64 @@ var wwt = (function () {
       request_outline21 = true;
     }
 
-    // zoom is only used if ra and dec are given, but is optional
+    // zoom is optional.
+    //
     const raStr = params.get('ra');
     const decStr = params.get('dec');
-    const zoomStr = params.get('zoom');
-    if ((raStr === null) || (decStr === null)) { return; }
 
     const ra = Number(raStr);
     const dec = Number(decStr);
-    const zoom = Number(zoomStr === null ? '1.0' : zoomStr);
-
-    if (isNaN(ra) || isNaN(dec) || isNaN(zoom)) {
-      console.log(`Unable to convert ra=${raStr} dec=${decStr} zoom=${zoomStr} to a location`);
+    if (isNaN(ra) || isNaN(dec)) {
+      trace(`Unable to convert ra=${raStr} dec=${decStr} to a location`);
       return;
     }
 
     if ((ra < 0) || (ra >= 360)) {
-      console.log(`Invalid ra=${raStr} for location`);
+      trace(`Invalid ra=${raStr} for location`);
       return;
     }
 
     if ((dec < -90) || (dec > 90)) {
-      console.log(`Invalid dec=${decStr} for location`);
+      trace(`Invalid dec=${decStr} for location`);
       return;
     }
 
-    // Should we cap the zoom rather than throw out invalid values?
-    if ((zoom <= 0) || (zoom > 60)) {
-      console.log(`Invalid zoom=${zoomStr} for location`);
-      return;
+    const zoomStr = params.get('zoom');
+    let zoom;
+    if (zoomStr === null) {
+      zoom = restoreFOV();
+    } else {
+      zoom = Number(zoomStr === null ? '1.0' : zoomStr);
+      // Should we cap the zoom rather than throw out invalid values?
+      if (isNaN(zoom) || (zoom <= 0) || (zoom > 60)) {
+	trace(`Invalid zoom=${zoomStr} for location`);
+	return;
+      }
     }
 
     userLocation = {ra: ra, dec: dec, zoom: zoom};
     trace(` -> userLocation: ra=${userLocation.ra} dec=${userLocation.dec} zoom=${userLocation.zoom}`);
+  }
+
+  function handleQueryStackId(params) {
+
+    const stackIdStr = params.get('stackid');
+    if (stackIdStr === null) { return; }
+    trace(` -- stackid= [${stackIdStr}]`);
+
+    // How do we validate the stack name here? For now do
+    // some syntactic checks as I assume the stack data can not
+    // be guaranteed to exist at this point.
+    //
+    if (!(stackIdStr.startsWith("acisfJ") && stackIdStr.length == 24) &&
+	!(stackIdStr.startsWith("hrcfJ") && stackIdStr.length == 23) &&
+	!stackIdStr.endsWith("_001") &&
+	!stackIdStr.endsWith("_002")) {
+      trace(`Invalid stackid="${stackIdStr}"`);
+      return;
+    }
+
+    userStackId = stackIdStr;
   }
 
   // Has the user asked for certain behavior? I don't believe this
@@ -3689,6 +3755,7 @@ var wwt = (function () {
     // If we are using a book-marked location handle the settings.
     //
     handleQueryLocation(params);
+    handleQueryStackId(params);
 
     // Match against the values in the select widget, to ensure it
     // is a valid setting.
@@ -5047,6 +5114,7 @@ var wwt = (function () {
     removeToolTipHandler: removeToolTipHandler,
 
     processStackSelectionByName: processStackSelectionByName,
+    processStackSelectionByStack: processStackSelectionByStack,
     processSourceSelection: processSourceSelection,
 
     // debug/testing access below

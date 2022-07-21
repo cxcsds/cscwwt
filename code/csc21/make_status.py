@@ -38,6 +38,38 @@ def get_time(tstr):
     return int(time.mktime(t))
 
 
+def get_stack_pos(stackid):
+    """Given a stack id extract approximate ra,dec in decimal degrees"""
+
+    if stackid.startswith('acisfJ'):
+        loc = stackid[6:-4]
+    elif stackid.startswith('hrcfJ'):
+        loc = stackid[5:-4]
+    else:
+        raise ValueError(stackid)
+
+    raStr = loc[:7]
+    decStr = loc[8:]
+    if loc[7] == "p":
+        sval = 1
+    elif loc[7] == "m":
+        sval = -1
+    else:
+        raise ValueError(stackid)
+
+    h = int(raStr[0:2])
+    m = int(raStr[2:4])
+    s = int(raStr[4:]) / 10
+    ra = 15 * (h + (m + (s / 60)) / 60)
+
+    d = int(decStr[0:2])
+    m = int(decStr[2:4])
+    s = int(decStr[4:])
+    dec = d + (m + (s / 60)) / 60
+
+    return ra, sval * dec
+
+
 def read_status(infile):
     """Read in the stack status."""
 
@@ -156,8 +188,8 @@ td { text-align: center; }
 
     <h1>Processing status of CSC 2.1</h1>
     <div class="qlinkbar">
-      <cxclink href="news.html">What's New?</cxclink> |
-      <cxclink href="caveats.html">Watch Out</cxclink>
+      <cxclink href="../news.html">What's New?</cxclink> |
+      <cxclink href="../caveats.html">Watch Out</cxclink>
     </div>
 
     <hr/>
@@ -169,7 +201,7 @@ td { text-align: center; }
       fully processed is available as the text file:
       <cxclink class="filename" href="stacks-2.1.txt">stacks-2.1.txt</cxclink>.
       The catalog can also be viewed using the
-      <cxclink href="wwt21.html">WorldWide Telescope</cxclink>,
+      <cxclink href="../wwt21.html">WorldWide Telescope</cxclink>,
       which lets users select stacks or sources.
     </p>
 
@@ -219,7 +251,11 @@ td { text-align: center; }
 
             nstr = ", ".join(names)
 
-            fh.write(f"<tr><td>{stack}</td>")
+            ra, dec = get_stack_pos(stack)
+
+            fh.write("<tr><td>")
+            fh.write(f"<cxclink href='../wwt21.html?stackid={stack}&amp;ra={ra:.5f}&amp;dec={dec:.5f}'>{stack}</cxclink>")
+            fh.write("</td>")
             fh.write(f"<td>{len(obis)}</td>")  # note: could use len(set(obis))
             fh.write(f"<td>{nstr}</td>")
             fh.write(f"<td>{status[stack]}</td>")

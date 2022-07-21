@@ -579,6 +579,7 @@ const wwtprops = (function () {
   //
   function addStackInfoContents(parent, stack, versionTable, active) {
 
+    parent.setAttribute('data-stackid', stack.stackid);
     const mainDiv = addControlElements(parent,
 				       `Stack: ${stack.stackid}`,
 				       wwt.clearNearestStack,
