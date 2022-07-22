@@ -1516,6 +1516,12 @@ var wwt = (function () {
   //
   function makeDownloadData(url, toggleSel, dataLabel, processData) {
 
+    // Safety check just in case
+    if (url === null) {
+	etrace("makeDownloadData sent a null url");
+        return () => {};
+    }
+
     return () => {
       if (download.getJSON(url, processData,
 			   (flag) => {
@@ -1591,17 +1597,12 @@ var wwt = (function () {
   // to the event file remove all but the stkevt3 setting.
   //
   // We want the keys to match the stackURLs argument sent to
-  // initialize (these are stored in stackVersionURLs).
+  // initialize.
   //
   const stackVersionTable = {stkevt3: null, sensity: null,
 			     stkecorrimg: null,
 			     stkexpmap: null,
 			     stkbkgimg: null};
-
-  const stackVersionURLs = {stkevt3: null, sensity: null,
-			    stkecorrimg: null,
-			    stkexpmap: null,
-			    stkbkgimg: null};
 
   // Create the function to show the catalog.
   //   properties is the catalogProps.catalog field
@@ -3050,25 +3051,6 @@ var wwt = (function () {
     setupUserSelection();
     stopExcessScrolling();
 
-    // We create and execute the download function here.
-    //
-    Object.keys(stackVersionTable).forEach(n => {
-      if (stackVersionTable[n] !== null) {
-	itrace(`expected stackVersionTable.${n} to be null`);
-      }
-      const url = stackVersionURLs[n];
-      if (url !== null) {
-        trace(` - downloading version info from ${url}`);
-        const f = makeDownloadData(url, null, null,
-                                   (d) => { stackVersionTable[n] = d; });
-        f();
-      } else {
-        wtrace(`unable to download version info for ${n}`);
-      }
-    });
-
-    downloadEnsData();
-
     // Display the CSC 2.1 outlines if loaded
     // (the current interface is rather ugly, and
     if (request_outline21) {
@@ -3138,6 +3120,13 @@ var wwt = (function () {
     //
     setWWTStatePoll();
 
+    // Stop the spinner we started in initialize. This is just to trap
+    // the long wait between calling wwt_si.add_ready(wwtReadyFunc)
+    // and wwtReadyFunc being called. This will probably not work if
+    // the "re-initialization" logic is triggered, but I'm hoping this
+    // has been fixed upstream now, as I don't seem to see it anymore.
+    //
+    stopSpinner();
     trace('Finished wwtReadyFunc');
   }
 
@@ -3912,22 +3901,6 @@ var wwt = (function () {
   //
   function initialize(version, stacksfile, statusfile, outlinefile, stackURLs) {
 
-    // It would be nice to send this information via callbacks, but
-    // some time we need them as "global" variables and in other cases
-    // using a callback would involve serious re-structuring of the
-    // code.
-    //
-    versionString = version;
-    outlineLocation = outlinefile;
-
-    for (const key in stackURLs) {
-      if (stackVersionURLs[key] === null) {
-        stackVersionURLs[key] = stackURLs[key];
-      } else {
-	trace(`** unsupported key for stackURLs argument: ${key} - ${stackURLs[key]}`);
-      }
-    }
-
     const host = getHost();
     if (host === null) {
       return;
@@ -3948,6 +3921,21 @@ var wwt = (function () {
       }
     }
 
+    // This is stopped in wwtReadyFunc; it's not ideal as
+    // re-initalization doesn't do this, but there's a relatively long
+    // initialization period that is otherwise "dead" where we want to
+    // let the user know something is going on.
+    //
+    startSpinner();
+
+    // It would be nice to send this information via callbacks, but
+    // some time we need them as "global" variables and in other cases
+    // using a callback would involve serious re-structuring of the
+    // code.
+    //
+    versionString = version;
+    outlineLocation = outlinefile;
+
     // Pass in useful information to wwtsamp (even if later we turn
     // off support for SAMP).
     //
@@ -3960,6 +3948,24 @@ var wwt = (function () {
 
     // At present this just changes the box size/height
     resize();
+
+    // We can load the stack version tables, if needed.
+    //
+    for (const key in stackURLs) {
+      const url = stackURLs[key];
+      if (key in stackVersionTable) {
+        trace(` - downloading ${key} version info from ${url}`);
+        const f = makeDownloadData(url, null, null,
+                                   (d) => { stackVersionTable[key] = d; });
+        f();
+
+      } else {
+	etrace(`** unsupported key for stackURLs argument: ${key} - ${url}`);
+      }
+    }
+
+    // TODO: need to be version specific
+    downloadEnsData();
 
     // We don't care about the return value here.
     //
@@ -4124,6 +4130,9 @@ var wwt = (function () {
     }
 
     // Finish off by submitting the data to process the CSC status.
+    // It would be nice to load some of the other data here, before
+    // handing off to WWT, but some of these need to use WWT
+    // functionality.
     //
     if (download.getJSON(url,
 			 (response) => {
