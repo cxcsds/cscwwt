@@ -2179,9 +2179,17 @@ var wwt = (function () {
     inputStackData.completed_start = lmodStart;
     inputStackData.completed_end = lmodEnd;
 
-    // Update the "Help" page (if still needed).
+    // Update the "Help" page (if still needed). This was from CSC 2.0
     const el = document.querySelector('#lastmod');
     if (el !== null) { el.innerHTML = status.lastupdate_db; }
+
+    // How about the CSC 2.1 version (experimental)
+    //
+    const el21 = document.querySelector('#csc21-warning-span');
+    if (el21 !== null) {
+      // Drop the HH:MM section
+      el21.innerHTML = status.lastupdate_db.split(' ')[0];
+    }
   }
 
   function setTargetName(name) {

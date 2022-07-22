@@ -130,7 +130,7 @@ main#content div.wrap {
 	<div>
 	  <p class='title warning-block'>
 	    <cxclink href="/csc2/">Chandra Source Catalog 2.1</cxclink>
-	    <br/><em>provisional</em> <!-- TODO: How best to point this out? -->
+	    <br/><span id="csc21-warning-span">provisional</span> <!-- TODO: How best to point this out? -->
 	  </p>
 
 	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
