@@ -503,8 +503,8 @@ const wwtprops = (function () {
       }
 
       els.button.addEventListener('click', (event) => {
-	console.log(`Chosen option: ${selected.choice}`);
-	console.log(`Chosen target: ${selected.target}`);
+	wwt.trace(`Chosen option: ${selected.choice}`);
+	wwt.trace(`Chosen target: ${selected.target}`);
 	let send = null;
 	if (selected.choice === 'stkevt3') {
 	  send = wwtsamp.sendStackEvt3;
@@ -522,7 +522,7 @@ const wwtprops = (function () {
 	  send(event, stack.stackid, versionTable[selected.choice],
 	       selected.target);
 	} else {
-	  console.log(`INTERNAL ERROR: unsupported option ${selected.choice}`);
+	  wwt.itrace(`unsupported option ${selected.choice}`);
 	}
 
       }, false);
@@ -551,7 +551,7 @@ const wwtprops = (function () {
 
     if (active) {
       els.button.addEventListener('click', (event) => {
-	console.log(`Chosen target: ${selected.target}`);
+	wwt.trace(`Chosen target: ${selected.target}`);
 	wwtsamp.sendSourcePropertiesName(event, selected.target, src.name);
       }, false);
     }
@@ -638,7 +638,7 @@ const wwtprops = (function () {
     //
     var desc = stack.description;
     if (wwt.getVersion() === "2.1") {
-      if (stack.status) {
+      if (stack.status === 1) {
         // Do not need the exact time, just the day
         var date = new Date(stack.lastmod * 1e3);
         desc += ' The stack was processed on '
@@ -647,6 +647,8 @@ const wwtprops = (function () {
              + monthName[date.getUTCMonth()] + ', '
              + date.getUTCFullYear().toString()
              + '.';
+      } else if (stack.status === 2) {
+        desc += ' The stack is being processed.';
       } else {
         desc += ' The stack has not been fully processed.';
       }
@@ -739,7 +741,20 @@ const wwtprops = (function () {
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
     //
-    const bcol = stack.status ? 'gold' : 'grey';
+    let bcol;
+    switch (stack.status) {
+      case 1:
+        bcol = wwt.COLOR_FINISHED;
+        break;
+
+      case 2:
+        bcol = wwt.COLOR_PROCESSING;
+        break;
+
+      default:
+        bcol = wwt.COLOR_NOTDONE;
+    }
+
     parent.style.borderColor = bcol;
     parent.style.display = 'block';
   }
@@ -828,7 +843,7 @@ const wwtprops = (function () {
   function addStackInfoHelp(stack) {
     const parent = document.querySelector('#stackinfoexample');
     if (parent === null) {
-      console.log('Internal error: no #stackinfo found');
+      wwt.itrace('no #stackinfo found');
       return;
     }
 
@@ -845,7 +860,7 @@ const wwtprops = (function () {
   function clearElement(selector) {
     const el = document.querySelector(selector);
     if (el === null) {
-      console.log(`INTERNAL ERROR [clearElement]: unable to find ${selector}`);
+      wwt.itrace(`[clearElement]: unable to find ${selector}`);
       return null;
     }
     el.style.display = 'none';
@@ -1151,7 +1166,7 @@ const wwtprops = (function () {
   function addSourceInfoHelp(src) {
     const parent = document.querySelector('#sourceinfoexample');
     if (parent === null) {
-      console.log('Internal error: missing #sourceinfoexample');
+      wwt.itrace('missing #sourceinfoexample');
       return;
     }
     addSourceInfoContents(parent, src, false);
@@ -1246,7 +1261,7 @@ const wwtprops = (function () {
     const mtype = sel.getAttribute('data-clientlist-mtype');
     const unselected = sel.getAttribute('data-clientlist-unselected');
     if ((mtype === null) || (unselected === null)) {
-      console.log(`Internal error: not SAMP clientlist ${sel}`);
+      wwt.itrace(`not SAMP clientlist ${sel}`);
       return;
     }
 
@@ -1356,7 +1371,7 @@ const wwtprops = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to trigger change for SAMP client list ${sel.id}`);
+      wwt.itrace(`unable to trigger change for SAMP client list ${sel.id}`);
     }
 
   }
@@ -1397,8 +1412,8 @@ const wwtprops = (function () {
       }, false);
 
       els.button.addEventListener('click', (event) => {
-	console.log(`Chosen ADQL option: ${selected.choice}`);
-	console.log(`Chosen target: ${selected.target}`);
+	wwt.trace(`Chosen ADQL option: ${selected.choice}`);
+	wwt.trace(`Chosen target: ${selected.target}`);
 	wwtsamp.sendSourcePropertiesNear(event, ra0, dec0, rmax,
 					 selected.choice,
 					 selected.target);
@@ -1414,12 +1429,12 @@ const wwtprops = (function () {
   //
   function addSourceSelectionInfo(parent, ra0, dec0, rmax, catinfo, active) {
     if ((catinfo === null) || (catinfo.annotations === null)) {
-      console.log('INTERNAL ERROR: addSourceSelection sent catinfo[.annotations]=null');
+      wwt.itrace('addSourceSelection sent catinfo[.annotations]=null');
       return;
     }
     const nsrc = catinfo.annotations.length;
     if (nsrc < 1) {
-      console.log('INTERNAL ERROR: addSourceSelection sent empty srcs');
+      wwt.itrace('addSourceSelection sent empty srcs');
       return;
     }
 
@@ -1495,7 +1510,7 @@ const wwtprops = (function () {
   function addSourceSelectionHelp(ra, dec, rmax, catinfo) {
     const parent = document.querySelector('#sourceselectionexample');
     if (parent === null) {
-      console.log('Internal error: missing #sourceselectionexample');
+      wwt.itrace('missing #sourceselectionexample');
       return;
     }
     addSourceSelectionInfo(parent, ra, dec, rmax, catinfo, false);
@@ -1832,7 +1847,7 @@ const wwtprops = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
+      wwt.itrace(`unable to change selection mode: ${e}`);
     }
 
   }

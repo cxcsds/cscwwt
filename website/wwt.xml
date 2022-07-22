@@ -64,7 +64,7 @@ main#content div.wrap {
 
   <text onload="wwt.initialize('2.0',
                                'wwtdata/wwt20_stacks.json',
-                               'wwtdata/wwt20_status.json',
+                               null,
                                'wwtdata/wwt20_outlines.json',
   {stkevt3: 'wwtdata/version20.stkevt3.json',
    sensity: 'wwtdata/version20.sensity.json',

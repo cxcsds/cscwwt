@@ -22,6 +22,10 @@
 
 var wwt = (function () {
 
+  const COLOR_FINISHED = 'gold';
+  const COLOR_PROCESSING = 'brown';
+  const COLOR_NOTDONE = 'grey';
+
   // The features available are controlled by default choices (the
   // values of the displayXXX fields below), but they can be over-ridden
   // by the presence of the following tokens as query terms - e.g.
@@ -1197,16 +1201,22 @@ var wwt = (function () {
 
     let edgeColor;
     let fillColor = 'white';
-    let lineWidth;
+    let lineWidth = 1;
     const opacity = 0.6;
     const fillFlag = false;
 
-    if (stack.status) {
-      edgeColor = 'gold';
+    // We now have the odd system of
+    //    status = 0  - unprocessed
+    //             1  - finished
+    //             2  - being processed
+    //
+    if (stack.status === 1) {
+      edgeColor = COLOR_FINISHED;
       lineWidth = 2;
+    } else if (stack.status === 2) {
+      edgeColor = COLOR_PROCESSING;
     } else {
-      edgeColor = 'grey';
-      lineWidth = 1;
+      edgeColor = COLOR_NOTDONE;
     };
 
     const annotations = [];
@@ -2140,9 +2150,7 @@ var wwt = (function () {
     return true;
   }
 
-  // Note: this is used to set up the original data as well
-  // as the now-removed update functionality. Should really
-  // rename.
+  // This is assumed to only be used for "processing" data.
   //
   function updateCompletionInfo(status) {
 
@@ -3401,7 +3409,9 @@ var wwt = (function () {
       names: ["GRB 120711A"],
       pos: decodeStackName('acisfJ0618409m705956_001'),
       description: 'The stack contains 4 ACIS observations.',
-      status: true};
+      status: 1,
+      lastmod: 1653359578 /* CSC 2.1 */
+  };
 
   // '2CXO J061859.6-705831'
   const sourceExample =
@@ -3881,6 +3891,16 @@ var wwt = (function () {
         }
       }
 
+      if (versionString === "2.0") {
+        // The status used to be false or true but it's now
+        //    0 - unprocessed / pending
+        //    1 - finished
+        //    2 - benig processed
+        // which is a bit of an odd system.
+        //
+        store.status = 1;
+      }
+
       store.description = desc;
 
       inputStackData.stacks[stackid] = store;
@@ -4117,33 +4137,26 @@ var wwt = (function () {
 
     addSetupBanner();
 
-    // Do I need to add a cache-busting identifier?
-    // During development I wanted to make sure there was no caching
-    // but this file is not currently being updated.
+    // Do we need to bother with the status?
     //
-    // Actually, we do want to not cache it for 2.1 but not for
-    // 2.0.
-    //
-    var url = statusfile;
-    if (versionString === "2.1") {
-	url += cacheBuster();
+    if (statusfile === null) {
+      trace('no status file to download');
+      wwt_si.add_ready(wwtReadyFunc);
+      trace(' - finished add_ready');
+      return;
     }
 
-    // Finish off by submitting the data to process the CSC status.
-    // It would be nice to load some of the other data here, before
-    // handing off to WWT, but some of these need to use WWT
-    // functionality.
-    //
+    var url = statusfile + cacheBuster();
     if (download.getJSON(url,
-			 (response) => {
+    			 (response) => {
                            updateCompletionInfo(response);
                            trace(' - updatedCompletionInfo');
                            wwt_si.add_ready(wwtReadyFunc);
                            trace(' - finished add_ready');
-			 },
-			 (flag) => {
+    			 },
+    			 (flag) => {
                            alert('Unable to download the status of the CSC!');
-			 })) {
+    			 })) {
       return;
     }
 
@@ -5121,6 +5134,10 @@ var wwt = (function () {
     reinitialize: wwtReadyFunc,
     resize: resize,
     unload: unload,
+
+    COLOR_FINISHED: COLOR_FINISHED,
+    COLOR_PROCESSING: COLOR_PROCESSING,
+    COLOR_NOTDONE: COLOR_NOTDONE,
 
     searchNED: searchNED,
     searchSIMBAD: searchSIMBAD,

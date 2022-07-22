@@ -109,11 +109,14 @@ def write_json(processing, lmod_db):
         sdata = processing[stack]
         state = sdata["state"]
         if state == "Completed":
-            out["stacks"][stack] = True
+            out["stacks"][stack] = 1
             out["completed"][stack] = sdata["completed_int"]
 
-        elif state in ["Pending", "Processing"]:
-            out["stacks"][stack] = False
+        elif state == "Processing":
+            out["stacks"][stack] = 2
+
+        elif state == "Pending":
+            out["stacks"][stack] = 0
 
         else:
             raise ValueError(f"Unexpected line: {l}")
