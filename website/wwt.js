@@ -3049,9 +3049,12 @@ var wwt = (function () {
     addMW();
 
     // Download the stack polygons and add the annotations.
-    // download.getJSON(outlineLocation + cacheBuster(),
-    download.getJSON(outlineLocation,
-		     addFOV,
+    //
+    let outlineURL = outlineLocation;
+    if (versionString === "2.1") {
+      outlineURL += cacheBuster();
+    }
+    download.getJSON(outlineURL, addFOV,
 		     (flag) => {
 			 alert("Unable to dowload the stack outlines");
 		     });
