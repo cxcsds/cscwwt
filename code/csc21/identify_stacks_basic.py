@@ -35,7 +35,7 @@ Requires:
 
 The output is written to stdout, expected to be saved to
 
-  wwt21_stacks_basic.json
+  wwt21_stacks.json
 
 Notes
 -----

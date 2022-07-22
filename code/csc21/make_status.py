@@ -89,7 +89,10 @@ def read_status(infile):
 
         if state == "Completed":
             store["completed_str"] = toks[2]
-            store["completed_int"] = get_time(toks[2])
+            try:
+                store["completed_int"] = get_time(toks[2])
+            except ValueError as v:
+                raise ValueError(f"time error in {l}") from v
 
         out[stack] = store
 

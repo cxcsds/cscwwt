@@ -53,11 +53,33 @@ def read_20_stacklist():
 def read_cxc_targetnames():
     """Read in the data created by
 
+    curl --request POST   --location   --data REQUEST=doQuery   --data PHASE=RUN   --data FORMAT=text   --data LANG=ADQL   --data 'QUERY=select distinct o.obs_id, o.target_name from ivoa.ObsCore o'   http://cda.cfa.harvard.edu/cxctap/sync > cxc_obsid_targetname.lis
+
+    Used to be
+
     curl --request POST   --location   --data REQUEST=doQuery   --data PHASE=RUN   --data FORMAT=text   --data LANG=ADQL   --data 'QUERY=select o.obsid, o.target_name from cxc.observation o'   http://cda.cfa.harvard.edu/cxctap/sync > cxc_obsid_targetname.lis
+
+    Note that we use ivoa.ObsCore and not cxc.observation because at the
+    time of writing the cxc table has converted everything to upper case
+    and removed all spaces from the target name field. However, the
+    obscore table appears to have multiple rows per obsid, so
+    we need a distinct clause.
+
+    Unfortunately not all obsids in cxc.observation appear in
+    ivoa.ObsCore. Why is this? There's 1408 missing obsids
+    and it's not clear why they are being ignored: it's not
+    new data as 17373 which was taken in 2015 is missing.
+    Maybe it's the CAL observations. Nope, but it could be
+    something like CAL + not-yet-observed?
+
+    Because of this I've dumped obsid to target name from
+    chandraobs to obsid-targets.tsv as a HACK.
+
     """
 
     targets = {}
 
+    """
     with open("cxc_obsid_targetname.lis") as fh:
         header = True
         for l in fh.readlines():
@@ -67,6 +89,23 @@ def read_cxc_targetnames():
             if header:
                 assert l == "obsid\ttarget_name\n", f"<{l}>"
                 header = False
+                continue
+
+            l = l.strip()
+            if l == "":
+                continue
+
+            toks = l.split("\t")
+            assert len(toks) == 2
+
+            obsid = int(toks[0])
+            assert obsid not in targets
+            targets[obsid] = toks[1]
+    """
+
+    with open("obsid-targets.tsv") as fh:
+        for l in fh.readlines():
+            if l.startswith("#"):
                 continue
 
             l = l.strip()
