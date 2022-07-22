@@ -3682,6 +3682,10 @@ var wwt = (function () {
     //
     const raStr = params.get('ra');
     const decStr = params.get('dec');
+    if ((raStr === null) || (decStr === null)) {
+      trace("ra or dec not given: skipping user-location check");
+      return;
+    }
 
     const ra = Number(raStr);
     const dec = Number(decStr);
