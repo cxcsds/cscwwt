@@ -188,7 +188,7 @@ var wwt = (function () {
       // Should really only log this once but it's not worth the effort,
       // as this should not happen.
       //
-      console.log(`ERROR: unable to find ${coord} ${fovspan} ${exurl}`);
+      etrace(`unable to find ${coord} ${fovspan} ${exurl}`);
       return;
     }
 
@@ -271,7 +271,7 @@ var wwt = (function () {
 				     'letters'];
   function setClipboardFormat(format) {
     if (!supportedClipboardFormats.includes(format)) {
-      console.log(`ERROR: clipboard format '${format}' is not supported.`);
+      etrace(`clipboard format '${format}' is not supported.`);
       return;
     }
     clipboardFormat = format;
@@ -305,7 +305,7 @@ var wwt = (function () {
     // Not worried about efficiency here.
     //
     if (!supportedClipboardFormats.includes(clipboardFormat)) {
-      console.log(`ERROR: unknown clipboardformat '${clipboardFormat}'`);
+      etrace(`unknown clipboardformat '${clipboardFormat}'`);
       clipboardFormat = 'degrees';
       saveState(keyClipboardFormat, clipboardFormat);
     }
@@ -407,7 +407,7 @@ var wwt = (function () {
     try {
       url = new URL(document.location);
     } catch (e) {
-      console.log(`ERROR: unable to create a URL for the page - ${e}`);
+      etrace(`unable to create a URL for the page - ${e}`);
       return null;
     }
 
@@ -501,7 +501,7 @@ var wwt = (function () {
   function getCSCColIdx(column) {
     const colidx = catalogDataCols.indexOf(column);
     if (colidx < 0) {
-      console.log(`ERROR: unknown CSC column "${column}"`);
+      etrace(`unknown CSC column "${column}"`);
       return null;
     }
     return colidx;
@@ -528,11 +528,11 @@ var wwt = (function () {
   //
   function makeAnnotation(data, pos, shp) {
     const toAdd = shp === null
-	  ? () => console.log('INTERNAL ERROR: trying to add null annotation')
+	  ? () => itrace('trying to add null annotation')
 	  : () => wwt.addAnnotation(shp);
 
     const toRem = shp === null
-	  ? () => console.log('INTERNAL ERROR: trying to remove null annotation')
+	  ? () => itrace('trying to remove null annotation')
 	  : () => wwt.removeAnnotation(shp);
 
     return { add: toAdd,
@@ -588,7 +588,7 @@ var wwt = (function () {
   //
   function makeSource(color, size, src) {
     if ((src.ra === null) || (src.dec === null)) {
-      console.log('Err, no location for source:');
+      etrace('Err, no location for source:');
       console.log(src);
       return null;
     }
@@ -614,7 +614,7 @@ var wwt = (function () {
 
   function makeSource11(color, size, src) {
     if ((src.ra === null) || (src.dec == null)) {
-      console.log('Err, no location for CSC 1.1 source:');
+      etrace('Err, no location for CSC 1.1 source:');
       console.log(src);
       return null;
     }
@@ -627,7 +627,7 @@ var wwt = (function () {
     const ra = src[0];
     const dec = src[1];
     if ((ra === null) || (dec === null)) {
-      console.log('Err, no location for XMM source:');
+      etrace('Err, no location for XMM source:');
       console.log(src);
       return null;
     }
@@ -704,7 +704,7 @@ var wwt = (function () {
   function getHost() {
     const host = document.querySelector('#WorldWideTelescopeControlHost');
     if (host === null) {
-      console.log('INTERNAL ERROR: #WorldWideTelescopeControlHost not found!');
+      etrace('#WorldWideTelescopeControlHost not found!');
     }
     return host;
   }
@@ -817,7 +817,7 @@ var wwt = (function () {
     toggleInfo.forEach(o => {
       const el = document.querySelector(o.sel);
       if (el === null) {
-	console.log(`ERROR: unable to find toggle element ${o.sel}`);
+	etrace(`unable to find toggle element ${o.sel}`);
 	return;
       }
 
@@ -844,7 +844,7 @@ var wwt = (function () {
 	el.dispatchEvent(new CustomEvent(evtype));
       }
       catch (e) {
-	console.log(`ERROR: Unable to send ${evtype} event to ${o.sel}`);
+	etrace(`Unable to send ${evtype} event to ${o.sel}`);
       }
     });
   }
@@ -1036,7 +1036,7 @@ var wwt = (function () {
   function makeSizeUpdate(props) {
     return (newSize) => {
       if (newSize <= 0) {
-        console.log(`ERROR: Invalid source size: [${newSize}]`);
+        etrace(`Invalid source size: [${newSize}]`);
         return;
       }
 
@@ -1069,7 +1069,7 @@ var wwt = (function () {
 
     if (typeof buffer !== 'undefined') {
       if (buffer <= 0) {
-	console.log(`Internal error: buffer=${buffer}`);
+	itrace(`buffer=${buffer}`);
 	return;
       }
     } else {
@@ -1320,7 +1320,7 @@ var wwt = (function () {
   function addMW() {
 
     if (mwOutlines.length !== 0) {
-      console.log('MW already added in!');
+      etrace('MW already added in!');
       return;
     }
 
@@ -1328,7 +1328,7 @@ var wwt = (function () {
     if ((typeof mw.type === 'undefined') ||
         (mw.type !== 'FeatureCollection') ||
         (typeof mw.features === 'undefined')) {
-      console.log('Unable to parse MW JS data!');
+      etrace('Unable to parse MW JS data!');
       return;
     }
 
@@ -1356,18 +1356,18 @@ var wwt = (function () {
           (typeof features.geometry === 'undefined') ||
           (typeof features.geometry.type === 'undefined') ||
           (features.geometry.type !== 'MultiPolygon')) {
-        console.log(`MW problem with feature ${f}`);
+        etrace(`MW problem with feature ${f}`);
         return;
       }
 
       var coords = features.geometry.coordinates;
       if (typeof coords === 'undefined') {
-        console.log(`MW no coordinates for feature ${f}`);
+        etrace(`MW no coordinates for feature ${f}`);
         return;
       }
       if (coords.length !== 1) {
-        console.log('MW feature ' + f.toString() +
-                    ' length=' + coords.length.toString());
+        etrace('MW feature ' + f.toString() +
+               ' length=' + coords.length.toString());
         return;
       }
 
@@ -1483,7 +1483,7 @@ var wwt = (function () {
       }
       el.style.display = display;
     } else {
-      console.log(`Internal error [toggleBlockElement]: unable to find "${sel}"`);
+      itrace(`[toggleBlockElement]: unable to find "${sel}"`);
     }
   }
 
@@ -1609,8 +1609,8 @@ var wwt = (function () {
   function makeShowCatalog(props) {
     return () => {
       if (!props.loaded) {
-        console.log(`Internal error: showCatalog ${props.label} ` +
-                    ' called when no data exists!');
+        itrace(`showCatalog ${props.label} ` +
+               ' called when no data exists!');
         return;
       }
 
@@ -1654,14 +1654,14 @@ var wwt = (function () {
   function makeHideCatalog(props) {
     return () => {
       if (!props.loaded) {
-        console.log(`Internal error: hideCatalog ${props.label} ` +
-                    'called when no data exists!');
+        itrace(`hideCatalog ${props.label} ` +
+               'called when no data exists!');
         return;
       }
 
       if (props.annotations === null) {
-        console.log(`Internal error: hideCatalog ${props.label} ` +
-                    'called when no data plotted!');
+        itrace(`hideCatalog ${props.label} ` +
+               'called when no data plotted!');
         return;
       }
 
@@ -1748,8 +1748,7 @@ var wwt = (function () {
   //
   function showCHS() {
     if (annotationsCHS == null) {
-      console.log('Internal error: showCHS ' +
-                  ' called when no data exists!');
+      itrace('showCHS called when no data exists!');
       return;
     }
 
@@ -1767,8 +1766,7 @@ var wwt = (function () {
 
   function hideCHS() {
     if (annotationsCHS == null) {
-      console.log('Internal error: hideCHS ' +
-                  ' called when no data exists!');
+      itrace('hideCHS called when no data exists!');
       return;
     }
 
@@ -1788,7 +1786,7 @@ var wwt = (function () {
     const sel = `#${elname}`;
     const el = document.querySelector(sel);
     if (el === null) {
-      console.log(`Internal error [toggleSourceProps]: unable to find "${elname}"`);
+      itrace(`[toggleSourceProps]: unable to find "${elname}"`);
       return;
     }
 
@@ -1970,7 +1968,7 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
+      itrace(`unable to change selection mode: ${e}`);
     }
   }
 
@@ -2013,7 +2011,7 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
+      itrace(`unable to change selection mode: ${e}`);
     }
 
     // Hide the source window. Note that this can be called when
@@ -2067,7 +2065,7 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
+      itrace(`unable to change selection mode: ${e}`);
     }
 
     // Show the 'source window'.
@@ -2329,7 +2327,7 @@ var wwt = (function () {
 
       const el = document.querySelector(o.sel);
       if (el === null) {
-	console.log(`ERROR: unable to find toggle element ${o.sel}`);
+	etrace(`unable to find toggle element ${o.sel}`);
 	return;
       }
 
@@ -2402,7 +2400,7 @@ var wwt = (function () {
     } else if (mode === 'nothing') {
       clickMode = null;
     } else {
-      console.log(`Unknown selection mode: [${mode}]`);
+      etrace(`Unknown selection mode: [${mode}]`);
     }
   }
 
@@ -2508,7 +2506,7 @@ var wwt = (function () {
   function processStackSelectionByName(stackid) {
     const stack = inputStackData.stacks[stackid];
     if (typeof stack === 'undefined') {
-      console.log(`INTERNAL ERROR: unknown stackid=${stackid}`);
+      itrace(`unknown stackid=${stackid}`);
       return;
     }
 
@@ -2538,9 +2536,9 @@ var wwt = (function () {
      * Which means that using the filetype field of versionTable is
      * not expected to provide a useful answer.
      */
-    const lbl = 'WARNING: stackVersion is undefined for ' +
+    const lbl = 'stackVersion is undefined for ' +
 	  `${stackid} (${versionTable.filetype})`;
-    console.log(lbl);
+    wtrace(lbl);
     return null;
   }
 
@@ -2736,8 +2734,8 @@ var wwt = (function () {
 
     const props = catalogProps.csc20;
     if ((props.annotations === null) || (props.annotations.length === 0)) {
-      console.log('INTERNAL ERROR: processSouece selection called ' +
-		  `with annotations=${props.annotations}`);
+      itrace('processSouece selection called ' +
+	     `with annotations=${props.annotations}`);
       return;
     }
 
@@ -2862,7 +2860,7 @@ var wwt = (function () {
         pane.draggable = true;
         pane.addEventListener('dragstart', draggable.startDrag, false);
       } else {
-        console.log(`INTERNAL error: unable to find "${n}"`);
+        itrace(`unable to find "${n}"`);
       }
     });
 
@@ -2958,14 +2956,14 @@ var wwt = (function () {
 
     const pane = document.querySelector(sel);
     if (pane === null) {
-      console.log(`INTERNAL ERROR (show/hide): unable to find ${sel}`);
+      itrace(`(show/hide): unable to find ${sel}`);
       return;
     }
 
     const find = lbl => {
       const el = pane.querySelector(lbl);
       if (el === null) {
-	console.log(`INTERNAL ERROR (show/hide): no ${lbl} in ${sel}`);
+	itrace(`(show/hide): no ${lbl} in ${sel}`);
       }
       return el;
     };
@@ -3056,7 +3054,7 @@ var wwt = (function () {
     //
     Object.keys(stackVersionTable).forEach(n => {
       if (stackVersionTable[n] !== null) {
-	console.log(`INTERNAL ERROR: expected stackVersionTable.${n} to be null`);
+	itrace(`expected stackVersionTable.${n} to be null`);
       }
       const url = stackVersionURLs[n];
       if (url !== null) {
@@ -3065,7 +3063,7 @@ var wwt = (function () {
                                    (d) => { stackVersionTable[n] = d; });
         f();
       } else {
-        trace(` - WARNING: unable to download version info for ${n}`);
+        wtrace(`unable to download version info for ${n}`);
       }
     });
 
@@ -3131,7 +3129,7 @@ var wwt = (function () {
     //
     const panel = document.querySelector('#wwtusercontrol');
     if (panel === null) {
-      console.log('Internal error: unable to find #wwtusercontrol!');
+      itrace('unable to find #wwtusercontrol!');
     } else {
       panel.style.display = 'block';
     }
@@ -3163,7 +3161,7 @@ var wwt = (function () {
       coords = stackid.slice(5, 19);
     } else {
       // just return an invalid position
-      console.log(`Error: invalid stackid=${stackid}`);
+      etrace(`Error: invalid stackid=${stackid}`);
       return [-100, -100];
     }
 
@@ -3202,9 +3200,30 @@ var wwt = (function () {
     processStackSelection(ra0, dec0);
   }
 
+  // trace messages: user ones (trace), warnings (wtrace), errors
+  // (etrace), and internal errors (itrace)
+  //
+  // The difference between wtrace, etrace, and itrace is rather
+  // arbitrary.
+  //
   var traceCounter = 1;
   function trace(msg) {
     console.log(`TRACE[${traceCounter}] ${msg}`);
+    traceCounter += 1;
+  }
+
+  function wtrace(msg) {
+    console.log(`WARNING[${traceCounter}] ${msg}`);
+    traceCounter += 1;
+  }
+
+  function etrace(msg) {
+    console.log(`ERROR[${traceCounter}] ${msg}`);
+    traceCounter += 1;
+  }
+
+  function itrace(msg) {
+    console.log(`INTERNAL ERROR[${traceCounter}] ${msg}`);
     traceCounter += 1;
   }
 
@@ -3287,7 +3306,7 @@ var wwt = (function () {
   //
   function addToolTipHandler(name, timeout) {
     if (name in tooltipTimers) {
-      console.log(`WARNING: multiple calls to addToolTipHandler ${name}`);
+      wtrace(`multiple calls to addToolTipHandler ${name}`);
       return;
     }
 
@@ -3298,14 +3317,14 @@ var wwt = (function () {
 
     const el = document.querySelector(`#${name}`);
     if (el === null) {
-      console.log(`Internal error [tooltip]: no element called "${name}"`);
+      itrace(`[tooltip]: no element called "${name}"`);
       return;
     }
 
     const tooltip = `${name}-tooltip`;
     const tt = document.querySelector(`#${tooltip}`);
     if (tt === null) {
-      console.log(`Internal error [tooltip]: no element called "${tooltip}"`);
+      itrace(`[tooltip]: no element called "${tooltip}"`);
       return;
     }
 
@@ -3369,7 +3388,7 @@ var wwt = (function () {
   function removeToolTipHandler(name, repflag) {
     if (typeof repflag === 'undefined') { repflag = true; }
     if (repflag && !(name in tooltipTimers)) {
-      console.log(`WARNING: removeToolTipHandler sent unknown ${name}`);
+      wtrace(`removeToolTipHandler sent unknown ${name}`);
       return;
     }
     clearToolTipTimer(name);
@@ -3925,7 +3944,7 @@ var wwt = (function () {
       if (welcome !== null) {
 	welcome.style.display = 'block';
       } else {
-	console.log('INTERNAL ERROR: no #welcome');
+	itrace('no #welcome');
       }
     }
 
@@ -4040,7 +4059,7 @@ var wwt = (function () {
       trace('found full screen support');
       const container = host.querySelector('#fullscreenoption');
       if (container === null) {
-	console.log('ERROR: no #fullscreenoption found');
+	etrace('no #fullscreenoption found');
       } else {
 	container.style.display = 'block';
       }
@@ -4055,7 +4074,7 @@ var wwt = (function () {
     //
     const reset = host.querySelector('#resetdefaults');
     if (reset === null) {
-      console.log('ERROR: unable to find #resetdefaults');
+      etrace('unable to find #resetdefaults');
     } else {
       reset.addEventListener('click', () => { resetSettings(); }, false);
     }
@@ -4065,7 +4084,7 @@ var wwt = (function () {
     toggleInfo.forEach(o => {
       const el = host.querySelector(o.sel);
       if (el === null) {
-	console.log(`ERROR: unable to find toggle element ${o.sel}`);
+	etrace(`unable to find toggle element ${o.sel}`);
 	return;
       }
       if (el.tagName === 'SELECT') {
@@ -4536,7 +4555,7 @@ var wwt = (function () {
     }
 
     if (spinnerCounter < 0) {
-      console.log('Internal error: spinner counter < 0');
+      itrace('spinner counter < 0');
       spinnerCounter = 0;
     }
     spinnerCounter += 1;
@@ -4558,7 +4577,7 @@ var wwt = (function () {
     }
 
     if (spinnerCounter <= 0) {
-      console.log('Internal error: spinner counter <= 0');
+      itrace('spinner counter <= 0');
       spinnerCounter = 0;
       return;
     }
@@ -4863,7 +4882,7 @@ var wwt = (function () {
   //
   function processCatalogData(chunks, ctr, json) {
     if (json === null) {
-      trace(`WARNING: unable to download catalog data ${ctr}`);
+      wtrace(`unable to download catalog data ${ctr}`);
       return;
     }
 
@@ -4907,7 +4926,7 @@ var wwt = (function () {
 
     const nsrcs = props.data.length;
     if (nsrcs !== json.ntotal) {
-      console.log(`WARNING: CSC2.0 count expected ${json.ntotal} got ${nsrcs}`);
+      wtrace(`CSC2.0 count expected ${json.ntotal} got ${nsrcs}`);
     }
 
     trace(`== CSC 2.0 contains ${nsrcs} sources`);
@@ -4918,7 +4937,7 @@ var wwt = (function () {
       return a + typeof v === 'undefined' ? 1 : 0;
     }, 0);
     if (nmiss !== 0) {
-      console.log(`WARNING: there are ${nmiss} missing sources in CSC 2.0!`);
+      wtrace(`there are ${nmiss} missing sources in CSC 2.0!`);
     }
 
     // Let the user know they can "show sources"
@@ -4994,7 +5013,7 @@ var wwt = (function () {
 
   function processXMMData(json) {
     if (json === null) {
-      console.log('WARNING: unable to download XMM catalog data');
+      wtrace('unable to download XMM catalog data');
 
       // leave as disabled
       document.querySelector('#toggleXMMsources')
@@ -5186,6 +5205,9 @@ var wwt = (function () {
     startSpinner: startSpinner,
     stopSpinner: stopSpinner,
     trace: trace,
+    etrace: etrace,
+    itrace: itrace,
+    wtrace: wtrace,
 
     inputStackData: () => { return inputStackData; },
 
