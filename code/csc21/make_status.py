@@ -103,17 +103,30 @@ def read_status(infile):
     return out, lmod_txt
 
 
-def write_json(processing, lmod_db):
+def write_json(processing, lmod_db, stack_count):
 
-    out = {"stacks": {}, "completed": {}}
+    # If most of the stacks are processed then it would make sense to
+    # have a single data structure for each stack, but for now
+    # have separate structures.
+    #
+    out = {"stacks": {}, "completed": {}, "nsource": {}}
     for stack in processing:
 
         assert stack not in out["stacks"]
         sdata = processing[stack]
         state = sdata["state"]
+
         if state == "Completed":
             out["stacks"][stack] = 1
             out["completed"][stack] = sdata["completed_int"]
+
+            # only do this for the completed stacks
+            try:
+                nstack = stack_count[stack]
+            except KeyError:
+                nstack = 0
+
+            out["nsource"][stack] = nstack
 
         elif state == "Processing":
             out["stacks"][stack] = 2
@@ -138,7 +151,7 @@ def write_json(processing, lmod_db):
     print(f"Created: {outfile}")
 
 
-def write_xml(processing, lmod_db):
+def write_xml(processing, lmod_db, stack_count):
     """The XML status page."""
 
     indir = Path("ian-2022-02-07")
@@ -252,6 +265,7 @@ div.dt-buttons {
           <th>Target(s)</th>
           <th>Stack status</th>
           <th>Processing status</th>
+          <th>Number of sources</th>
           <th>Completed date</th>
         </tr>
       </thead>
@@ -263,7 +277,7 @@ div.dt-buttons {
             state = sdata["state"]
 
             obis = [obi[0] for obi in all_obis[stack]]
-            names = set([all_names[obi] for obi in obis])
+            names = sorted(set([all_names[obi] for obi in obis]))
 
             nstr = ", ".join(names)
 
@@ -275,14 +289,24 @@ div.dt-buttons {
             fh.write(f"<td>{len(obis)}</td>")  # note: could use len(set(obis))
             fh.write(f"<td>{nstr}</td>")
             fh.write(f"<td>{status[stack]}</td>")
-            fh.write(f"<td>{state}</td><td")
+            fh.write(f"<td>{state}</td>")
+
             if state == "Completed":
+
+                try:
+                    nsrc = stack_count[stack]
+                except KeyError:
+                    nsrc = 0
+
+                fh.write(f'<td data-order="{nsrc}">{nsrc}</td>')
+
                 ival = sdata["completed_int"]
-                fh.write(f' data-order="{ival}">')
+                fh.write(f'<td data-order="{ival}">')
                 fh.write(sdata["completed_str"])
             else:
+                fh.write('<td data-order="-1">-</td>')
                 # Ensure we have a value
-                fh.write(' data-order="0">Not completed')
+                fh.write('<td data-order="0">Not completed')
 
             fh.write("</td></tr>\n")
 
@@ -296,7 +320,7 @@ div.dt-buttons {
     print(f"Created: {outfile}")
 
 
-def write_txt(processing, lmod_db):
+def write_txt(processing, lmod_db, stack_count):
     """The text status page."""
 
     status = stackdata.find_stack_status(Path("ian-2022-02-07"))
@@ -312,8 +336,10 @@ def write_txt(processing, lmod_db):
 # processing-status indicates the state of the CSC 2.1
 #   processing and is one of completed, processing, or
 #   pending.
+# num_source is the number of sources in this stack, or
+#   0 if the stack is not completed.
 #
-# stack stack-status processing-status date
+# stack stack-status processing-status num_source date
 """)
 
         for stack in processing:
@@ -322,8 +348,15 @@ def write_txt(processing, lmod_db):
 
             fh.write(f"{stack} {status[stack]} {state.lower()} ")
             if state == "Completed":
+                try:
+                    fh.write(str(stack_count[stack]))
+                except KeyError:
+                    fh.write("0")
+
+                fh.write(" ")
                 fh.write(sdata["completed_str"])
             else:
+                fh.write("0 ")
                 fh.write("n/a")
 
             fh.write("\n")
@@ -339,9 +372,15 @@ def doit(stackfile):
 
     processing, lmod_db = read_status(infile)
 
-    write_json(processing, lmod_db)
-    write_xml(processing, lmod_db)
-    write_txt(processing, lmod_db)
+    # Try to get the number of sources in each processed stack.
+    # This is done later than infile was created so may contain more
+    # stacks than infile does. Hopefully it will not contain less.
+    #
+    stack_count = stackdata.get_stack_numbers()
+
+    write_json(processing, lmod_db, stack_count)
+    write_xml(processing, lmod_db, stack_count)
+    write_txt(processing, lmod_db, stack_count)
 
 
 if __name__ == "__main__":

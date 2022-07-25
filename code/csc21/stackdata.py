@@ -12,6 +12,7 @@ Requires:
 
 
 from collections import defaultdict
+import subprocess as sbp
 
 
 def read_20_stacklist():
@@ -227,3 +228,57 @@ def find_stack_status(indir):
                 stacks[stack] = status
 
     return stacks
+
+
+def get_stack_numbers():
+    """What are the number of sources for each stack?
+
+    We should be able to do this with ADQL but I am not sure how,
+    so just read in the data and do the calculation in Python.
+
+    Note that this is being run later than when the status data
+    was processed, so it may contain extra stacks.
+
+    We cold do this with pyvo but I am trying to make this easy to
+    run from a generic work machine, so we use curl unstead.
+    """
+
+    proc = sbp.run(["curl",
+                    "--silent",
+                    "--request", "POST",
+                    "--location",
+                    "--data", "REQUEST=doQuery",
+                    "--data", "PHASE=RUN",
+                    "--data", "FORMAT=text",
+                    "--data", "LANG=ADQL",
+                    "--data", "QUERY=SELECT distinct a.name, a.detect_stack_id from csc21_snapshot.master_stack_assoc a",
+                    "https://cda.cfa.harvard.edu/csc21_snapshot_tap/sync"],
+                   check=True, stdout=sbp.PIPE)
+
+    stacks = defaultdict(int)
+    header = True
+    for l in proc.stdout.decode().split("\n"):
+        if header:
+            if l.startswith("#"):
+                continue
+
+            if l != "name\tdetect_stack_id":
+                raise ValueError(l)
+
+            header = False
+            continue
+
+        if l == "":
+            continue
+
+        toks = l.split("\t")
+        assert len(toks) == 2, l
+        stacks[toks[1]] += 1
+
+    # remove default nature (so we know what stacks are not known)
+    #
+    out = {}
+    for stack, count in stacks.items():
+        out[stack] = count
+
+    return out

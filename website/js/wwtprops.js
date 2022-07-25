@@ -635,6 +635,8 @@ const wwtprops = (function () {
     descPara.setAttribute('class', 'description');
 
     // Do we want to note the completed date?
+    // This also adds in the number of sources, which is currently only
+    // available to 2.1 data.
     //
     var desc = stack.description;
     if (wwt.getVersion() === "2.1") {
@@ -647,6 +649,16 @@ const wwtprops = (function () {
              + monthName[date.getUTCMonth()] + ', '
              + date.getUTCFullYear().toString()
              + '.';
+
+	const nsrc = stack.nsource;
+        if (typeof nsrc !== 'undefined') {
+	    const num = wwt.intToStr(nsrc);
+	    let suffix = "s";
+	    if (nsrc === 1) { suffix = ""; }
+
+	    desc += ` The stack contains ${num} source${suffix}.`;
+        }
+
       } else if (stack.status === 2) {
         desc += ' The stack is being processed.';
       } else {
@@ -1462,11 +1474,12 @@ const wwtprops = (function () {
     // TODO: number needs to be editable (for when the selection
     //       happens)
     //
-    const lbl = nsrc === 1 ?
-	  'You have selected one source' :
-	  `You have selected ${nsrc} sources`;
-    addText(p, lbl);
-    addText(p, ` within ${rlabel} of `);
+    const num = wwt.intToStr(nsrc);
+    let suffix = "s";
+    if (nsrc === 1) { suffix = ""; }
+
+    addText(p, `You have selected ${num} source${suffix} `);
+    addText(p, `within ${rlabel} of `);
     p.insertAdjacentHTML('beforeend', pos);
     addText(p, '.');
 

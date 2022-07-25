@@ -2160,6 +2160,7 @@ var wwt = (function () {
     for (var stackid in inputStackData.stacks) {
       const stack = inputStackData.stacks[stackid];
       stack.status = status.stacks[stack.stackid];
+
       /* if not completed then no element in the completed array */
       const completed = status.completed[stack.stackid]
       if (typeof completed !== 'undefined') {
@@ -2172,6 +2173,16 @@ var wwt = (function () {
         } else if (completed > lmodEnd) {
           lmodEnd = completed;
         }
+      }
+
+      // Number of sources (if known). This should follow the
+      // same logic as completed, but run separately in case there's
+      // subtle differences (as the data was created using a different
+      // view of the system).
+      //
+      const nsrc = status.nsource[stack.stackid];
+      if (typeof nsrc !== 'undefined') {
+        stack.nsource = nsrc;
       }
     }
 
@@ -2684,14 +2695,12 @@ var wwt = (function () {
     const p = document.querySelector('#number-of-polygon-points');
     if (p !== null) {
       removeChildren(p);
-      let cts = 'You have selected ';
-      if (npts === 1) {
-	cts += 'one point.';
-      } else if (npts === 2) {
-	cts += 'two points.';
-      } else {
-	cts += npts.toString() + ' points.';
-      }
+
+      const num = intToStr(npts);
+      let suffix = "s";
+      if (npts === 1) { suffix = ""; }
+
+      const cts = `You have selected ${num} point${suffix}.`;
       p.appendChild(document.createTextNode(cts));
     }
 
@@ -5249,6 +5258,8 @@ var wwt = (function () {
     etrace: etrace,
     itrace: itrace,
     wtrace: wtrace,
+
+    intToStr: intToStr,
 
     inputStackData: () => { return inputStackData; },
 
