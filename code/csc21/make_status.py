@@ -19,7 +19,7 @@ date for the database.
 The output files are
 
     wwt21_status.json
-    processing_status_2.1.xml
+    status.xml
     stacks-2.1.txt
 
 """
@@ -145,7 +145,7 @@ def write_xml(processing, lmod_db):
     status = stackdata.find_stack_status(indir)
     all_obis = stackdata.find_stack_obis(indir)
     all_names = stackdata.read_cxc_targetnames()
-    outfile = "processing_status_2.1.xml"
+    outfile = "status.xml"
 
     with open(outfile, "wt") as fh:
 
