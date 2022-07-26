@@ -242,9 +242,9 @@ main#content div.wrap {
 	  </div>
 
 	  <div id="sourcebar">
+            <!-- The onclick handler is set in wwt.js unlike other buttons -->
             <button class="button"
-                    type="button" id="togglesources"
-                    onclick="wwt.toggleSources()">
+                    type="button" id="togglesources">
               Load CSC2.0 Sources
             </button>
 	    <button type="button" id="togglesourceprops"
@@ -259,9 +259,9 @@ main#content div.wrap {
 	    <button class="jscolor" id="sourcecolor"
 		    data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
 		    />
+            <!-- The onchange handler is set in wwt.js unlike other buttons -->
 	    <input type="range" id="sourcesize" min="1" max="30"
 		   value="5" class="sourcesize"
-		   onchange="wwt.changeSourceSize(this.valueAsNumber)"
 		   />
 	  </div>
 

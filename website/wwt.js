@@ -520,7 +520,7 @@ var wwt = (function () {
 
   }
 
-  // Indexes into the CSC 2.0 data array
+  // Indexes into the CSC 2 data array
   const raIdx = getCSCColIdx('ra');
   const decIdx = getCSCColIdx('dec');
 
@@ -654,7 +654,20 @@ var wwt = (function () {
   // included for all of them. It indicates whether we are looking at
   // sources or detections.
   //
+  // This used to be nice, when I had csc20, csc11, xmm, but now
+  // we also have csc21 we need to add in a "current CSC" view
+  // of csc to complicate things. It is required that only
+  // one of csc21 or csc20 is valid for this process.
+  //
   const catalogProps = {
+    csc21: { label: 'CSC2.1', button: '#togglesources',
+             sourcetype: 'Sources',
+             changeWidget: '#sourceprops',
+             color: 'cyan', size: 5.0 / 3600.0,
+	     loaded: false, data: null,
+	     getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	     makeShape: makeSource,
+             annotations: null },
     csc20: { label: 'CSC2.0', button: '#togglesources',
              sourcetype: 'Sources',
              changeWidget: '#sourceprops',
@@ -977,7 +990,7 @@ var wwt = (function () {
       return;
     }
 
-    for (var src of catalogProps.csc20.data) {
+    for (var src of catalogProps.csc.data) {
       const sname = src[nameIdx];
       if (sname !== sourcename) { continue; }
 
@@ -993,12 +1006,11 @@ var wwt = (function () {
   // (and, if not, do not change it)? For now use a label
   // to indicate it is unprocessed.
   //
-  // Note that the CSC 2.0 values (currently) have processed vs
-  // unprocessed, but also we are not setting the fill color,
-  // which is different from the other catalogs.
+  // This is frmo CSC 2.0 days: not sure of the status of this
+  // now.
   //
   function colorUpdate(val) {
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
 
     const color = `#${val}`;
     props.color = color;
@@ -1051,7 +1063,10 @@ var wwt = (function () {
     };
   }
 
-  const changeSourceSize = makeSizeUpdate(catalogProps.csc20);
+  // Unfortunately we can't make changeSourceSize a const as
+  // it depends on the catalog version.
+  //
+  var changeSourceSize = null;
   const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
 
@@ -1553,6 +1568,8 @@ var wwt = (function () {
     };
   }
 
+  // TODO: make this version agnostic.
+  //
   function downloadCatalog20Data() {
 
     // number of chunks for the source properties
@@ -1569,6 +1586,34 @@ var wwt = (function () {
       const url = `wwtdata/wwt20_srcprop.${ctr}.json.gz`;
       const func = makeDownloadData(url, '#togglesources',
 				    'CSC2.0 catalog',
+				    processChunk(ctr));
+      func();
+    }
+  }
+
+  // This requires that the input status data has been processed
+  function downloadCatalog21Data() {
+
+    // Safety check
+    if ((typeof inputStackData === "undefined") ||
+	(typeof inputStackData.nchunks === "undefined")) {
+      alert("Internal error: the stack status has not been loaded!");
+      return;
+    }
+
+    // number of chunks for the source properties
+    const NCHUNK = inputStackData.nchunks;
+    const chunks = new Array(NCHUNK).fill(false);
+
+    // Have to be careful about scoping rules, so make a function
+    // that returns a function to process the chunk
+    //
+    const processChunk = (x) => (d) => { processCatalogData(chunks, x, d); };
+
+    for (var ctr = 1; ctr <= NCHUNK; ctr++) {
+      const url = `wwtdata/wwt21_srcprop.${ctr}.json.gz` + cacheBuster();
+      const func = makeDownloadData(url, '#togglesources',
+				    'CSC2.1 catalog',
 				    processChunk(ctr));
       func();
     }
@@ -1722,10 +1767,8 @@ var wwt = (function () {
     };
   }
 
-  const toggleSources = makeToggleCatalog(catalogProps.csc20,
-                                          downloadCatalog20Data,
-                                          showSources,
-                                          hideSources);
+  // Do we use these?
+  var toggleSources = null;
   const toggleSources11 = makeToggleCatalog(catalogProps.csc11,
                                             downloadCatalog11Data);
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
@@ -1989,12 +2032,14 @@ var wwt = (function () {
   function hideSources() {
     _hideSources();
 
+    const props = catalogProps.csc;
+
     // could cache these
-    if (catalogProps.csc20.loaded) {
+    if (props.loaded) {
       // assume that the label can only have been changed
       // if the sources have been loaded
       document.querySelector('#togglesources').innerHTML =
-        'Show CSC2.0 Sources';
+        `Show ${props.label} Sources`;
     }
 
     ['sourceprops', 'plot'].forEach(hideElement);
@@ -2034,7 +2079,7 @@ var wwt = (function () {
 
   function _hideSources() {
 
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
     if (props.annotations !== null) {
       props.annotations.forEach(ann => ann.remove());
       props.annotations = null;
@@ -2052,14 +2097,15 @@ var wwt = (function () {
 
   function showSources() {
     const flag = _showSources();
+    const props = catalogProps.csc;
     if (!flag) {
-      reportUpdateMessage('No CSC 2.0 sources found in this area of the sky.');
+      reportUpdateMessage(`No ${props.label} sources found in this area of the sky.`);
       return;
     }
 
     // could cache these
     document.querySelector('#togglesources').innerHTML =
-      'Hide CSC2.0 Sources';
+      `Hide ${props.label} Sources`;
 
     const sel = document.querySelector('#selectionmode');
     for (var idx = 0; idx < sel.options.length; idx++) {
@@ -2081,8 +2127,7 @@ var wwt = (function () {
 
     // Show the 'source window'.
     //
-    wwtprops.addSourceSelection(sourceRA, sourceDec, sourceFOV,
-				catalogProps.csc20);
+    wwtprops.addSourceSelection(sourceRA, sourceDec, sourceFOV, props);
 
   }
 
@@ -2106,7 +2151,7 @@ var wwt = (function () {
     // still shown. It also helps at the corners.
     //
     //
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
     props.annotations = null;
 
     const toStore = (row, pos) => {
@@ -2119,8 +2164,7 @@ var wwt = (function () {
       return ann;
     };
 
-    const selected = findNearestTo(ra0, dec0, fov,
-				   catalogProps.csc20.data,
+    const selected = findNearestTo(ra0, dec0, fov, props.data, 
 				   props.getPos, toStore);
 
     // can bail out now if there are no sources
@@ -2189,6 +2233,12 @@ var wwt = (function () {
     // The assumption is that these are both set
     inputStackData.completed_start = lmodStart;
     inputStackData.completed_end = lmodEnd;
+
+    // Store the number of sources and the number of chunks used
+    // to read in the source properties.
+    //
+    inputStackData.nsources = status.nsources;
+    inputStackData.nchunks = status.nchunks;
 
     // Update the "Help" page (if still needed). This was from CSC 2.0
     const el = document.querySelector('#lastmod');
@@ -2758,7 +2808,7 @@ var wwt = (function () {
   //
   function processSourceSelection(ra0, dec0) {
 
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
     if ((props.annotations === null) || (props.annotations.length === 0)) {
       itrace('processSouece selection called ' +
 	     `with annotations=${props.annotations}`);
@@ -3068,7 +3118,7 @@ var wwt = (function () {
     // Download the stack polygons and add the annotations.
     //
     let outlineURL = outlineLocation;
-    if (versionString === "2.1") {
+    if (isVersion21()) {
       outlineURL += cacheBuster();
     }
     download.getJSON(outlineURL, addFOV,
@@ -3471,8 +3521,8 @@ var wwt = (function () {
   //      available when the code is first processed (I think).
   //
   function makeSourceSelectionExample() {
-    const csc20 = catalogProps.csc20;
-    const pos = csc20.getPos(sourceExample);
+    const csc = catalogProps.csc;
+    const pos = csc.getPos(sourceExample);
     return {
       annotations: [makeAnnotation(sourceExample, pos, null)]
     };
@@ -3871,6 +3921,15 @@ var wwt = (function () {
 
     inputStackData = {stacks: {}};
 
+    // Version 2.0 did not set this in the status file, but
+    // as we don't have a 2.0 status file we can hard-code it
+    // here.
+    //
+    if (isVersion20()) {
+        inputStackData.nsources = 315868;
+        inputStackData.nchunks = 8;
+    }
+
     for (let stackid in json) {
       var inst;
       if (stackid.startsWith("hrcfJ")) {
@@ -3896,7 +3955,7 @@ var wwt = (function () {
 
       var desc = `The stack contains ${num} ${inst} observation${suffix}.`;
 
-      if (versionString === "2.1") {
+      if (isVersion21()) {
         store.stacktype = stackData.stacktype;
         store.new_obis = stackData.new_obsids;
 
@@ -3915,7 +3974,7 @@ var wwt = (function () {
         }
       }
 
-      if (versionString === "2.0") {
+      if (isVersion20()) {
         // The status used to be false or true but it's now
         //    0 - unprocessed / pending
         //    1 - finished
@@ -3934,6 +3993,13 @@ var wwt = (function () {
   }
 
   var versionString = undefined;
+
+  function isVersion(ver) {
+    return versionString === ver;
+  }
+
+  function isVersion20() { return isVersion("2.0"); }
+  function isVersion21() { return isVersion("2.1"); }
 
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
@@ -3979,6 +4045,52 @@ var wwt = (function () {
     //
     versionString = version;
     outlineLocation = outlinefile;
+
+    // Set up catalog properties dependent on the version string.
+    //
+    // The downloadCatalogxxData routine could be made generic.
+    //
+    if (isVersion20()) {
+      catalogProps.csc = catalogProps.csc20;
+
+      toggleSources = makeToggleCatalog(catalogProps.csc,
+                                        downloadCatalog20Data,
+                                        showSources,
+                                        hideSources);
+    } else if (isVersion21()) {
+      catalogProps.csc = catalogProps.csc21;
+
+      toggleSources = makeToggleCatalog(catalogProps.csc,
+                                        downloadCatalog21Data,
+                                        showSources,
+                                        hideSources);
+    } else {
+      alert(`Unknown catalog version: {versionString}`);
+      return;
+    }
+
+    // These used to be const variables.
+    //
+    changeSourceSize = makeSizeUpdate(catalogProps.csc);
+
+    // Now we have the toggle-sources code we can set the onclick
+    // handler.
+    //
+    const toggle = document.querySelector("#togglesources");
+    if (toggle === null) {
+      alert("Internal error: unable to find the toggle-source button");
+      return;
+    }
+    toggle.addEventListener("click", toggleSources, false);
+
+    const size = document.querySelector("#sourcesize");
+    if (toggle === null) {
+      alert("Internal error: unable to find the source-size button");
+      return;
+    }
+    size.addEventListener("change", (event) => {
+      changeSourceSize(event.target.valueAsNumber);
+    }, false);
 
     // Pass in useful information to wwtsamp (even if later we turn
     // off support for SAMP).
@@ -4641,19 +4753,20 @@ var wwt = (function () {
   }
 
   function find2CXO(target) {
-    if (!catalogProps.csc20.loaded) {
-      reportLookupFailure('<p>The CSC 2.0 sources must be loaded ' +
+    const props = catalogProps.csc;
+    if (!props.loaded) {
+      reportLookupFailure(`<p>The ${props.label} sources must be loaded ` +
                           'before they can be used in a search.</p>');
       return true; // TODO: should probably return false here
     }
 
     const nameIdx = getCSCColIdx('name');
-    const matches = catalogProps.csc20.data.filter(d => d[nameIdx] === target);
+    const matches = props.data.filter(d => d[nameIdx] === target);
 
     // Take the first match if any (shouldn't be multiple matches)
     //
     if (matches.length > 0) {
-      const pos = catalogProps.csc20.getPos(matches[0]);
+      const pos = props.getPos(matches[0]);
       setPosition(pos.ra, pos.dec, target);
       reportLookupSuccess(`Moving to ${target}`);
       return true;
@@ -4782,7 +4895,7 @@ var wwt = (function () {
     // but we can also now rely on NED for when the data has not been
     // loaded.
     //
-    if (target.startsWith('2CXO J') && catalogProps.csc20.loaded) {
+    if (target.startsWith('2CXO J') && catalogProps.csc.loaded) {
       find2CXO(target);
       return;
     }
@@ -4952,7 +5065,7 @@ var wwt = (function () {
       return;
     }
 
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
     if (props.data === null) {
       props.data = new Array(json.ntotal);
     }
@@ -4972,10 +5085,10 @@ var wwt = (function () {
 
     const nsrcs = props.data.length;
     if (nsrcs !== json.ntotal) {
-      wtrace(`CSC2.0 count expected ${json.ntotal} got ${nsrcs}`);
+      wtrace(`${props.label} count expected ${json.ntotal} got ${nsrcs}`);
     }
 
-    trace(`== CSC 2.0 contains ${nsrcs} sources`);
+    trace(`== ${props.label} contains ${nsrcs} sources`);
 
     // Report any missing sources
     //
@@ -4983,20 +5096,20 @@ var wwt = (function () {
       return a + typeof v === 'undefined' ? 1 : 0;
     }, 0);
     if (nmiss !== 0) {
-      wtrace(`there are ${nmiss} missing sources in CSC 2.0!`);
+      wtrace(`there are ${nmiss} missing sources in ${props.label}!`);
     }
 
     // Let the user know they can "show sources"
     //
     const el = document.querySelector('#togglesources');
-    el.innerHTML = 'Show CSC2.0 Sources';
+    el.innerHTML = `Show ${props.label} Sources`;
     el.disabled = false;
 
     showBlockElement('sourcecolor');
     document.querySelector('#togglesourceprops')
       .style.display = 'inline-block';
 
-    trace('Loaded CSC 2.0 data');
+    trace(`Loaded ${props.label} data`);
   }
 
   var ensData = null;
@@ -5190,7 +5303,10 @@ var wwt = (function () {
     //
     getWWTControl: () => { return wwt; },
 
+    // NOte: we have two concepts of getVersion here
     getVersion: () => { return versionString; },
+    isVersion20: isVersion20,
+    isVersion21: isVersion21,
 
     getCSCObject: getCSCObject,
 
@@ -5199,7 +5315,6 @@ var wwt = (function () {
 
     hideSources: hideSources,
     showSources: showSources,
-    toggleSources: toggleSources,
     toggleSources11: toggleSources11,
     toggleXMMSources: toggleXMMSources,
     toggleStacks: toggleStacks,

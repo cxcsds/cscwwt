@@ -238,10 +238,10 @@ main#content div.wrap {
 	  </div>
 
 	  <div id="sourcebar">
+            <!-- The onclick handler is set in wwt.js unlike other buttons -->
             <button class="button"
-                    type="button" id="togglesources"
-                    onclick="wwt.toggleSources()">
-              Load CSC2.0 Sources
+                    type="button" id="togglesources">
+              Load CSC2.1 Sources
             </button>
 	    <button type="button" id="togglesourceprops"
 		    onclick="wwt.toggleSourceProps(event, 'sourceprops')">
@@ -255,9 +255,9 @@ main#content div.wrap {
 	    <button class="jscolor" id="sourcecolor"
 		    data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
 		    />
+            <!-- The onchange handler is set in wwt.js unlike other buttons -->
 	    <input type="range" id="sourcesize" min="1" max="30"
 		   value="5" class="sourcesize"
-		   onchange="wwt.changeSourceSize(this.valueAsNumber)"
 		   />
 	  </div>
 
@@ -381,9 +381,9 @@ main#content div.wrap {
       <div class="tooltip" id="targetName-tooltip-no-nameserver">
 	Unfortunately we currently can not support using an
 	object name - such as <span class="term">M31</span> - so
-	the supported values are CSC 2.0 names, which begin
+	the supported values are CSC 2.1 names, which begin
 	<span class="term">2CXO J</span> and require the
-	CSC 2.0 sources to have been loaded, or a position
+	CSC 2.1 sources to have been loaded, or a position
 	in Right Ascension and Declination.
 	In this latter case
 	a limited variety of coordinate formats are supported,
@@ -567,14 +567,14 @@ main#content div.wrap {
 	    in the settings area, if needed.
 	  </p>
 
-<!--
+	  <!-- temporary paragraph -->
 	  <p>
 	    The <cxclink target="_blank"
-	    href="processing_status.html">Processing Status</cxclink>
+	    href="processing21/status.html">Processing Status</cxclink>
             page provides more information on the current status
-            of version 2.0 of the Chandra Source Catalog.
+            of version 2.1 of the Chandra Source Catalog.
 	  </p>
--->
+
 	  <h3>What do all the icons mean?</h3>
 
 	  <p>
@@ -814,9 +814,9 @@ main#content div.wrap {
 	  </p>
 
 	  <p>
-	    An alternative is to use the name of a CSC 2.0 source,
+	    An alternative is to use the name of a CSC 2.1 source,
 	    which begins <span class="term">2CXO J</span>. If the
-	    CSC 2.0 sources have been loaded then we search directly
+	    CSC 2.1 sources have been loaded then we search directly
 	    from this list, otherwise we use the name server to try and
 	    identify the location (which will be slower).
           </p>
@@ -914,7 +914,7 @@ main#content div.wrap {
 	    <span class='example-button'>Export ...</span> button.
 	    If no SAMP hub is running then the URL of the query can be
 	    copied to the clipboard.
-	    More-detailed access to the CSC 2.0 source and data properties -
+	    More-detailed access to the CSC 2.1 source and data properties -
 	    as well as to previous releases - is available
             either via the
             <extlink target="_blank"
@@ -939,14 +939,14 @@ main#content div.wrap {
 	    buttons - before they can be shown. Once the data
 	    has loaded the button will change its label.
 	    Selecting the
-	    "<span class="term">Show CSC2.0 Sources</span>"
+	    "<span class="term">Show CSC2.1 Sources</span>"
 	    or
 	    "<span class="term">Show 4XMM-DR11 Detections</span>"
 	    button will add circles, indicating the sources, close
 	    to the location on the screen (the full catalogs are
 	    <em>not</em> drawn as this would result in the display
 	    being unusable!). An orange circle is drawn to show the
-	    maximum radius used for sources (only for the CSC 2.0 sources).
+	    maximum radius used for sources (only for the CSC 2.1 sources).
 	  </p>
 
 	  <p>
@@ -1489,7 +1489,7 @@ main#content div.wrap {
       <!-- plot areas -->
       <div id="plot" class="plotpane pane-pos-left pane-pos-top">
 	<div class="controlElements controlElementsShown">
-          <span class="title">Overview of the selected CSC 2.0 sources</span>
+          <span class="title">Overview of the selected CSC 2.1 sources</span>
 	  <span class="closable" onclick="wwt.hideElement('plot');">
             <img alt="Close icon (circle with times symbol in it)"
 		 class="icon" src="wwtimg/fa/times-circle.svg"/>
@@ -1511,7 +1511,7 @@ main#content div.wrap {
 	    since this provides more columns from the catalog, or use
 	    <cxclink target="_blank"
 		     href="/csc2/gui/intro.html">CSCView</cxclink> to
-	    search the CSC 2.0 database.
+	    search the CSC 2.1 database.
 	  </p>
 
 	  <!-- set autocomplete=off to stop firefox from remembering the

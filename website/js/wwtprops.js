@@ -639,7 +639,7 @@ const wwtprops = (function () {
     // available to 2.1 data.
     //
     var desc = stack.description;
-    if (wwt.getVersion() === "2.1") {
+    if (wwt.isVersion21()) {
       if (stack.status === 1) {
         // Do not need the exact time, just the day
         var date = new Date(stack.lastmod * 1e3);
@@ -1110,7 +1110,7 @@ const wwtprops = (function () {
     addText(a, 'caveats');
     warnPara.appendChild(a);
 
-    addText(warnPara, ' for source properties in CSC 2.0.');
+    addText(warnPara, ` for source properties in CSC ${wwt.getVersion()}.`);
     parent.appendChild(warnPara);
   }
 
@@ -1451,7 +1451,7 @@ const wwtprops = (function () {
     }
 
     const mainDiv = addControlElements(parent,
-				       'CSC 2.0 sources',
+				       `${catinfo.label} sources`,
 				       wwt.hideSources,
 				       active);
 

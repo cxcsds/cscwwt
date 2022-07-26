@@ -18,18 +18,43 @@ date for the database.
 
 The output files are
 
+    wwt21_srcprop.*.json
     wwt21_status.json
     status.xml
     stacks-2.1.txt
 
 """
 
+from collections import OrderedDict
 from pathlib import Path
 import json
 import sys
 import time
 
 import stackdata
+
+
+class RoundingFloat(float):
+    """See https://stackoverflow.com/a/69056325
+
+    Note that we use the g format to try and handle
+    both values like 3.4234 and 7.42352e-16. The
+    default for g seems to be 5dp so bump to 6dp
+    just in case.
+    """
+
+    @staticmethod
+    def __repr__(x):
+        # just brute-force it, even if it is slow
+        old = repr(x)
+        new = f"{x:.6g}"
+        if len(new) < len(old):
+            return new
+        return old
+
+
+json.encoder.c_make_encoder = None
+json.encoder.float = RoundingFloat
 
 
 def get_time(tstr):
@@ -103,7 +128,7 @@ def read_status(infile):
     return out, lmod_txt
 
 
-def write_json(processing, lmod_db, stack_count):
+def write_json(processing, lmod_db, stack_count, source_data):
 
     # If most of the stacks are processed then it would make sense to
     # have a single data structure for each stack, but for now
@@ -144,9 +169,13 @@ def write_json(processing, lmod_db, stack_count):
 
     out["lastupdate_db"] = lmod_db
 
+
+    out["nsources"] = len(source_data["rows"])
+    out["nchunks"] = source_data["nchunks"]
+
     outfile = "wwt21_status.json"
     with open(outfile, "wt") as fh:
-        fh.write(json.dumps(out))
+        fh.write(json.dumps(out, sort_keys=True))
 
     print(f"Created: {outfile}")
 
@@ -364,6 +393,66 @@ def write_txt(processing, lmod_db, stack_count):
     print(f"Created: {outfile}")
 
 
+def write_sources(source_data,
+                  outhead="wwt21_srcprop",
+                  chunksize=40000):
+    """Chunk up the source data
+
+    Should we reduce the accuracy of the numbers as
+    it can probably save a lot of space?
+
+    See
+    https://stackoverflow.com/questions/54370322/how-to-limit-the-number-of-float-digits-jsonencoder-produces
+    which suggests that over-riding JSONEncoder is surprisingly hard,
+    so I'm going with the "direct" manipulation suggested at
+    https://stackoverflow.com/a/69056325 which is somewhat more
+    dangerous as it "infects" all JSON use. So far it should be okay
+    here (as the only two places we write out JSON are here and in the
+    status case, which doesn't write out floats).
+
+    Write to wwt21_srcprop.*.json
+
+    """
+
+    ntotal = len(source_data["rows"])
+
+    start = 0
+    end = start + chunksize
+
+    ctr = 1
+
+    colorder = source_data["order"]
+
+    print("Starting output: " +
+          "nrows={} chunksize={}".format(ntotal, chunksize))
+    while start <= ntotal:
+        outname = "{}.{}.json".format(outhead, ctr)
+
+        # Use an ordered dict so that we can be sure it serializes
+        # the same if the input data is the same. This isn't needed
+        # any more, but leave in.
+        #
+        js = OrderedDict()
+        js['ntotal'] = ntotal
+        js['start'] = start
+        js['cols'] = colorder
+        js['rows'] = source_data['rows'][start:end]
+
+        open(outname, 'w').write(json.dumps(js, sort_keys=True,
+                                            allow_nan=False))
+        print("Created: {}".format(outname))
+
+        start += chunksize
+        end += chunksize
+        ctr += 1
+
+    # We store the number of chunks so it can be written to the status
+    # file.
+    #
+    source_data["nchunks"] = ctr - 1
+    print(f"Number of chunks: {source_data['nchunks']}")
+
+
 def doit(stackfile):
 
     infile = Path(stackfile)
@@ -378,7 +467,15 @@ def doit(stackfile):
     #
     stack_count = stackdata.get_stack_numbers()
 
-    write_json(processing, lmod_db, stack_count)
+    # It would be nice to hide those sources we technically don't know
+    # about, but let's not worry about that here.
+    #
+    source_data = stackdata.get_source_properties()
+
+    # This must be called before write_json
+    write_sources(source_data)
+
+    write_json(processing, lmod_db, stack_count, source_data)
     write_xml(processing, lmod_db, stack_count)
     write_txt(processing, lmod_db, stack_count)
 
