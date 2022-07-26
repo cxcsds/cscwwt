@@ -1,8 +1,8 @@
 'use strict';
 
-/* global alert, XMLHttpRequest, CustomEvent */
+/* global alert, CustomEvent */
 /* global wwtlib, wwtscreen, wwtprops, wwtsamp */
-/* global draggable, lookup, spinner */
+/* global draggable, lookup, spinner, download */
 /* global mw */
 
 /*
@@ -21,6 +21,10 @@
  */
 
 var wwt = (function () {
+
+  const COLOR_FINISHED = 'gold';
+  const COLOR_PROCESSING = 'brown';
+  const COLOR_NOTDONE = 'grey';
 
   // The features available are controlled by default choices (the
   // values of the displayXXX fields below), but they can be over-ridden
@@ -46,6 +50,7 @@ var wwt = (function () {
 
   // What options has the user provided via query parameters?
   let userLocation = null;
+  let userStackId = null;
   let userDisplay = null;
 
   var wwt;
@@ -187,7 +192,7 @@ var wwt = (function () {
       // Should really only log this once but it's not worth the effort,
       // as this should not happen.
       //
-      console.log(`ERROR: unable to find ${coord} ${fovspan} ${exurl}`);
+      etrace(`unable to find ${coord} ${fovspan} ${exurl}`);
       return;
     }
 
@@ -270,7 +275,7 @@ var wwt = (function () {
 				     'letters'];
   function setClipboardFormat(format) {
     if (!supportedClipboardFormats.includes(format)) {
-      console.log(`ERROR: clipboard format '${format}' is not supported.`);
+      etrace(`clipboard format '${format}' is not supported.`);
       return;
     }
     clipboardFormat = format;
@@ -304,7 +309,7 @@ var wwt = (function () {
     // Not worried about efficiency here.
     //
     if (!supportedClipboardFormats.includes(clipboardFormat)) {
-      console.log(`ERROR: unknown clipboardformat '${clipboardFormat}'`);
+      etrace(`unknown clipboardformat '${clipboardFormat}'`);
       clipboardFormat = 'degrees';
       saveState(keyClipboardFormat, clipboardFormat);
     }
@@ -351,6 +356,8 @@ var wwt = (function () {
   // same location as 'Clip Location' uses), zoom level,
   // and display. Copy it to the clipboard.
   //
+  // If a stack has been selected then we include it as well.
+  //
   function getPageURL() {
     const el = document.querySelector('#coordinate');
     if (el === null) {
@@ -383,20 +390,35 @@ var wwt = (function () {
     }
     if (display === null) { return null; }
 
+    let terms = `ra=${ra}&dec=${dec}&zoom=${zoomStr}&display=${display}`;
+
+    // Add in the stack selection (if present).
+    //
+    const stackpane = document.querySelector("#stackinfo");
+    if (stackpane !== null &&
+	stackpane.style !== null &&
+	typeof stackpane.style.display !== "undefined" &&
+	stackpane.style.display === "block") {
+      const stackid = stackpane.getAttribute('data-stackid');
+      if (stackid !== null) {
+	terms += `&stackid=${stackid}`;
+      }
+    }
+
     // Need to remove any existing search term
     //
     let url = null;
     try {
       url = new URL(document.location);
     } catch (e) {
-      console.log(`ERROR: unable to create a URL for the page - ${e}`);
+      etrace(`unable to create a URL for the page - ${e}`);
       return null;
     }
 
     // Clear out previous terms
     url.search = '';
     url.hash = '';
-    return `${url.href}?ra=${ra}&dec=${dec}&zoom=${zoomStr}&display=${display}`;
+    return `${url.href}?${terms}`;
   }
 
   function clipBookmark(event) {
@@ -483,7 +505,7 @@ var wwt = (function () {
   function getCSCColIdx(column) {
     const colidx = catalogDataCols.indexOf(column);
     if (colidx < 0) {
-      console.log(`ERROR: unknown CSC column "${column}"`);
+      etrace(`unknown CSC column "${column}"`);
       return null;
     }
     return colidx;
@@ -498,7 +520,7 @@ var wwt = (function () {
 
   }
 
-  // Indexes into the CSC 2.0 data array
+  // Indexes into the CSC 2 data array
   const raIdx = getCSCColIdx('ra');
   const decIdx = getCSCColIdx('dec');
 
@@ -510,11 +532,11 @@ var wwt = (function () {
   //
   function makeAnnotation(data, pos, shp) {
     const toAdd = shp === null
-	  ? () => console.log('INTERNAL ERROR: trying to add null annotation')
+	  ? () => itrace('trying to add null annotation')
 	  : () => wwt.addAnnotation(shp);
 
     const toRem = shp === null
-	  ? () => console.log('INTERNAL ERROR: trying to remove null annotation')
+	  ? () => itrace('trying to remove null annotation')
 	  : () => wwt.removeAnnotation(shp);
 
     return { add: toAdd,
@@ -570,7 +592,7 @@ var wwt = (function () {
   //
   function makeSource(color, size, src) {
     if ((src.ra === null) || (src.dec === null)) {
-      console.log('Err, no location for source:');
+      etrace('Err, no location for source:');
       console.log(src);
       return null;
     }
@@ -596,7 +618,7 @@ var wwt = (function () {
 
   function makeSource11(color, size, src) {
     if ((src.ra === null) || (src.dec == null)) {
-      console.log('Err, no location for CSC 1.1 source:');
+      etrace('Err, no location for CSC 1.1 source:');
       console.log(src);
       return null;
     }
@@ -609,7 +631,7 @@ var wwt = (function () {
     const ra = src[0];
     const dec = src[1];
     if ((ra === null) || (dec === null)) {
-      console.log('Err, no location for XMM source:');
+      etrace('Err, no location for XMM source:');
       console.log(src);
       return null;
     }
@@ -632,7 +654,20 @@ var wwt = (function () {
   // included for all of them. It indicates whether we are looking at
   // sources or detections.
   //
+  // This used to be nice, when I had csc20, csc11, xmm, but now
+  // we also have csc21 we need to add in a "current CSC" view
+  // of csc to complicate things. It is required that only
+  // one of csc21 or csc20 is valid for this process.
+  //
   const catalogProps = {
+    csc21: { label: 'CSC2.1', button: '#togglesources',
+             sourcetype: 'Sources',
+             changeWidget: '#sourceprops',
+             color: 'cyan', size: 5.0 / 3600.0,
+	     loaded: false, data: null,
+	     getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	     makeShape: makeSource,
+             annotations: null },
     csc20: { label: 'CSC2.0', button: '#togglesources',
              sourcetype: 'Sources',
              changeWidget: '#sourceprops',
@@ -686,7 +721,7 @@ var wwt = (function () {
   function getHost() {
     const host = document.querySelector('#WorldWideTelescopeControlHost');
     if (host === null) {
-      console.log('INTERNAL ERROR: #WorldWideTelescopeControlHost not found!');
+      etrace('#WorldWideTelescopeControlHost not found!');
     }
     return host;
   }
@@ -799,7 +834,7 @@ var wwt = (function () {
     toggleInfo.forEach(o => {
       const el = document.querySelector(o.sel);
       if (el === null) {
-	console.log(`ERROR: unable to find toggle element ${o.sel}`);
+	etrace(`unable to find toggle element ${o.sel}`);
 	return;
       }
 
@@ -826,7 +861,7 @@ var wwt = (function () {
 	el.dispatchEvent(new CustomEvent(evtype));
       }
       catch (e) {
-	console.log(`ERROR: Unable to send ${evtype} event to ${o.sel}`);
+	etrace(`Unable to send ${evtype} event to ${o.sel}`);
       }
     });
   }
@@ -936,12 +971,12 @@ var wwt = (function () {
 
   // zoom factor to use has been guessed at
   function zoomToStack(stackname) {
-    for (var stack of inputStackData.stacks) {
-      if (stack.stackid !== stackname) { continue; }
-      wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, moveFlag);
-      wwtsamp.moveTo(stack.pos[0], stack.pos[1]);
+    const stack = inputStackData.stacks[stackname];
+    if (typeof stack === 'undefined') {
       return;
     }
+    wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, moveFlag);
+    wwtsamp.moveTo(stack[0], stack.pos[1]);
   }
 
   function zoomToSource(sourcename) {
@@ -955,7 +990,7 @@ var wwt = (function () {
       return;
     }
 
-    for (var src of catalogProps.csc20.data) {
+    for (var src of catalogProps.csc.data) {
       const sname = src[nameIdx];
       if (sname !== sourcename) { continue; }
 
@@ -971,12 +1006,11 @@ var wwt = (function () {
   // (and, if not, do not change it)? For now use a label
   // to indicate it is unprocessed.
   //
-  // Note that the CSC 2.0 values (currently) have processed vs
-  // unprocessed, but also we are not setting the fill color,
-  // which is different from the other catalogs.
+  // This is frmo CSC 2.0 days: not sure of the status of this
+  // now.
   //
   function colorUpdate(val) {
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
 
     const color = `#${val}`;
     props.color = color;
@@ -1018,7 +1052,7 @@ var wwt = (function () {
   function makeSizeUpdate(props) {
     return (newSize) => {
       if (newSize <= 0) {
-        console.log(`ERROR: Invalid source size: [${newSize}]`);
+        etrace(`Invalid source size: [${newSize}]`);
         return;
       }
 
@@ -1029,7 +1063,10 @@ var wwt = (function () {
     };
   }
 
-  const changeSourceSize = makeSizeUpdate(catalogProps.csc20);
+  // Unfortunately we can't make changeSourceSize a const as
+  // it depends on the catalog version.
+  //
+  var changeSourceSize = null;
   const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
 
@@ -1051,7 +1088,7 @@ var wwt = (function () {
 
     if (typeof buffer !== 'undefined') {
       if (buffer <= 0) {
-	console.log(`Internal error: buffer=${buffer}`);
+	itrace(`buffer=${buffer}`);
 	return;
       }
     } else {
@@ -1171,28 +1208,38 @@ var wwt = (function () {
 
   // This updates the stackAnnotations dict
   //
-  function addStackFOV(stack) {
+  // All we care about from stack are
+  //    stack.status
+  //    stack.stackid
+  //
+  function addStackFOV(stack, polygons) {
 
     let edgeColor;
     let fillColor = 'white';
-    let lineWidth;
+    let lineWidth = 1;
     const opacity = 0.6;
     const fillFlag = false;
 
-    if (stack.status) {
-      edgeColor = 'gold';
+    // We now have the odd system of
+    //    status = 0  - unprocessed
+    //             1  - finished
+    //             2  - being processed
+    //
+    if (stack.status === 1) {
+      edgeColor = COLOR_FINISHED;
       lineWidth = 2;
+    } else if (stack.status === 2) {
+      edgeColor = COLOR_PROCESSING;
     } else {
-      edgeColor = 'grey';
-      lineWidth = 1;
+      edgeColor = COLOR_NOTDONE;
     };
 
     const annotations = [];
     // var ctr = 1;
-    for (var i = 0; i < stack.polygons.length; i++) {
+    for (var i = 0; i < polygons.length; i++) {
 
       // First is inclusive, the rest are exclusive
-      const shapes = stack.polygons[i];
+      const shapes = polygons[i];
 
       for (var j = 0; j < shapes.length; j++) {
         const fov = wwt.createPolygon(fillFlag);
@@ -1252,13 +1299,30 @@ var wwt = (function () {
   }
 
   // Let's see how the WWT does with all the stacks
-  function addFOV(stackdata) {
-    for (let stack of stackdata.stacks) {
-      addStackFOV(stack);
+  function addFOV(stackpolygons) {
+
+    for (let stackid in inputStackData.stacks) {
+      const polygons = stackpolygons[stackid];
+      if (typeof polygons === 'undefined') {
+        trace(`Unable to find polygons for [${stack.stackid}]`);
+      } else {
+        addStackFOV(inputStackData.stacks[stackid], polygons);
+      }
     }
     stacksShown = true;
 
     trace('Added FOV');
+
+    // If we are highlighting a stack then we can now do it.
+    //
+    if (userStackId !== null) {
+      const stack = inputStackData.stacks[userStackId];
+      if (typeof stack !== "undefined") {
+	trace(`Found stack ${userStackId} in stack data`);
+	processStackSelectionByStack(stack);
+      }
+    }
+
   }
 
   // Add outlines based on the Milky Way, data is from the
@@ -1281,7 +1345,7 @@ var wwt = (function () {
   function addMW() {
 
     if (mwOutlines.length !== 0) {
-      console.log('MW already added in!');
+      etrace('MW already added in!');
       return;
     }
 
@@ -1289,7 +1353,7 @@ var wwt = (function () {
     if ((typeof mw.type === 'undefined') ||
         (mw.type !== 'FeatureCollection') ||
         (typeof mw.features === 'undefined')) {
-      console.log('Unable to parse MW JS data!');
+      etrace('Unable to parse MW JS data!');
       return;
     }
 
@@ -1317,18 +1381,18 @@ var wwt = (function () {
           (typeof features.geometry === 'undefined') ||
           (typeof features.geometry.type === 'undefined') ||
           (features.geometry.type !== 'MultiPolygon')) {
-        console.log(`MW problem with feature ${f}`);
+        etrace(`MW problem with feature ${f}`);
         return;
       }
 
       var coords = features.geometry.coordinates;
       if (typeof coords === 'undefined') {
-        console.log(`MW no coordinates for feature ${f}`);
+        etrace(`MW no coordinates for feature ${f}`);
         return;
       }
       if (coords.length !== 1) {
-        console.log('MW feature ' + f.toString() +
-                    ' length=' + coords.length.toString());
+        etrace('MW feature ' + f.toString() +
+               ' length=' + coords.length.toString());
         return;
       }
 
@@ -1444,17 +1508,21 @@ var wwt = (function () {
       }
       el.style.display = display;
     } else {
-      console.log(`Internal error [toggleBlockElement]: unable to find "${sel}"`);
+      itrace(`[toggleBlockElement]: unable to find "${sel}"`);
     }
   }
 
+  // Note that an element not existing should no-longer be considered
+  // an "error"; it could be refering to an element that is not used in
+  // this particular version of the site.
+  //
   function setDisplay(name, display) {
     const sel = `#${name}`;
     const el = document.querySelector(sel);
     if (el !== null) {
       el.style.display = display;
     } else {
-      console.log(`Internal error [setDisplay]: unable to find "${sel}"`);
+      trace(`Note [setDisplay]: unable to find "${sel}"`);
     }
   }
 
@@ -1473,40 +1541,35 @@ var wwt = (function () {
   //
   function makeDownloadData(url, toggleSel, dataLabel, processData) {
 
-    return () => {
-      const req = new XMLHttpRequest();
-      if (!req) {
-	console.log('ERROR: unable to create a request object!');
+    // Safety check just in case
+    if (url === null) {
+	etrace("makeDownloadData sent a null url");
+        return () => {};
+    }
 
-	if (toggleSel !== null) {
-	  document.querySelector(toggleSel)
-            .innerHTML = `Unable to load ${dataLabel}`;
-	}
-	return;
+    return () => {
+      if (download.getJSON(url, processData,
+			   (flag) => {
+                             reportUpdateMessage(`Unable to download ${url}`);
+                             if (toggleSel !== null) {
+                               document.querySelector(toggleSel)
+                                 .innerHTML = `Unable to load ${dataLabel}`;
+                             }
+			   })) {
+        return;
       }
 
-      startSpinner();
-      req.addEventListener('load', () => {
-	stopSpinner();
-        if (req.status === 200) {
-	    trace(`-- downloaded: ${url}`);
-	    processData(req.response);
-        } else {
-	    trace(`-- unable to download: ${url} status=${req.status}`);
-            reportUpdateMessage(`Unable to download ${url}`);
-        }
-      }, false);
-      req.addEventListener('error', () => {
-	trace(`-- error downloading: ${url}`);
-	stopSpinner();
-      }, false);
-
-      req.open('GET', url);
-      req.responseType = 'json';
-      req.send();
+      // Unable to create the request.
+      //
+      if (toggleSel !== null) {
+        document.querySelector(toggleSel)
+          .innerHTML = `Unable to load ${dataLabel}`;
+      }
     };
   }
 
+  // TODO: make this version agnostic.
+  //
   function downloadCatalog20Data() {
 
     // number of chunks for the source properties
@@ -1528,9 +1591,37 @@ var wwt = (function () {
     }
   }
 
+  // This requires that the input status data has been processed
+  function downloadCatalog21Data() {
+
+    // Safety check
+    if ((typeof inputStackData === "undefined") ||
+	(typeof inputStackData.nchunks === "undefined")) {
+      alert("Internal error: the stack status has not been loaded!");
+      return;
+    }
+
+    // number of chunks for the source properties
+    const NCHUNK = inputStackData.nchunks;
+    const chunks = new Array(NCHUNK).fill(false);
+
+    // Have to be careful about scoping rules, so make a function
+    // that returns a function to process the chunk
+    //
+    const processChunk = (x) => (d) => { processCatalogData(chunks, x, d); };
+
+    for (var ctr = 1; ctr <= NCHUNK; ctr++) {
+      const url = `wwtdata/wwt21_srcprop.${ctr}.json.gz` + cacheBuster();
+      const func = makeDownloadData(url, '#togglesources',
+				    'CSC2.1 catalog',
+				    processChunk(ctr));
+      func();
+    }
+  }
+
   // VERY experimental: load in the ensemble data for CXC testing
   //
-  const downloadEnsData = makeDownloadData('wwtdata/ens.json.gz',
+  const downloadEnsData = makeDownloadData('wwtdata/ens20.json.gz',
 					   null, null,
 					   processEnsData);
 
@@ -1560,6 +1651,9 @@ var wwt = (function () {
   // and displayed to the user (if available). So to just stick
   // to the event file remove all but the stkevt3 setting.
   //
+  // We want the keys to match the stackURLs argument sent to
+  // initialize.
+  //
   const stackVersionTable = {stkevt3: null, sensity: null,
 			     stkecorrimg: null,
 			     stkexpmap: null,
@@ -1571,8 +1665,8 @@ var wwt = (function () {
   function makeShowCatalog(props) {
     return () => {
       if (!props.loaded) {
-        console.log(`Internal error: showCatalog ${props.label} ` +
-                    ' called when no data exists!');
+        itrace(`showCatalog ${props.label} ` +
+               ' called when no data exists!');
         return;
       }
 
@@ -1616,14 +1710,14 @@ var wwt = (function () {
   function makeHideCatalog(props) {
     return () => {
       if (!props.loaded) {
-        console.log(`Internal error: hideCatalog ${props.label} ` +
-                    'called when no data exists!');
+        itrace(`hideCatalog ${props.label} ` +
+               'called when no data exists!');
         return;
       }
 
       if (props.annotations === null) {
-        console.log(`Internal error: hideCatalog ${props.label} ` +
-                    'called when no data plotted!');
+        itrace(`hideCatalog ${props.label} ` +
+               'called when no data plotted!');
         return;
       }
 
@@ -1673,10 +1767,8 @@ var wwt = (function () {
     };
   }
 
-  const toggleSources = makeToggleCatalog(catalogProps.csc20,
-                                          downloadCatalog20Data,
-                                          showSources,
-                                          hideSources);
+  // Do we use these?
+  var toggleSources = null;
   const toggleSources11 = makeToggleCatalog(catalogProps.csc11,
                                             downloadCatalog11Data);
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
@@ -1710,8 +1802,7 @@ var wwt = (function () {
   //
   function showCHS() {
     if (annotationsCHS == null) {
-      console.log('Internal error: showCHS ' +
-                  ' called when no data exists!');
+      itrace('showCHS called when no data exists!');
       return;
     }
 
@@ -1729,8 +1820,7 @@ var wwt = (function () {
 
   function hideCHS() {
     if (annotationsCHS == null) {
-      console.log('Internal error: hideCHS ' +
-                  ' called when no data exists!');
+      itrace('hideCHS called when no data exists!');
       return;
     }
 
@@ -1750,7 +1840,7 @@ var wwt = (function () {
     const sel = `#${elname}`;
     const el = document.querySelector(sel);
     if (el === null) {
-      console.log(`Internal error [toggleSourceProps]: unable to find "${elname}"`);
+      itrace(`[toggleSourceProps]: unable to find "${elname}"`);
       return;
     }
 
@@ -1932,7 +2022,7 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
+      itrace(`unable to change selection mode: ${e}`);
     }
   }
 
@@ -1942,12 +2032,14 @@ var wwt = (function () {
   function hideSources() {
     _hideSources();
 
+    const props = catalogProps.csc;
+
     // could cache these
-    if (catalogProps.csc20.loaded) {
+    if (props.loaded) {
       // assume that the label can only have been changed
       // if the sources have been loaded
       document.querySelector('#togglesources').innerHTML =
-        'Show CSC2.0 Sources';
+        `Show ${props.label} Sources`;
     }
 
     ['sourceprops', 'plot'].forEach(hideElement);
@@ -1975,7 +2067,7 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
+      itrace(`unable to change selection mode: ${e}`);
     }
 
     // Hide the source window. Note that this can be called when
@@ -1987,7 +2079,7 @@ var wwt = (function () {
 
   function _hideSources() {
 
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
     if (props.annotations !== null) {
       props.annotations.forEach(ann => ann.remove());
       props.annotations = null;
@@ -2005,14 +2097,15 @@ var wwt = (function () {
 
   function showSources() {
     const flag = _showSources();
+    const props = catalogProps.csc;
     if (!flag) {
-      reportUpdateMessage('No CSC 2.0 sources found in this area of the sky.');
+      reportUpdateMessage(`No ${props.label} sources found in this area of the sky.`);
       return;
     }
 
     // could cache these
     document.querySelector('#togglesources').innerHTML =
-      'Hide CSC2.0 Sources';
+      `Hide ${props.label} Sources`;
 
     const sel = document.querySelector('#selectionmode');
     for (var idx = 0; idx < sel.options.length; idx++) {
@@ -2029,13 +2122,12 @@ var wwt = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
+      itrace(`unable to change selection mode: ${e}`);
     }
 
     // Show the 'source window'.
     //
-    wwtprops.addSourceSelection(sourceRA, sourceDec, sourceFOV,
-				catalogProps.csc20);
+    wwtprops.addSourceSelection(sourceRA, sourceDec, sourceFOV, props);
 
   }
 
@@ -2059,7 +2151,7 @@ var wwt = (function () {
     // still shown. It also helps at the corners.
     //
     //
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
     props.annotations = null;
 
     const toStore = (row, pos) => {
@@ -2072,8 +2164,7 @@ var wwt = (function () {
       return ann;
     };
 
-    const selected = findNearestTo(ra0, dec0, fov,
-				   catalogProps.csc20.data,
+    const selected = findNearestTo(ra0, dec0, fov, props.data, 
 				   props.getPos, toStore);
 
     // can bail out now if there are no sources
@@ -2103,16 +2194,17 @@ var wwt = (function () {
     return true;
   }
 
-  // Note: this is used to set up the original data as well
-  // as the now-removed update functionality. Should really
-  // rename.
+  // This is assumed to only be used for "processing" data.
   //
-  function updateCompletionInfo(status, stackdata) {
+  function updateCompletionInfo(status) {
 
     let lmodStart = null;
     let lmodEnd = null;
-    stackdata.stacks.forEach(stack => {
+
+    for (var stackid in inputStackData.stacks) {
+      const stack = inputStackData.stacks[stackid];
       stack.status = status.stacks[stack.stackid];
+
       /* if not completed then no element in the completed array */
       const completed = status.completed[stack.stackid]
       if (typeof completed !== 'undefined') {
@@ -2126,15 +2218,39 @@ var wwt = (function () {
           lmodEnd = completed;
         }
       }
-    });
+
+      // Number of sources (if known). This should follow the
+      // same logic as completed, but run separately in case there's
+      // subtle differences (as the data was created using a different
+      // view of the system).
+      //
+      const nsrc = status.nsource[stack.stackid];
+      if (typeof nsrc !== 'undefined') {
+        stack.nsource = nsrc;
+      }
+    }
 
     // The assumption is that these are both set
-    stackdata.completed_start = lmodStart;
-    stackdata.completed_end = lmodEnd;
+    inputStackData.completed_start = lmodStart;
+    inputStackData.completed_end = lmodEnd;
 
-    // Update the "Help" page (if still needed).
+    // Store the number of sources and the number of chunks used
+    // to read in the source properties.
+    //
+    inputStackData.nsources = status.nsources;
+    inputStackData.nchunks = status.nchunks;
+
+    // Update the "Help" page (if still needed). This was from CSC 2.0
     const el = document.querySelector('#lastmod');
     if (el !== null) { el.innerHTML = status.lastupdate_db; }
+
+    // How about the CSC 2.1 version (experimental)
+    //
+    const el21 = document.querySelector('#csc21-warning-span');
+    if (el21 !== null) {
+      // Drop the HH:MM section
+      el21.innerHTML = status.lastupdate_db.split(' ')[0];
+    }
   }
 
   function setTargetName(name) {
@@ -2289,7 +2405,7 @@ var wwt = (function () {
 
       const el = document.querySelector(o.sel);
       if (el === null) {
-	console.log(`ERROR: unable to find toggle element ${o.sel}`);
+	etrace(`unable to find toggle element ${o.sel}`);
 	return;
       }
 
@@ -2362,7 +2478,7 @@ var wwt = (function () {
     } else if (mode === 'nothing') {
       clickMode = null;
     } else {
-      console.log(`Unknown selection mode: [${mode}]`);
+      etrace(`Unknown selection mode: [${mode}]`);
     }
   }
 
@@ -2462,18 +2578,16 @@ var wwt = (function () {
   // reason this wouldn't hold would be numerical errors, and the way the
   // stacks are created should mean this won't happen.
   //
-  // TODO: shold be able to rewrite calling code to send in ra/dec
+  // TODO: should be able to rewrite calling code to send in ra/dec
   //       and so call processStackSelection directly
   //
   function processStackSelectionByName(stackid) {
-    const smatches = inputStackData.stacks.filter(d => d.stackid === stackid);
-    if (smatches.length === 0) {
-      console.log(`INTERNAL ERROR: unknown stackid=${stackid}`);
+    const stack = inputStackData.stacks[stackid];
+    if (typeof stack === 'undefined') {
+      itrace(`unknown stackid=${stackid}`);
       return;
     }
 
-    // Assume only one match
-    const stack = smatches[0];
     processStackSelection(stack.pos[0], stack.pos[1]);
   }
 
@@ -2500,9 +2614,9 @@ var wwt = (function () {
      * Which means that using the filetype field of versionTable is
      * not expected to provide a useful answer.
      */
-    const lbl = 'WARNING: stackVersion is undefined for ' +
+    const lbl = 'stackVersion is undefined for ' +
 	  `${stackid} (${versionTable.filetype})`;
-    console.log(lbl);
+    wtrace(lbl);
     return null;
   }
 
@@ -2517,7 +2631,15 @@ var wwt = (function () {
 
     const getPos = stack => { return {ra: stack.pos[0], dec: stack.pos[1]}; };
     const toStore = (stack, p) => stack;
-    const seps = findNearestTo(sra0, sdec0, maxSep, inputStackData.stacks,
+
+    // We used to have a list ot stacks but now we have it stored
+    // as a dictionary, so for now just create a temporary list.
+    //
+    var stacklist = [];
+    for (let stackid in inputStackData.stacks) {
+      stacklist.push(inputStackData.stacks[stackid]);
+    }
+    const seps = findNearestTo(sra0, sdec0, maxSep, stacklist,
 			       getPos, toStore);
     if (seps.length === 0) {
       return;
@@ -2529,22 +2651,9 @@ var wwt = (function () {
     const el0 = seps.shift();
     const stack0 = el0[1];
 
-    const fovs = stackAnnotations[stack0.stackid];
-    fovs.forEach(fov => nearestFovs.push(changeFov(fov, true, 'cyan', 4)));
+    processStackSelectionByStack(stack0);
 
-    // What version info do we have (aka can we export the data products
-    // via SAMP) for this stack?
-    //
-    const versionInfo = {};
-    Object.keys(stackVersionTable).forEach(n => {
-      if (stackVersionTable[n] === null) { return; }
-      versionInfo[n] = getVersion(stackVersionTable[n], stack0);
-    });
-    wwtprops.addStackInfo(stack0, versionInfo);
-
-    if (seps.length === 0) { return; }
-
-    if (!displayNearestStacks) { return; }
+    if (seps.length === 0 || !displayNearestStacks) { return; }
 
     // Apply a tolerance to identify if we have "close" stacks. This
     // is a heuristic. Note that we are actually interested in stacks
@@ -2571,6 +2680,28 @@ var wwt = (function () {
 
     wwtprops.addNearestStackTable(stackAnnotations, stack0, nearest,
 				  nearestFovs);
+
+    console.log("DBG-START: nearest"); console.log(nearest); console.log("DBG-END:   nearest");
+  }
+
+  // This does not support the "display nearest stacks" option.
+  //
+  function processStackSelectionByStack(stack) {
+
+    clearNearestStack();
+
+    const fovs = stackAnnotations[stack.stackid];
+    fovs.forEach(fov => nearestFovs.push(changeFov(fov, true, 'cyan', 4)));
+
+    // What version info do we have (aka can we export the data products
+    // via SAMP) for this stack?
+    //
+    const versionInfo = {};
+    Object.keys(stackVersionTable).forEach(n => {
+      if (stackVersionTable[n] === null) { return; }
+      versionInfo[n] = getVersion(stackVersionTable[n], stack);
+    });
+    wwtprops.addStackInfo(stack, versionInfo);
   }
 
   // Can we lasso a region?
@@ -2614,14 +2745,12 @@ var wwt = (function () {
     const p = document.querySelector('#number-of-polygon-points');
     if (p !== null) {
       removeChildren(p);
-      let cts = 'You have selected ';
-      if (npts === 1) {
-	cts += 'one point.';
-      } else if (npts === 2) {
-	cts += 'two points.';
-      } else {
-	cts += npts.toString() + ' points.';
-      }
+
+      const num = intToStr(npts);
+      let suffix = "s";
+      if (npts === 1) { suffix = ""; }
+
+      const cts = `You have selected ${num} point${suffix}.`;
       p.appendChild(document.createTextNode(cts));
     }
 
@@ -2679,10 +2808,10 @@ var wwt = (function () {
   //
   function processSourceSelection(ra0, dec0) {
 
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
     if ((props.annotations === null) || (props.annotations.length === 0)) {
-      console.log('INTERNAL ERROR: processSouece selection called ' +
-		  `with annotations=${props.annotations}`);
+      itrace('processSouece selection called ' +
+	     `with annotations=${props.annotations}`);
       return;
     }
 
@@ -2807,7 +2936,7 @@ var wwt = (function () {
         pane.draggable = true;
         pane.addEventListener('dragstart', draggable.startDrag, false);
       } else {
-        console.log(`INTERNAL error: unable to find "${n}"`);
+        itrace(`unable to find "${n}"`);
       }
     });
 
@@ -2826,6 +2955,20 @@ var wwt = (function () {
     return outval;
   }
 
+  // Get the stored FOV value (or a default if not set).
+  //
+  function restoreFOV() {
+    let zoom = getState(keyFOV);
+    if (zoom !== null) { zoom = toNumber(zoom); }
+    if (zoom === null) {
+      return startFOV;
+    }
+    if (zoom < minFOV) { zoom = minFOV; }
+    else if (zoom > maxFOV) { zoom = maxFOV; }
+    trace(`Setting zoom to: ${zoom}`);
+    return zoom;
+  }
+
   // This will go to (in order of preference)
   //   location specified in URL
   //   user's last-selected position
@@ -2839,8 +2982,9 @@ var wwt = (function () {
     // reliably.
     setTargetName('');
 
+    // The validity of the argument depends on the mode.
+    //
     if (userLocation !== null) {
-      // assume userLocation has been validated
       wwt.gotoRaDecZoom(userLocation.ra,
 			userLocation.dec,
 			userLocation.zoom, moveFlag);
@@ -2863,15 +3007,7 @@ var wwt = (function () {
       }
     }
 
-    let zoom = getState(keyFOV);
-    if (zoom !== null) { zoom = toNumber(zoom); }
-    if (zoom === null) {
-      zoom = startFOV;
-    } else {
-      if (zoom < minFOV) { zoom = minFOV; }
-      else if (zoom > maxFOV) { zoom = maxFOV; }
-      trace(`Setting zoom to: ${zoom}`);
-    }
+    const zoom = restoreFOV();
 
     if ((ra === null) || (dec === null)) {
       wwt.gotoRaDecZoom(ra0, dec0, zoom, moveFlag);
@@ -2896,14 +3032,14 @@ var wwt = (function () {
 
     const pane = document.querySelector(sel);
     if (pane === null) {
-      console.log(`INTERNAL ERROR (show/hide): unable to find ${sel}`);
+      itrace(`(show/hide): unable to find ${sel}`);
       return;
     }
 
     const find = lbl => {
       const el = pane.querySelector(lbl);
       if (el === null) {
-	console.log(`INTERNAL ERROR (show/hide): no ${lbl} in ${sel}`);
+	itrace(`(show/hide): no ${lbl} in ${sel}`);
       }
       return el;
     };
@@ -2947,10 +3083,26 @@ var wwt = (function () {
     }, false);
   }
 
-  // start up the interface (allowing for restarts)
+  // Start up the interface, allowing for restarts. Hopefully the
+  // WWT problem causing the need for restarts has been fixed but
+  // I can not guarantee this, so leave the restart support in.
   //
+  // Unfortunately, this means that we need to somehow store the
+  // names of files we need to download, which means either
+  // using "global" variables or some other means.
+  //
+  // Conversion to a "generic" routine (to be used by CSC 2.0
+  // and 2.1 interfaces) is an ongoing process.
+  //
+  var outlineLocation = undefined;
+
   function wwtReadyFunc() {
     trace('in wwtReadyFunc (with restart)');
+
+    if (typeof outlineLocation === 'undefined') {
+      alert("Unable to initialize WWT as outlines not set up");
+      return;
+    }
 
     // It's not clear why we can't just use the return value from
     // initControl(), but
@@ -2962,24 +3114,20 @@ var wwt = (function () {
     createImageCollections();
     createSettings();
     addMW();
-    addFOV(inputStackData);
+
+    // Download the stack polygons and add the annotations.
+    //
+    let outlineURL = outlineLocation;
+    if (isVersion21()) {
+      outlineURL += cacheBuster();
+    }
+    download.getJSON(outlineURL, addFOV,
+		     (flag) => {
+			 alert("Unable to dowload the stack outlines");
+		     });
 
     setupUserSelection();
     stopExcessScrolling();
-
-    // We create and execute the download function here.
-    //
-    Object.keys(stackVersionTable).forEach(n => {
-      if (stackVersionTable[n] !== null) {
-	console.log(`INTERNAL ERROR: expected stackVersionTable.${n} to be null`);
-      }
-      const f = makeDownloadData(`wwtdata/version20.${n}.json`,
-				 null, null,
-				 (d) => { stackVersionTable[n] = d; });
-      f();
-    });
-
-    downloadEnsData();
 
     // Display the CSC 2.1 outlines if loaded
     // (the current interface is rather ugly, and
@@ -3041,7 +3189,7 @@ var wwt = (function () {
     //
     const panel = document.querySelector('#wwtusercontrol');
     if (panel === null) {
-      console.log('Internal error: unable to find #wwtusercontrol!');
+      itrace('unable to find #wwtusercontrol!');
     } else {
       panel.style.display = 'block';
     }
@@ -3050,6 +3198,13 @@ var wwt = (function () {
     //
     setWWTStatePoll();
 
+    // Stop the spinner we started in initialize. This is just to trap
+    // the long wait between calling wwt_si.add_ready(wwtReadyFunc)
+    // and wwtReadyFunc being called. This will probably not work if
+    // the "re-initialization" logic is triggered, but I'm hoping this
+    // has been fixed upstream now, as I don't seem to see it anymore.
+    //
+    stopSpinner();
     trace('Finished wwtReadyFunc');
   }
 
@@ -3073,7 +3228,7 @@ var wwt = (function () {
       coords = stackid.slice(5, 19);
     } else {
       // just return an invalid position
-      console.log(`Error: invalid stackid=${stackid}`);
+      etrace(`Error: invalid stackid=${stackid}`);
       return [-100, -100];
     }
 
@@ -3112,9 +3267,30 @@ var wwt = (function () {
     processStackSelection(ra0, dec0);
   }
 
+  // trace messages: user ones (trace), warnings (wtrace), errors
+  // (etrace), and internal errors (itrace)
+  //
+  // The difference between wtrace, etrace, and itrace is rather
+  // arbitrary.
+  //
   var traceCounter = 1;
   function trace(msg) {
     console.log(`TRACE[${traceCounter}] ${msg}`);
+    traceCounter += 1;
+  }
+
+  function wtrace(msg) {
+    console.log(`WARNING[${traceCounter}] ${msg}`);
+    traceCounter += 1;
+  }
+
+  function etrace(msg) {
+    console.log(`ERROR[${traceCounter}] ${msg}`);
+    traceCounter += 1;
+  }
+
+  function itrace(msg) {
+    console.log(`INTERNAL ERROR[${traceCounter}] ${msg}`);
     traceCounter += 1;
   }
 
@@ -3197,7 +3373,7 @@ var wwt = (function () {
   //
   function addToolTipHandler(name, timeout) {
     if (name in tooltipTimers) {
-      console.log(`WARNING: multiple calls to addToolTipHandler ${name}`);
+      wtrace(`multiple calls to addToolTipHandler ${name}`);
       return;
     }
 
@@ -3208,14 +3384,14 @@ var wwt = (function () {
 
     const el = document.querySelector(`#${name}`);
     if (el === null) {
-      console.log(`Internal error [tooltip]: no element called "${name}"`);
+      itrace(`[tooltip]: no element called "${name}"`);
       return;
     }
 
     const tooltip = `${name}-tooltip`;
     const tt = document.querySelector(`#${tooltip}`);
     if (tt === null) {
-      console.log(`Internal error [tooltip]: no element called "${tooltip}"`);
+      itrace(`[tooltip]: no element called "${tooltip}"`);
       return;
     }
 
@@ -3279,7 +3455,7 @@ var wwt = (function () {
   function removeToolTipHandler(name, repflag) {
     if (typeof repflag === 'undefined') { repflag = true; }
     if (repflag && !(name in tooltipTimers)) {
-      console.log(`WARNING: removeToolTipHandler sent unknown ${name}`);
+      wtrace(`removeToolTipHandler sent unknown ${name}`);
       return;
     }
     clearToolTipTimer(name);
@@ -3297,10 +3473,15 @@ var wwt = (function () {
    */
   const stackExample =
     { stackid: 'acisfJ0618409m705956_001',
+      stacktype: "unchanged", /* CSC 2.1 */
       nobs: 4,
+      obis: ["13794_000","13795_000","14469_000","15541_000"],
+      names: ["GRB 120711A"],
       pos: decodeStackName('acisfJ0618409m705956_001'),
-      description: 'The stack contains 4 ACIS observations',
-      status: true};
+      description: 'The stack contains 4 ACIS observations.',
+      status: 1,
+      lastmod: 1653359578 /* CSC 2.1 */
+  };
 
   // '2CXO J061859.6-705831'
   const sourceExample =
@@ -3340,8 +3521,8 @@ var wwt = (function () {
   //      available when the code is first processed (I think).
   //
   function makeSourceSelectionExample() {
-    const csc20 = catalogProps.csc20;
-    const pos = csc20.getPos(sourceExample);
+    const csc = catalogProps.csc;
+    const pos = csc.getPos(sourceExample);
     return {
       annotations: [makeAnnotation(sourceExample, pos, null)]
     };
@@ -3510,60 +3691,40 @@ var wwt = (function () {
   function loadOutline21() {
     trace("Asked to load outline21 data");
 
-    var httpRequest = new XMLHttpRequest();
-    if (!httpRequest) {
-      console.log("ERROR: unable to download outline21 data.");
-      outlines21_new = null;
-      outlines21_updated = null;
+    outlines21_new = null;
+    outlines21_updated = null;
+
+    // As this islikely to change, ensure we add a cache-busting term
+    if (!download.getJSON('wwtdata/coverage.csc21-development.new.json' + cacheBuster(),
+			  (response) => {
+			      trace("-- downloaded outline (new) data");
+			      processOutline21Data(response);
+			      trace("-- added outline data (new)");
+			  },
+			  (flag) => {
+			      trace(`-- error downloading outline (new) data: flag=${flag}`);
+			      reportUpdateMessage("Unable to download CSC 2.1 outline data (new)");
+			  })) {
       return;
     }
 
-    var httpRequest2 = new XMLHttpRequest();
-    if (!httpRequest2) {
-      console.log("ERROR: unable to download outline21 data.");
-      outlines21_new = null;
-      outlines21_updated = null;
+    if (!download.getJSON('wwtdata/coverage.csc21-development.updated.json' + cacheBuster(),
+			  (response) => {
+			      trace("-- downloaded outline (updated) data");
+                              processOutline21DataUpdated(response);
+			      trace("-- added outline data (updated)");
+			  },
+			  (flag) => {
+			      trace(`-- error downloading outline (new) data: flag=${flag}`);
+			      reportUpdateMessage("Unable to download CSC 2.1 outline data (updated)");
+			  })) {
       return;
     }
-
-    httpRequest.addEventListener("load", function() {
-      trace("-- downloaded outline (new) data");
-      processOutline21Data(httpRequest.response);
-      trace("-- added outline data (new)");
-    });
-    httpRequest.addEventListener("error", function() {
-      trace("-- error downloading outline (new) data");
-      outlines21_new = null;
-    });
-
-    // As this islikely to change, ensure we add a cache-busting term
-    httpRequest.open('GET', 'wwtdata/coverage.csc21-development.new.json' + cacheBuster());
-    httpRequest.responseType = 'json';
-    httpRequest.send();
-
-    httpRequest2.addEventListener("load", function() {
-      trace("-- downloaded outline (updated) data");
-      processOutline21DataUpdated(httpRequest2.response);
-      trace("-- added outline data (updated)");
-    });
-    httpRequest2.addEventListener("error", function() {
-      trace("-- error downloading outline (updated) data");
-      outlines21_updated = null;
-    });
-
-    // As this islikely to change, ensure we add a cache-busting term
-    httpRequest2.open('GET', 'wwtdata/coverage.csc21-development.updated.json' + cacheBuster());
-    httpRequest2.responseType = 'json';
-    httpRequest2.send();
 
   }
 
-  // Pull out the ra/dec handling so that we don't stop parsing
-  // other elements in the query if one of these fails.
-  //
-  // There is some special-case handling for development work.
-  // No-one should rely on this behavior and there is no attempt
-  // to provide meaningful results.
+  // Locations can be handled by
+  //    ra=decimal&dec=decimal[&zoom=factor]
   //
   function handleQueryLocation(params) {
 
@@ -3576,39 +3737,68 @@ var wwt = (function () {
       request_outline21 = true;
     }
 
-    // zoom is only used if ra and dec are given, but is optional
+    // zoom is optional.
+    //
     const raStr = params.get('ra');
     const decStr = params.get('dec');
-    const zoomStr = params.get('zoom');
-    if ((raStr === null) || (decStr === null)) { return; }
+    if ((raStr === null) || (decStr === null)) {
+      trace("ra or dec not given: skipping user-location check");
+      return;
+    }
 
     const ra = Number(raStr);
     const dec = Number(decStr);
-    const zoom = Number(zoomStr === null ? '1.0' : zoomStr);
-
-    if (isNaN(ra) || isNaN(dec) || isNaN(zoom)) {
-      console.log(`Unable to convert ra=${raStr} dec=${decStr} zoom=${zoomStr} to a location`);
+    if (isNaN(ra) || isNaN(dec)) {
+      trace(`Unable to convert ra=${raStr} dec=${decStr} to a location`);
       return;
     }
 
     if ((ra < 0) || (ra >= 360)) {
-      console.log(`Invalid ra=${raStr} for location`);
+      trace(`Invalid ra=${raStr} for location`);
       return;
     }
 
     if ((dec < -90) || (dec > 90)) {
-      console.log(`Invalid dec=${decStr} for location`);
+      trace(`Invalid dec=${decStr} for location`);
       return;
     }
 
-    // Should we cap the zoom rather than throw out invalid values?
-    if ((zoom <= 0) || (zoom > 60)) {
-      console.log(`Invalid zoom=${zoomStr} for location`);
-      return;
+    const zoomStr = params.get('zoom');
+    let zoom;
+    if (zoomStr === null) {
+      zoom = restoreFOV();
+    } else {
+      zoom = Number(zoomStr === null ? '1.0' : zoomStr);
+      // Should we cap the zoom rather than throw out invalid values?
+      if (isNaN(zoom) || (zoom <= 0) || (zoom > 60)) {
+	trace(`Invalid zoom=${zoomStr} for location`);
+	return;
+      }
     }
 
     userLocation = {ra: ra, dec: dec, zoom: zoom};
     trace(` -> userLocation: ra=${userLocation.ra} dec=${userLocation.dec} zoom=${userLocation.zoom}`);
+  }
+
+  function handleQueryStackId(params) {
+
+    const stackIdStr = params.get('stackid');
+    if (stackIdStr === null) { return; }
+    trace(` -- stackid= [${stackIdStr}]`);
+
+    // How do we validate the stack name here? For now do
+    // some syntactic checks as I assume the stack data can not
+    // be guaranteed to exist at this point.
+    //
+    if (!(stackIdStr.startsWith("acisfJ") && stackIdStr.length == 24) &&
+	!(stackIdStr.startsWith("hrcfJ") && stackIdStr.length == 23) &&
+	!stackIdStr.endsWith("_001") &&
+	!stackIdStr.endsWith("_002")) {
+      trace(`Invalid stackid="${stackIdStr}"`);
+      return;
+    }
+
+    userStackId = stackIdStr;
   }
 
   // Has the user asked for certain behavior? I don't believe this
@@ -3657,6 +3847,7 @@ var wwt = (function () {
     // If we are using a book-marked location handle the settings.
     //
     handleQueryLocation(params);
+    handleQueryStackId(params);
 
     // Match against the values in the select widget, to ensure it
     // is a valid setting.
@@ -3675,11 +3866,150 @@ var wwt = (function () {
     }
   }
 
+  // Try to make "small" integers use "proper" names.
+  //
+  function intToStr(n) {
+    var num;
+    switch (n) {
+      case 1:
+        num = "one";
+        break;
+
+      case 2:
+        num = "two";
+        break;
+
+      case 3:
+        num = "three";
+        break;
+
+      case 4:
+        num = "four";
+        break;
+
+      case 5:
+        num = "five";
+        break;
+
+      case 6:
+        num = "six";
+        break;
+
+      case 7:
+        num = "seven";
+        break;
+
+      case 8:
+        num = "eight";
+        break;
+
+      case 9:
+        num = "nine";
+        break;
+
+      default:
+        num = `${n}`;
+    }
+
+    return num;
+  }
+
+  // Process the wwt<n>_stacks.json file. Note that the fields
+  // differ depending on the versionString.
+  //
+  function createStackData(json) {
+
+    inputStackData = {stacks: {}};
+
+    // Version 2.0 did not set this in the status file, but
+    // as we don't have a 2.0 status file we can hard-code it
+    // here.
+    //
+    if (isVersion20()) {
+        inputStackData.nsources = 315868;
+        inputStackData.nchunks = 8;
+    }
+
+    for (let stackid in json) {
+      var inst;
+      if (stackid.startsWith("hrcfJ")) {
+        inst = "HRC";
+      } else {
+        inst = "ACIS";
+      }
+
+      const stackData = json[stackid];
+      const obis = stackData.obsids;
+      const nobi = obis.length;
+      const num = intToStr(nobi);
+      let suffix = "s";
+      if (nobi === 1) { suffix = ""; }
+
+      var store = {
+        stackid: stackid,
+        pos: decodeStackName(stackid),
+        obis: obis,
+        names: stackData.names,
+        nobs: nobi,
+      };
+
+      var desc = `The stack contains ${num} ${inst} observation${suffix}.`;
+
+      if (isVersion21()) {
+        store.stacktype = stackData.stacktype;
+        store.new_obis = stackData.new_obsids;
+
+	if (stackData.stacktype === "new") {
+          desc = `The stack is new in CSC 2.1 and contains ${num} ${inst} observation${suffix}.`;
+        } else if (stackData.stacktype === "unchanged") {
+          desc = `The stack has not changed from CSC 2.0 and contains ${num} ${inst} observation${suffix}.`;
+	} else {
+          const nold = store.obis.length - store.new_obis.length;
+          var osuffix = "s";
+          if (nold === 1) {
+	    osuffix = "";
+          }
+	  const ostr = intToStr(nold);
+          desc += ` In CSC 2.0 it contained ${ostr} observation${osuffix}.`;
+        }
+      }
+
+      if (isVersion20()) {
+        // The status used to be false or true but it's now
+        //    0 - unprocessed / pending
+        //    1 - finished
+        //    2 - benig processed
+        // which is a bit of an odd system.
+        //
+        store.status = 1;
+      }
+
+      store.description = desc;
+
+      inputStackData.stacks[stackid] = store;
+    }
+
+    trace('created inputStackData');
+  }
+
+  var versionString = undefined;
+
+  function isVersion(ver) {
+    return versionString === ver;
+  }
+
+  function isVersion20() { return isVersion("2.0"); }
+  function isVersion21() { return isVersion("2.1"); }
+
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
   //
-  function initialize(obsdata) {
+  // The stackURLs argument is a dictinoary with keys matching
+  // the keys of stackVersionTable, and contains the data files used
+  // to download the data.
+  //
+  function initialize(version, stacksfile, statusfile, outlinefile, stackURLs) {
 
     const host = getHost();
     if (host === null) {
@@ -3697,9 +4027,70 @@ var wwt = (function () {
       if (welcome !== null) {
 	welcome.style.display = 'block';
       } else {
-	console.log('INTERNAL ERROR: no #welcome');
+	itrace('no #welcome');
       }
     }
+
+    // This is stopped in wwtReadyFunc; it's not ideal as
+    // re-initalization doesn't do this, but there's a relatively long
+    // initialization period that is otherwise "dead" where we want to
+    // let the user know something is going on.
+    //
+    startSpinner();
+
+    // It would be nice to send this information via callbacks, but
+    // some time we need them as "global" variables and in other cases
+    // using a callback would involve serious re-structuring of the
+    // code.
+    //
+    versionString = version;
+    outlineLocation = outlinefile;
+
+    // Set up catalog properties dependent on the version string.
+    //
+    // The downloadCatalogxxData routine could be made generic.
+    //
+    if (isVersion20()) {
+      catalogProps.csc = catalogProps.csc20;
+
+      toggleSources = makeToggleCatalog(catalogProps.csc,
+                                        downloadCatalog20Data,
+                                        showSources,
+                                        hideSources);
+    } else if (isVersion21()) {
+      catalogProps.csc = catalogProps.csc21;
+
+      toggleSources = makeToggleCatalog(catalogProps.csc,
+                                        downloadCatalog21Data,
+                                        showSources,
+                                        hideSources);
+    } else {
+      alert(`Unknown catalog version: {versionString}`);
+      return;
+    }
+
+    // These used to be const variables.
+    //
+    changeSourceSize = makeSizeUpdate(catalogProps.csc);
+
+    // Now we have the toggle-sources code we can set the onclick
+    // handler.
+    //
+    const toggle = document.querySelector("#togglesources");
+    if (toggle === null) {
+      alert("Internal error: unable to find the toggle-source button");
+      return;
+    }
+    toggle.addEventListener("click", toggleSources, false);
+
+    const size = document.querySelector("#sourcesize");
+    if (toggle === null) {
+      alert("Internal error: unable to find the source-size button");
+      return;
+    }
+    size.addEventListener("change", (event) => {
+      changeSourceSize(event.target.valueAsNumber);
+    }, false);
 
     // Pass in useful information to wwtsamp (even if later we turn
     // off support for SAMP).
@@ -3714,18 +4105,45 @@ var wwt = (function () {
     // At present this just changes the box size/height
     resize();
 
-    /* should have the stack "location" in the input file,
-       but for now re-create it */
-    for (let stack of obsdata.stacks) {
-      stack.pos = decodeStackName(stack.stackid);
+    // We can load the stack version tables, if needed.
+    //
+    for (const key in stackURLs) {
+      const url = stackURLs[key];
+      if (key in stackVersionTable) {
+        trace(` - downloading ${key} version info from ${url}`);
+        const f = makeDownloadData(url, null, null,
+                                   (d) => { stackVersionTable[key] = d; });
+        f();
+
+      } else {
+	etrace(`** unsupported key for stackURLs argument: ${key} - ${url}`);
+      }
     }
 
-    trace('recoded positions');
+    // TODO: need to be version specific
+    downloadEnsData();
 
-    inputStackData = obsdata;
+    // We don't care about the return value here.
+    //
+    download.getJSON(stacksfile,
+    		     (response) => {
+    		       createStackData(response);
+    		       continueInitalize(host, statusfile);
+    		     },
+    		     (flag) => {
+    		       alert('Unable to download the stack data for the CSC!');
+    		      });
+
+  }
+
+  // Continue processing once the basic stack data has been
+  // loaded.
+  //
+  function continueInitalize(host, statusfile) {
+
+    trace(' -- continueInitalize[start]');
 
     // Add in the example panes to the help page
-
     wwtprops.addSourceSelectionHelp(raExample, decExample, rExample,
 				    makeSourceSelectionExample());
     wwtprops.addStackInfoHelp(stackExample);
@@ -3803,7 +4221,7 @@ var wwt = (function () {
       trace('found full screen support');
       const container = host.querySelector('#fullscreenoption');
       if (container === null) {
-	console.log('ERROR: no #fullscreenoption found');
+	etrace('no #fullscreenoption found');
       } else {
 	container.style.display = 'block';
       }
@@ -3818,7 +4236,7 @@ var wwt = (function () {
     //
     const reset = host.querySelector('#resetdefaults');
     if (reset === null) {
-      console.log('ERROR: unable to find #resetdefaults');
+      etrace('unable to find #resetdefaults');
     } else {
       reset.addEventListener('click', () => { resetSettings(); }, false);
     }
@@ -3828,7 +4246,7 @@ var wwt = (function () {
     toggleInfo.forEach(o => {
       const el = host.querySelector(o.sel);
       if (el === null) {
-	console.log(`ERROR: unable to find toggle element ${o.sel}`);
+	etrace(`unable to find toggle element ${o.sel}`);
 	return;
       }
       if (el.tagName === 'SELECT') {
@@ -3855,38 +4273,31 @@ var wwt = (function () {
 
     addSetupBanner();
 
-    var req = new XMLHttpRequest();
-    if (!req) {
-      alert('Unable to create a XMLHttpRequest!');
+    // Do we need to bother with the status?
+    //
+    if (statusfile === null) {
+      trace('no status file to download');
+      wwt_si.add_ready(wwtReadyFunc);
+      trace(' - finished add_ready');
       return;
     }
-    req.addEventListener('load', () => {
-      trace(' - in load listener');
-      if (req.status === 200) {
-          const status = req.response;
-          updateCompletionInfo(status, obsdata);
-          trace(' - updatedCompletionInfo');
-          wwt_si.add_ready(wwtReadyFunc);
-          trace(' - finished add_ready');
-      } else {
-          trace(` - unable to download CSC status: ${req.status}`);
-          alert('Unable to download the status of the CSC!');
-      }
-    }, false);
-    req.addEventListener('error', () => {
-      alert('Unable to download the status of the CSC!');
-    }, false);
 
-    // Do I need to add a cache-busting identifier?
-    // During development I wanted to make sure there was no caching
-    // but this file is not currently being updated.
-    //
-    // req.open('GET', 'wwtdata/wwt20_status.json' + cacheBuster());
+    var url = statusfile + cacheBuster();
+    if (download.getJSON(url,
+    			 (response) => {
+                           updateCompletionInfo(response);
+                           trace(' - updatedCompletionInfo');
+                           wwt_si.add_ready(wwtReadyFunc);
+                           trace(' - finished add_ready');
+    			 },
+    			 (flag) => {
+                           alert('Unable to download the status of the CSC!');
+    			 })) {
+      return;
+    }
 
-    req.open('GET', 'wwtdata/wwt20_status.json');
-
-    req.responseType = 'json';
-    req.send();
+    // If this happens then it's not realy worth trying to fix
+    alert('Unable to create a XMLHttpRequest!');
   }
 
   function unload() {
@@ -4302,7 +4713,7 @@ var wwt = (function () {
     }
 
     if (spinnerCounter < 0) {
-      console.log('Internal error: spinner counter < 0');
+      itrace('spinner counter < 0');
       spinnerCounter = 0;
     }
     spinnerCounter += 1;
@@ -4324,7 +4735,7 @@ var wwt = (function () {
     }
 
     if (spinnerCounter <= 0) {
-      console.log('Internal error: spinner counter <= 0');
+      itrace('spinner counter <= 0');
       spinnerCounter = 0;
       return;
     }
@@ -4342,19 +4753,20 @@ var wwt = (function () {
   }
 
   function find2CXO(target) {
-    if (!catalogProps.csc20.loaded) {
-      reportLookupFailure('<p>The CSC 2.0 sources must be loaded ' +
+    const props = catalogProps.csc;
+    if (!props.loaded) {
+      reportLookupFailure(`<p>The ${props.label} sources must be loaded ` +
                           'before they can be used in a search.</p>');
       return true; // TODO: should probably return false here
     }
 
     const nameIdx = getCSCColIdx('name');
-    const matches = catalogProps.csc20.data.filter(d => d[nameIdx] === target);
+    const matches = props.data.filter(d => d[nameIdx] === target);
 
     // Take the first match if any (shouldn't be multiple matches)
     //
     if (matches.length > 0) {
-      const pos = catalogProps.csc20.getPos(matches[0]);
+      const pos = props.getPos(matches[0]);
       setPosition(pos.ra, pos.dec, target);
       reportLookupSuccess(`Moving to ${target}`);
       return true;
@@ -4483,7 +4895,7 @@ var wwt = (function () {
     // but we can also now rely on NED for when the data has not been
     // loaded.
     //
-    if (target.startsWith('2CXO J') && catalogProps.csc20.loaded) {
+    if (target.startsWith('2CXO J') && catalogProps.csc.loaded) {
       find2CXO(target);
       return;
     }
@@ -4524,9 +4936,9 @@ var wwt = (function () {
 
     // Maybe it's a stack name?
     //
-    const smatches = inputStackData.stacks.filter(d => d.stackid === target);
-    if (smatches.length > 0) {
-      setPosition(smatches[0].pos[0], smatches[0].pos[1], target);
+    const stack = inputStackData.stacks[target];
+    if (typeof stack !== 'undefined') {
+      setPosition(stack.pos[0], stack.pos[1], target);
       reportLookupSuccess(`Moving to stack ${target}`);
       return;
     }
@@ -4629,7 +5041,7 @@ var wwt = (function () {
   //
   function processCatalogData(chunks, ctr, json) {
     if (json === null) {
-      trace(`WARNING: unable to download catalog data ${ctr}`);
+      wtrace(`unable to download catalog data ${ctr}`);
       return;
     }
 
@@ -4653,7 +5065,7 @@ var wwt = (function () {
       return;
     }
 
-    const props = catalogProps.csc20;
+    const props = catalogProps.csc;
     if (props.data === null) {
       props.data = new Array(json.ntotal);
     }
@@ -4673,10 +5085,10 @@ var wwt = (function () {
 
     const nsrcs = props.data.length;
     if (nsrcs !== json.ntotal) {
-      console.log(`WARNING: CSC2.0 count expected ${json.ntotal} got ${nsrcs}`);
+      wtrace(`${props.label} count expected ${json.ntotal} got ${nsrcs}`);
     }
 
-    trace(`== CSC 2.0 contains ${nsrcs} sources`);
+    trace(`== ${props.label} contains ${nsrcs} sources`);
 
     // Report any missing sources
     //
@@ -4684,20 +5096,20 @@ var wwt = (function () {
       return a + typeof v === 'undefined' ? 1 : 0;
     }, 0);
     if (nmiss !== 0) {
-      console.log(`WARNING: there are ${nmiss} missing sources in CSC 2.0!`);
+      wtrace(`there are ${nmiss} missing sources in ${props.label}!`);
     }
 
     // Let the user know they can "show sources"
     //
     const el = document.querySelector('#togglesources');
-    el.innerHTML = 'Show CSC2.0 Sources';
+    el.innerHTML = `Show ${props.label} Sources`;
     el.disabled = false;
 
     showBlockElement('sourcecolor');
     document.querySelector('#togglesourceprops')
       .style.display = 'inline-block';
 
-    trace('Loaded CSC 2.0 data');
+    trace(`Loaded ${props.label} data`);
   }
 
   var ensData = null;
@@ -4760,7 +5172,7 @@ var wwt = (function () {
 
   function processXMMData(json) {
     if (json === null) {
-      console.log('WARNING: unable to download XMM catalog data');
+      wtrace('unable to download XMM catalog data');
 
       // leave as disabled
       document.querySelector('#toggleXMMsources')
@@ -4860,6 +5272,10 @@ var wwt = (function () {
     resize: resize,
     unload: unload,
 
+    COLOR_FINISHED: COLOR_FINISHED,
+    COLOR_PROCESSING: COLOR_PROCESSING,
+    COLOR_NOTDONE: COLOR_NOTDONE,
+
     searchNED: searchNED,
     searchSIMBAD: searchSIMBAD,
 
@@ -4880,11 +5296,17 @@ var wwt = (function () {
     removeToolTipHandler: removeToolTipHandler,
 
     processStackSelectionByName: processStackSelectionByName,
+    processStackSelectionByStack: processStackSelectionByStack,
     processSourceSelection: processSourceSelection,
 
     // debug/testing access below
     //
-    getWWTControl: function () { return wwt; },
+    getWWTControl: () => { return wwt; },
+
+    // NOte: we have two concepts of getVersion here
+    getVersion: () => { return versionString; },
+    isVersion20: isVersion20,
+    isVersion21: isVersion21,
 
     getCSCObject: getCSCObject,
 
@@ -4893,7 +5315,6 @@ var wwt = (function () {
 
     hideSources: hideSources,
     showSources: showSources,
-    toggleSources: toggleSources,
     toggleSources11: toggleSources11,
     toggleXMMSources: toggleXMMSources,
     toggleStacks: toggleStacks,
@@ -4945,6 +5366,17 @@ var wwt = (function () {
 
     clearState: clearState,
     switchSelectionMode: switchSelectionMode,
+
+    startSpinner: startSpinner,
+    stopSpinner: stopSpinner,
+    trace: trace,
+    etrace: etrace,
+    itrace: itrace,
+    wtrace: wtrace,
+
+    intToStr: intToStr,
+
+    inputStackData: () => { return inputStackData; },
 
     outlines21_new: () => { return outlines21_new; },
     outlines21_updated: () => { return outlines21_updated; },

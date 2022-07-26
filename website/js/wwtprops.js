@@ -1,19 +1,21 @@
 'use strict';
 
 /* global alert, CustomEvent */
-/* global stack_name_map, obi_map */
 /* global draggable */
 /* global wwt, wwtsamp, wwtplots */
 
 //
 // Display properties about a stack or a source.
 //
-// TODO: should have a package-local version of obi_map and
-//       stack_name_map, as stack_name_map is currently a
-//       global created by wwt_names.js and obi_map is
-//       from wwt_obis.js. This needs cleaning up.
-//
 const wwtprops = (function () {
+
+  // Argh: this is old code that I'm trying to resurrect.
+  //
+  const dayName = ["Sunday", "Monday", "Tuesday", "Wednesday",
+		   "Thursday", "Friday", "Saturday"];
+  const monthName = ["January", "February", "March", "April",
+		     "May", "June", "July", "August", "September",
+		     "October", "November", "December"];
 
   // Convert RA (in degrees) into hour, minutes, seconds. The
   // return value is an object.
@@ -443,6 +445,8 @@ const wwtprops = (function () {
   // download (and must match the value field of the opts array
   // below).
   //
+  // We do not add anything if there's no data to export.
+  //
   function addSendStackEvtFile(active, parent, stack, versionTable) {
     const clientListId = 'export-clientlist-stkevt';
     const mtype = 'image.load.fits';
@@ -499,8 +503,8 @@ const wwtprops = (function () {
       }
 
       els.button.addEventListener('click', (event) => {
-	console.log(`Chosen option: ${selected.choice}`);
-	console.log(`Chosen target: ${selected.target}`);
+	wwt.trace(`Chosen option: ${selected.choice}`);
+	wwt.trace(`Chosen target: ${selected.target}`);
 	let send = null;
 	if (selected.choice === 'stkevt3') {
 	  send = wwtsamp.sendStackEvt3;
@@ -518,7 +522,7 @@ const wwtprops = (function () {
 	  send(event, stack.stackid, versionTable[selected.choice],
 	       selected.target);
 	} else {
-	  console.log(`INTERNAL ERROR: unsupported option ${selected.choice}`);
+	  wwt.itrace(`unsupported option ${selected.choice}`);
 	}
 
       }, false);
@@ -547,7 +551,7 @@ const wwtprops = (function () {
 
     if (active) {
       els.button.addEventListener('click', (event) => {
-	console.log(`Chosen target: ${selected.target}`);
+	wwt.trace(`Chosen target: ${selected.target}`);
 	wwtsamp.sendSourcePropertiesName(event, selected.target, src.name);
       }, false);
     }
@@ -570,8 +574,12 @@ const wwtprops = (function () {
   // versionTable - fields with version numbers (or null)
   // active - boolean, if true then links and handlers are used
   //
+  // The text depends on the available data, which depends on the
+  // catalog version (2.0 vs 2.1).
+  //
   function addStackInfoContents(parent, stack, versionTable, active) {
 
+    parent.setAttribute('data-stackid', stack.stackid);
     const mainDiv = addControlElements(parent,
 				       `Stack: ${stack.stackid}`,
 				       wwt.clearNearestStack,
@@ -595,34 +603,29 @@ const wwtprops = (function () {
     //
     nDiv.appendChild(addLocation(stack.pos[0], stack.pos[1], active));
 
-    // Target name (if available)
+    // Target name
     //
-    // Note that a stack may be missing field names for technical
-    // reasons.
-    //
-    if (stack.stackid in stack_name_map) {
-      const tgtDiv = mkDiv('targetname');
-      mainDiv.appendChild(tgtDiv);
+    const tgtDiv = mkDiv('targetname');
+    mainDiv.appendChild(tgtDiv);
 
-      const names = stack_name_map[stack.stackid];
+    const names = stack.names;
 
-      if (names.length === 1) {
-	addText(tgtDiv, `Target name: ${names[0]} `);
-	addNEDNameLink(tgtDiv, names[0], active);
-	addText(tgtDiv, ' ');
-	addSIMBADNameLink(tgtDiv, names[0], active);
-      } else {
-	addText(tgtDiv, 'Target names: ');
-	let i;
-	for (i = 0; i < names.length; i++) {
-          if (i > 0) {
-	    addText(tgtDiv, ', ');
-	  }
-	  addText(tgtDiv, names[i] + ' ');
-	  addNEDNameLink(tgtDiv, names[i], active);
-	  addText(tgtDiv, ' ');
-	  addSIMBADNameLink(tgtDiv, names[i], active);
-	}
+    if (names.length === 1) {
+      addText(tgtDiv, `Target name: ${names[0]} `);
+      addNEDNameLink(tgtDiv, names[0], active);
+      addText(tgtDiv, ' ');
+      addSIMBADNameLink(tgtDiv, names[0], active);
+    } else {
+      addText(tgtDiv, 'Target names: ');
+      let i;
+      for (i = 0; i < names.length; i++) {
+        if (i > 0) {
+          addText(tgtDiv, ', ');
+        }
+        addText(tgtDiv, names[i] + ' ');
+        addNEDNameLink(tgtDiv, names[i], active);
+        addText(tgtDiv, ' ');
+        addSIMBADNameLink(tgtDiv, names[i], active);
       }
     }
 
@@ -631,38 +634,45 @@ const wwtprops = (function () {
     const descPara = document.createElement('p');
     descPara.setAttribute('class', 'description');
 
-    // No longer bother with information on when the
-    // stack was completed.
+    // Do we want to note the completed date?
+    // This also adds in the number of sources, which is currently only
+    // available to 2.1 data.
     //
-    /***
-	var desc = stack.description;
-	if (desc.endsWith('.')) {
-	desc = desc.substr(0, desc.length - 1);
-	}
-	desc += ' and ';
-	if (stack.status) {
-	// Do not need the exact time, just the day
-	var date = new Date(stack.lastmod * 1e3);
-	desc += 'processing was completed on '
-	+ dayName[date.getUTCDay()] + ', '
-	+ date.getUTCDate().toString() + ' '
-	+ monthName[date.getUTCMonth()] + ', '
-	+ date.getUTCFullYear().toString()
-	+ '.';
-	} else {
-	desc += 'has not been fully processed.';
-	}
+    var desc = stack.description;
+    if (wwt.isVersion21()) {
+      if (stack.status === 1) {
+        // Do not need the exact time, just the day
+        var date = new Date(stack.lastmod * 1e3);
+        desc += ' The stack was processed on '
+             + dayName[date.getUTCDay()] + ', '
+             + date.getUTCDate().toString() + ' '
+             + monthName[date.getUTCMonth()] + ', '
+             + date.getUTCFullYear().toString()
+             + '.';
 
-	addText(descPara, desc);
-    ***/
+	const nsrc = stack.nsource;
+        if (typeof nsrc !== 'undefined') {
+	    const num = wwt.intToStr(nsrc);
+	    let suffix = "s";
+	    if (nsrc === 1) { suffix = ""; }
 
-    addText(descPara, stack.description);
+	    desc += ` The stack contains ${num} source${suffix}.`;
+        }
+
+      } else if (stack.status === 2) {
+        desc += ' The stack is being processed.';
+      } else {
+        desc += ' The stack has not been fully processed.';
+      }
+    }
+
+    addText(descPara, desc);
 
     mainDiv.appendChild(descPara);
 
     // What obis are in this stack?
     //
-    const obis = obi_map[stack.stackid];
+    const obis = stack.obis;
     const nobis = obis.length;
 
     // Since hide the few multi-obi datasets (i.e. treat as a
@@ -694,6 +704,13 @@ const wwtprops = (function () {
 
     addText(seenDiv, ': ');
 
+    // Do we have CSC 2.1 "new obsids" data?
+    //
+    let new_obis = [];
+    if (typeof stack.new_obis !== "undefined") {
+        new_obis = stack.new_obis;
+    }
+
     const seen2 = Object.create(null);
     let first = true;
     for (i = 0; i < nobis; i++) {
@@ -719,6 +736,12 @@ const wwtprops = (function () {
 	addText(a, obsid.toString());
 	seenDiv.appendChild(a);
 
+        // If this is new in 2.1 note this
+        //
+        if (new_obis.indexOf(obis[i]) !== -1) {
+           addText(seenDiv, " [new]");
+        }
+
 	seen2[obsidstr] = 1;
       }
     }
@@ -730,7 +753,20 @@ const wwtprops = (function () {
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
     //
-    const bcol = stack.status ? 'gold' : 'grey';
+    let bcol;
+    switch (stack.status) {
+      case 1:
+        bcol = wwt.COLOR_FINISHED;
+        break;
+
+      case 2:
+        bcol = wwt.COLOR_PROCESSING;
+        break;
+
+      default:
+        bcol = wwt.COLOR_NOTDONE;
+    }
+
     parent.style.borderColor = bcol;
     parent.style.display = 'block';
   }
@@ -819,7 +855,7 @@ const wwtprops = (function () {
   function addStackInfoHelp(stack) {
     const parent = document.querySelector('#stackinfoexample');
     if (parent === null) {
-      console.log('Internal error: no #stackinfo found');
+      wwt.itrace('no #stackinfo found');
       return;
     }
 
@@ -836,7 +872,7 @@ const wwtprops = (function () {
   function clearElement(selector) {
     const el = document.querySelector(selector);
     if (el === null) {
-      console.log(`INTERNAL ERROR [clearElement]: unable to find ${selector}`);
+      wwt.itrace(`[clearElement]: unable to find ${selector}`);
       return null;
     }
     el.style.display = 'none';
@@ -1074,7 +1110,7 @@ const wwtprops = (function () {
     addText(a, 'caveats');
     warnPara.appendChild(a);
 
-    addText(warnPara, ' for source properties in CSC 2.0.');
+    addText(warnPara, ` for source properties in CSC ${wwt.getVersion()}.`);
     parent.appendChild(warnPara);
   }
 
@@ -1142,7 +1178,7 @@ const wwtprops = (function () {
   function addSourceInfoHelp(src) {
     const parent = document.querySelector('#sourceinfoexample');
     if (parent === null) {
-      console.log('Internal error: missing #sourceinfoexample');
+      wwt.itrace('missing #sourceinfoexample');
       return;
     }
     addSourceInfoContents(parent, src, false);
@@ -1237,7 +1273,7 @@ const wwtprops = (function () {
     const mtype = sel.getAttribute('data-clientlist-mtype');
     const unselected = sel.getAttribute('data-clientlist-unselected');
     if ((mtype === null) || (unselected === null)) {
-      console.log(`Internal error: not SAMP clientlist ${sel}`);
+      wwt.itrace(`not SAMP clientlist ${sel}`);
       return;
     }
 
@@ -1347,7 +1383,7 @@ const wwtprops = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to trigger change for SAMP client list ${sel.id}`);
+      wwt.itrace(`unable to trigger change for SAMP client list ${sel.id}`);
     }
 
   }
@@ -1388,8 +1424,8 @@ const wwtprops = (function () {
       }, false);
 
       els.button.addEventListener('click', (event) => {
-	console.log(`Chosen ADQL option: ${selected.choice}`);
-	console.log(`Chosen target: ${selected.target}`);
+	wwt.trace(`Chosen ADQL option: ${selected.choice}`);
+	wwt.trace(`Chosen target: ${selected.target}`);
 	wwtsamp.sendSourcePropertiesNear(event, ra0, dec0, rmax,
 					 selected.choice,
 					 selected.target);
@@ -1405,17 +1441,17 @@ const wwtprops = (function () {
   //
   function addSourceSelectionInfo(parent, ra0, dec0, rmax, catinfo, active) {
     if ((catinfo === null) || (catinfo.annotations === null)) {
-      console.log('INTERNAL ERROR: addSourceSelection sent catinfo[.annotations]=null');
+      wwt.itrace('addSourceSelection sent catinfo[.annotations]=null');
       return;
     }
     const nsrc = catinfo.annotations.length;
     if (nsrc < 1) {
-      console.log('INTERNAL ERROR: addSourceSelection sent empty srcs');
+      wwt.itrace('addSourceSelection sent empty srcs');
       return;
     }
 
     const mainDiv = addControlElements(parent,
-				       'CSC 2.0 sources',
+				       `${catinfo.label} sources`,
 				       wwt.hideSources,
 				       active);
 
@@ -1438,11 +1474,12 @@ const wwtprops = (function () {
     // TODO: number needs to be editable (for when the selection
     //       happens)
     //
-    const lbl = nsrc === 1 ?
-	  'You have selected one source' :
-	  `You have selected ${nsrc} sources`;
-    addText(p, lbl);
-    addText(p, ` within ${rlabel} of `);
+    const num = wwt.intToStr(nsrc);
+    let suffix = "s";
+    if (nsrc === 1) { suffix = ""; }
+
+    addText(p, `You have selected ${num} source${suffix} `);
+    addText(p, `within ${rlabel} of `);
     p.insertAdjacentHTML('beforeend', pos);
     addText(p, '.');
 
@@ -1486,7 +1523,7 @@ const wwtprops = (function () {
   function addSourceSelectionHelp(ra, dec, rmax, catinfo) {
     const parent = document.querySelector('#sourceselectionexample');
     if (parent === null) {
-      console.log('Internal error: missing #sourceselectionexample');
+      wwt.itrace('missing #sourceselectionexample');
       return;
     }
     addSourceSelectionInfo(parent, ra, dec, rmax, catinfo, false);
@@ -1823,7 +1860,7 @@ const wwtprops = (function () {
       sel.dispatchEvent(new CustomEvent('change'));
     }
     catch (e) {
-      console.log(`INTERNAL ERROR: unable to change selection mode: ${e}`);
+      wwt.itrace(`unable to change selection mode: ${e}`);
     }
 
   }
