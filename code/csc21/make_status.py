@@ -377,7 +377,9 @@ div.dt-buttons {
 def write_txt(processing, lmod_db, stack_count):
     """The text status page."""
 
-    status = stackdata.find_stack_status(Path("ian-2022-02-07"))
+    indir = Path("ian-2022-02-07")
+    status = stackdata.find_stack_status(indir)
+    all_obis = stackdata.find_stack_obis(indir)
     outfile = "stacks-2.1.txt"
 
     with open(outfile, "wt") as fh:
@@ -387,20 +389,22 @@ def write_txt(processing, lmod_db, stack_count):
 # stack-status indicates if the stack is new in CSC 2.1
 #   (new), has new observations relative to CSC 2.0
 #   (updated), or is the same as CSC 2.0 (unchanged).
+# num_obi is the number of observation intervals in the
+#   stack
 # processing-status indicates the state of the CSC 2.1
 #   processing and is one of completed, processing, or
 #   pending.
 # num_source is the number of sources in this stack, or
 #   0 if the stack is not completed.
 #
-# stack stack-status processing-status num_source date
+# stack num_obi stack-status processing-status num_source date
 """)
 
         for stack in processing:
             sdata = processing[stack]
             state = sdata["state"]
 
-            fh.write(f"{stack} {status[stack]} {state.lower()} ")
+            fh.write(f"{stack} {len(all_obis[stack])} {status[stack]} {state.lower()} ")
             if state == "Completed":
                 try:
                     fh.write(str(stack_count[stack]))
