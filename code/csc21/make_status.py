@@ -236,8 +236,30 @@ div.dt-buttons {
   </info>
 """)
 
+        nstack_total = 10034
+        nobi_total = 15533
+
+        nstack_processed = 0
+        nobi_processed = 0
+        for stack in processing:
+            sdata = processing[stack]
+            if sdata["state"] != "Completed":
+                continue
+
+            nstack_processed += 1
+            nobi_processed += len(all_obis[stack])
+
+        def make_pcen(current, total):
+            return f"{current * 100 / total:.1f}%"
+
+        nstack_processed_pcen = make_pcen(nstack_processed, nstack_total)
+        nobi_processed_pcen = make_pcen(nobi_processed, nobi_total)
+
         # We could set up new div blocks here but it's complicated as it requires <
         # character, so we rely on the existing styling.
+        #
+        # The data I have has 10034 stacks containing 15533 (obsid,obi)
+        # pairs and 15523 obsid values.
         #
         fh.write(f"""
   <text onload="let table = new DataTable('#csc21-status', {{
@@ -264,21 +286,20 @@ div.dt-buttons {
     </p>
 
     <p>
-      In the table below the <tt>Stack status</tt> column refers to
-      whether the stack is:
+      CSC 2.1 contains {nstack_total} <dictionary id="stack">stacks</dictionary>,
+      comprising of {nobi_total} <dictionary id="obi">observation intervals (OBI)</dictionary>.
+      There are {nstack_processed} stacks ({nstack_processed_pcen}),
+      containing {nobi_processed} observation intervals
+      ({nobi_processed_pcen}), that have been fully processed
+      in CSC 2.1.
     </p>
 
-    <dl>
-        <dt><tt>new</tt></dt>
-        <dd>New in CSC 2.1.</dd>
-
-        <dt><tt>updated</tt></dt>
-        <dd>Has extra observations compared to CSC 2.0.</dd>
-
-        <dt><tt>unchanged</tt></dt>
-        <dd>Has the same set of observations as CSC 2.0.</dd>
-
-    </dl>
+    <p>
+      In the table below the <tt>Stack status</tt> column refers to
+      whether the stack is <tt>new</tt> in CSC 2.1,
+      <tt>updated</tt> to have more observations than CSC 2.0,
+      or is <tt>unchanged</tt> from CSC 2.0.
+    </p>
 
     <table class="csctable" id="csc21-status">
       <caption id="tabular">
@@ -290,7 +311,7 @@ div.dt-buttons {
       <thead>
         <tr>
           <th>Stack</th>
-          <th>Number of observations</th>
+          <th>Number of OBIs</th>
           <th>Target(s)</th>
           <th>Stack status</th>
           <th>Processing status</th>
@@ -305,6 +326,10 @@ div.dt-buttons {
             sdata = processing[stack]
             state = sdata["state"]
 
+            # we report the number of obis even this array really
+            # contains obsids, but it will contain repeats for the
+            # few multi-obis we have.
+            #
             obis = [obi[0] for obi in all_obis[stack]]
             names = sorted(set([all_names[obi] for obi in obis]))
 
@@ -315,7 +340,7 @@ div.dt-buttons {
             fh.write("<tr><td>")
             fh.write(f"<cxclink target='_blank' href='../wwt21.html?stackid={stack}&amp;ra={ra:.5f}&amp;dec={dec:.5f}'>{stack}</cxclink>")
             fh.write("</td>")
-            fh.write(f"<td>{len(obis)}</td>")  # note: could use len(set(obis))
+            fh.write(f"<td>{len(obis)}</td>")
             fh.write(f"<td>{nstr}</td>")
             fh.write(f"<td>{status[stack]}</td>")
             fh.write(f"<td>{state}</td>")
@@ -352,7 +377,9 @@ div.dt-buttons {
 def write_txt(processing, lmod_db, stack_count):
     """The text status page."""
 
-    status = stackdata.find_stack_status(Path("ian-2022-02-07"))
+    indir = Path("ian-2022-02-07")
+    status = stackdata.find_stack_status(indir)
+    all_obis = stackdata.find_stack_obis(indir)
     outfile = "stacks-2.1.txt"
 
     with open(outfile, "wt") as fh:
@@ -362,20 +389,22 @@ def write_txt(processing, lmod_db, stack_count):
 # stack-status indicates if the stack is new in CSC 2.1
 #   (new), has new observations relative to CSC 2.0
 #   (updated), or is the same as CSC 2.0 (unchanged).
+# num_obi is the number of observation intervals in the
+#   stack
 # processing-status indicates the state of the CSC 2.1
 #   processing and is one of completed, processing, or
 #   pending.
 # num_source is the number of sources in this stack, or
 #   0 if the stack is not completed.
 #
-# stack stack-status processing-status num_source date
+# stack num_obi stack-status processing-status num_source date
 """)
 
         for stack in processing:
             sdata = processing[stack]
             state = sdata["state"]
 
-            fh.write(f"{stack} {status[stack]} {state.lower()} ")
+            fh.write(f"{stack} {len(all_obis[stack])} {status[stack]} {state.lower()} ")
             if state == "Completed":
                 try:
                     fh.write(str(stack_count[stack]))

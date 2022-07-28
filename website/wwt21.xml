@@ -130,7 +130,13 @@ main#content div.wrap {
 	<div>
 	  <p class='title warning-block'>
 	    <cxclink href="/csc2/">Chandra Source Catalog 2.1</cxclink>
-	    <br/><span id="csc21-warning-span">provisional</span> <!-- TODO: How best to point this out? -->
+	    <!-- *
+                 * TODO: How best to point this out?
+		 *
+		 * At the moment this gets replaced by the "last modified" date
+		 * before users should be able to see this text
+	         * -->
+	    <br/><span id="csc21-warning-span">provisional</span>
 	  </p>
 
 	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
@@ -440,10 +446,12 @@ main#content div.wrap {
 	<div class="pane-body">
 
 	  <p class="warning-block">
-	    This page provides access to the pre-release catalog. It is regularly
-	    updated with new data from the CSC 2.1 processing, but the results
-	    should not be relied on until the catalog has been fully processed
-	    and released.
+	    This page provides access to the pre-release catalog. It
+	    is regularly updated with <cxclink target="_blank"
+	    href="processing21/status.html">new data from the CSC 2.1
+	    processing</cxclink>, but the results should not be relied
+	    on until the catalog has been fully processed and
+	    released.
 	  </p>
 
 	  <p>
