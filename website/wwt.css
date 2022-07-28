@@ -13,6 +13,7 @@ h1 {
 .warning-block {
   background-color: rgba(240, 0, 0, 0.2);
   border: solid red 1px;
+  border-radius: 0.5em;
   margin: 1em;
   padding: 0.5em;
 }
