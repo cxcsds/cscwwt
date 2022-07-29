@@ -213,7 +213,12 @@ def write_xml(processing, lmod_db, stack_count):
 """)
 
         # As about to write CSS, and hence lots of { } pairs,
-        # easier to do not in a f-string
+        # easier to do not in a f-string.
+        #
+        # I tried updating the dt-button class to better match
+        # the CSC styling but there's too much to change and it
+        # doesn't feel worth it.
+        #
         fh.write("""
     <css>
 h1 { text-align: center; }
@@ -275,10 +280,10 @@ div.dt-buttons {
     <hr/>
 
     <p>
-      This page is periodically updated to reflect the current
+      This page is updated daily to reflect the current
       status of the CSC 2.1.
-      The list of stacks in CSC 2.1 and whether they have been
-      fully processed is available as the text file:
+      The list of stacks in CSC 2.1 and whether they have completed
+      processing is available as the text file:
       <cxclink class="filename" href="stacks-2.1.txt">stacks-2.1.txt</cxclink>.
       The catalog can also be viewed using the
       <cxclink href="../wwt21.html">WorldWide Telescope</cxclink>,
@@ -290,7 +295,7 @@ div.dt-buttons {
       comprising of {nobi_total} <dictionary id="obi">observation intervals (OBI)</dictionary>.
       There are {nstack_processed} stacks ({nstack_processed_pcen}),
       containing {nobi_processed} observation intervals
-      ({nobi_processed_pcen}), that have been fully processed
+      ({nobi_processed_pcen}), that have completed processing
       in CSC 2.1.
     </p>
 
