@@ -4001,6 +4001,29 @@ var wwt = (function () {
   function isVersion20() { return isVersion("2.0"); }
   function isVersion21() { return isVersion("2.1"); }
 
+  // See https://github.com/WorldWideTelescope/wwt-webgl-engine/issues/199
+  //
+  // Hopefully this can be removed quickly. It's not clear how prevalent
+  // this is (e.g. is it only firefox).
+  //
+  function trackWebGLcontext() {
+    trace("Setting the webglcontextlost handler");
+    const canvas = document.getElementById("WWTCanvas").children[0];
+    if (typeof canvas === "undefined") {
+      etrace("Unable to find canvas element in WWTCanvas");
+      return;
+    }
+
+    canvas.addEventListener("webglcontextlost", (e) => {
+      etrace("Web GL context has been lost");
+
+      const timeout = 5;
+      reportUpdateMessage("There was a problem with WebGL. Reloading the page.", timeout);
+
+      setTimeout(() => { window.location.reload(); }, timeout * 1000);
+    });
+  }
+
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
@@ -4271,6 +4294,7 @@ var wwt = (function () {
     const wwt_si = wwtlib.WWTControl.initControl('WWTCanvas');
     trace('...initialized wwtlib');
 
+    trackWebGLcontext();
     addSetupBanner();
 
     // Do we need to bother with the status?
