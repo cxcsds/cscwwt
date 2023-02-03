@@ -320,7 +320,7 @@ div.dt-buttons {
           <th>Target(s)</th>
           <th>Stack status</th>
           <th>Processing status</th>
-          <th>Number of sources</th>
+          <th>Number of detections</th>
           <th>Completed date</th>
         </tr>
       </thead>
@@ -399,10 +399,10 @@ def write_txt(processing, lmod_db, stack_count):
 # processing-status indicates the state of the CSC 2.1
 #   processing and is one of completed, processing, or
 #   pending.
-# num_source is the number of sources in this stack, or
+# num_det is the number of detections in this stack, or
 #   0 if the stack is not completed.
 #
-# stack num_obi stack-status processing-status num_source date
+# stack num_obi stack-status processing-status num_det date
 """)
 
         for stack in processing:
