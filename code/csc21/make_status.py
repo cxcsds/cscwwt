@@ -528,3 +528,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     doit(stackfile)
+    print("Completed make_status.py")

@@ -187,7 +187,9 @@ def find_stack_obis(indir):
             stackdata = read_changed(infile)
             n = len(stackdata)
 
-            stacks |= stackdata
+            # argh: we no-longer have a new-enough python (3.9)
+            # stacks |= stackdata
+            stacks.update(stackdata)
             if len(stacks) != (nstacks + n):
                 raise OSError(f"multiple stacks with {infile} ??")
 
