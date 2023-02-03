@@ -2,3 +2,9 @@
 node_modules/
 package-lock.json
 __pycache__
+
+# Explicit files we do not want to track
+code/csc21/stacks-2.1.txt
+code/csc21/status.xml
+code/csc21/wwt21_srcprop.*.json*
+code/csc21/wwt21_status.json
