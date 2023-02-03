@@ -691,7 +691,17 @@ var wwt = (function () {
 	   loaded: false, data: null,
 	   getPos: (d) => { return { ra: d[0], dec: d[1] }; },
 	   makeShape: makeXMMSource,
+           annotations: null },
+
+    efeds: { label: 'eFEDS', button: null,
+           sourcetype: 'Detections',
+           changeWidget: 'efedssourceprops',
+           color: 'yellow', size: 10.0 / 3600.0,
+	   loaded: false, data: null,
+	   getPos: (d) => { return { ra: d[0], dec: d[1] }; },
+	   makeShape: makeXMMSource,  // same data model as XMM
            annotations: null }
+
   };
 
   var nearestSource = [];
@@ -1643,6 +1653,11 @@ var wwt = (function () {
 					   'XMM catalog',
 					   processXMMData);
 
+  const downloadEFEDSData = makeDownloadData('wwtdata/efeds.json.gz',
+					     null,
+					     'eFEDS catalog',
+					     processEFEDSData);
+
   // Load in (asynchronously) the mapping between stack name and the
   // version number of the stack event file/sensitivity map
   // available in the archive.
@@ -1730,6 +1745,33 @@ var wwt = (function () {
       hideElement(props.changeWidget);
 
     };
+  }
+
+  // Display all the sources in the catalog, even if
+  // "off camera".
+  //
+  function showCatalog(props) {
+    if (!props.loaded) {
+      itrace(`showCatalog ${props.label} ` +
+             ' called when no data exists!');
+      return;
+    }
+
+    // If already shown, bail.
+    //
+    if (props.annotations !== null) {
+      itrace(`showCatalog ${props.label} already shown`);
+      return;
+    }
+
+    trace(`showCatalog adding ${props.data.length} items`);
+    props.data.forEach(d => {
+      const pos = props.getPos(d);
+      const shp = props.makeShape(props.color, props.size, d);
+      const ann = makeAnnotation(d, pos, shp);
+      ann.add();
+      return ann;
+    });
   }
 
   // properties is the element in catalogProps
@@ -5228,6 +5270,38 @@ var wwt = (function () {
     trace('Loaded XMM data');
   }
 
+  function processEFEDSData(json) {
+    if (json === null) {
+      wtrace('unable to download eFEDS catalog data');
+
+      // leave as disabled
+      // document.querySelector('#toggleEFEDSsources')
+      //   .innerHTML = 'Unable to load eFEDS catalog';
+      return;
+    }
+
+    trace('Processing eFEDS data');
+    trace(`Found ${json.length} eFEDS sources`);
+
+    const props = catalogProps.efeds;
+
+    props.data = json;
+    props.loaded = true;
+
+    // Let the user know they can "show eFEDS sources"
+    //
+    // const el = document.querySelector('#toggleEFEDSsources');
+    // el.innerHTML = `Show ${props.label} ${props.sourcetype}`;
+    // el.disabled = false;
+
+    // showBlockElement('efedssourcecolor');
+
+    // document.querySelector('#toggleefedssourceprops')
+    //   .style.display = 'inline-block';
+
+    trace('Loaded eFEDS data');
+  }
+
   // Search near the current location in NED in a new tab.
   //
   // rmax is in arcminutes
@@ -5404,7 +5478,11 @@ var wwt = (function () {
 
     outlines21_new: () => { return outlines21_new; },
     outlines21_updated: () => { return outlines21_updated; },
-    outlines21_annotations: () => { return outlines21_annotations; }
+    outlines21_annotations: () => { return outlines21_annotations; },
+
+    downloadEFEDSData: () => { return downloadEFEDSData; },
+    displayEFEDSData: () => { return showCatalog(catalogProps.efeds); }
+
   };
 
 })();
