@@ -1750,9 +1750,9 @@ var wwt = (function () {
   // Display all the sources in the catalog, even if
   // "off camera".
   //
-  function showCatalog(props) {
+  function showAllCatalog(props) {
     if (!props.loaded) {
-      itrace(`showCatalog ${props.label} ` +
+      itrace(`showAllCatalog ${props.label} ` +
              ' called when no data exists!');
       return;
     }
@@ -1760,11 +1760,11 @@ var wwt = (function () {
     // If already shown, bail.
     //
     if (props.annotations !== null) {
-      itrace(`showCatalog ${props.label} already shown`);
+      itrace(`showAllCatalog ${props.label} already shown`);
       return;
     }
 
-    trace(`showCatalog adding ${props.data.length} items`);
+    trace(`showAllCatalog adding ${props.data.length} items`);
     props.data.forEach(d => {
       const pos = props.getPos(d);
       const shp = props.makeShape(props.color, props.size, d);
@@ -5481,7 +5481,7 @@ var wwt = (function () {
     outlines21_annotations: () => { return outlines21_annotations; },
 
     downloadEFEDSData: () => { return downloadEFEDSData; },
-    displayEFEDSData: () => { return showCatalog(catalogProps.efeds); }
+    displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); }
 
   };
 
