@@ -75,6 +75,10 @@ var wwt = (function () {
   const keyKeypressFlag = "wwt-keypressflag";
   const keyMoveFlag = 'wwt-moveflag';
 
+  const keyCatalogColor = 'wwt-catalog-color';
+  const keyCatalogOpacity = 'wwt-catalog-opacity';
+  const keyCatalogSize = 'wwt-catalog-size';
+
   // Remove any user-stored values.
   //
   function clearState() {
@@ -83,7 +87,10 @@ var wwt = (function () {
 		  keyCoordinateGrid,
 		  keyCrosshairs, keyConstellations, keyBoundaries,
 		  keySAMP, keyWelcome,
-		  keyMilkyWay, keyClipboardFormat, keyMoveFlag, keyKeypressFlag];
+		  keyMilkyWay, keyClipboardFormat,
+		  keyMoveFlag, keyKeypressFlag,
+		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize
+		 ];
 
     keys.forEach(key => {
       trace(`-- clearing state for key=${key}`);
@@ -462,8 +469,8 @@ var wwt = (function () {
   // What opacity to use for filled circles for sources that
   // are not selected?
   //
-  // const sourceOpacity = 0.1;
-  const sourceOpacity = 0.25;
+  // var sourceOpacity = 0.1;
+  var sourceOpacity = 0.25;
 
   // The CSC2 data is returned as an array of values
   // which we used to convert to a Javascript object (ie
@@ -674,7 +681,7 @@ var wwt = (function () {
     csc21: { label: 'CSC2.1', button: '#togglesources',
              sourcetype: 'Sources',
              changeWidget: '#sourceprops',
-             color: 'cyan', size: 5.0 / 3600.0,
+             color: 'cyan', size: 5.0 / 3600.0, opacity: 0.25,
 	     loaded: false, data: null,
 	     getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
 	     makeShape: makeSource,
@@ -4216,12 +4223,40 @@ var wwt = (function () {
     }
     toggle.addEventListener("click", toggleSources, false);
 
+    // Are there user-saved values we need to support?
+    //
+    const nsize = getState(keyCatalogSize);
+    if (nsize !== null) {
+      trace(`restoring catalog 21 size to ${nsize} arcsec`);
+      catalogProps.csc21.size = toNumber(nsize) / 3600.0;  // assume this is not invalid
+      if (catalogProps.csc21.annotations !== null) {
+        etrace(`catalog size saved as ${nsize} but annotations already created`);
+      }
+    }
+
+    const nopacity = getState(keyCatalogOpacity);
+    if (nopacity !== null) {
+      trace(`restoring catalog 21 opacity to ${nopacity}`);
+      catalogProps.csc21.opacity = toNumber(nopacity);  // assume this is not invalid
+      if (catalogProps.csc21.annotations !== null) {
+        etrace(`catalog opacity saved as ${nopacity} but annotations already created`);
+      }
+    }
+
     const size = document.querySelector("#sourcesize");
     if (size === null) {
       alert("Internal error: unable to find the source-size button");
     } else {
+	// Change the value before we set up the onchange handler.
+	//
+	if (nsize !== null) {
+	    size.value = nsize;
+	}
+
 	size.addEventListener("change", (event) => {
-	    changeSourceSize(event.target.valueAsNumber);
+	    const nsize = event.target.valueAsNumber;
+	    changeSourceSize(nsize);
+	    saveState(keyCatalogSize, nsize);
 	}, false);
     }
 
@@ -4231,9 +4266,17 @@ var wwt = (function () {
     if (toggleOpacity === null) {
       alert("Internal error: unable to find the source-opacity button");
     } else {
+	// Change the value before we set up the onchange handler.
+	//
+	if (nopacity !== null) {
+	    toggleOpacity.value = nopacity;
+	    sourceOpacity = nopacity;
+	}
+
 	toggleOpacity.addEventListener("change", (event) => {
-	    console.log(`-- opacity = ${event.target.valueAsNumber}`);
-	    changeSourceOpacity(event.target.valueAsNumber / 100);
+	    const nopacity = event.target.valueAsNumber / 100;
+	    changeSourceOpacity(nopacity);
+	    saveState(keyCatalogOpacity, nopacity);
 	}, false);
     }
 
