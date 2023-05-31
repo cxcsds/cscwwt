@@ -261,10 +261,22 @@ main#content div.wrap {
 	    <button class="jscolor" id="sourcecolor"
 		    data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
 		    />
-            <!-- The onchange handler is set in wwt.js unlike other buttons -->
-	    <input type="range" id="sourcesize" min="1" max="30"
-		   value="5" class="sourcesize"
-		   />
+
+	    <div>
+	      <label for="sourcesize">Size</label>
+              <!-- The onchange handler is set in wwt.js unlike other buttons -->
+	      <input type="range" id="sourcesize" min="1" max="30"
+		     value="5" class="sourcesize"
+		     />
+	    </div>
+
+	    <div>
+	      <label for="sourceopacity">Opacity</label>
+	      <input type="range" id="sourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     />
+	    </div>
+
 	  </div>
 
 	  <!-- how to style CHS -->
@@ -325,10 +337,22 @@ main#content div.wrap {
 	    <button class="jscolor" id="xmmsourcecolor"
 		    data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
 		    />
-	    <input type="range" id="xmmsourcesize" min="1" max="30"
-		   value="10" class="sourcesize"
-		   onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
-		   />
+
+	    <div>
+	      <label for="xmmsourcesize">Size</label>
+	      <input type="range" id="xmmsourcesize" min="1" max="30"
+		     value="10" class="sourcesize"
+		     onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
+		     />
+	    </div>
+
+	    <div>
+	      <label for="xmmsourceopacity">Opacity</label>
+	      <input type="range" id="xmmsourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     onchange="wwt.changeXMMSourceOpacity(this.valueAsNumber / 100)"
+		     />
+	    </div>
 	  </div>
 
 	  <!-- moving into the settings

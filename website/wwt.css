@@ -593,6 +593,17 @@ option:disabled {
   width: 4em;
 }
 
+.sourceopacity {
+  margin-right: 0.5em;
+  width: 6em;
+}
+
+.sourceprops label {
+    font-variant: small-caps;
+    font-size: smaller;
+    margin-left: 1em;  /* hack to avoid working on spacing */
+}
+
 #wwtuserbuttons {
   display: flex;
   flex-direction: column;

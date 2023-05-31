@@ -456,8 +456,14 @@ var wwt = (function () {
   var startFOV = 5;
 
   // What color to draw the selected source
-  var selectedSourceColor = 'white';
-  var selectedSourceOpacity = 1.0;
+  const selectedSourceColor = 'white';
+  const selectedSourceOpacity = 1.0;
+
+  // What opacity to use for filled circles for sources that
+  // are not selected?
+  //
+  // const sourceOpacity = 0.1;
+  const sourceOpacity = 0.25;
 
   // The CSC2 data is returned as an array of values
   // which we used to convert to a Javascript object (ie
@@ -567,19 +573,21 @@ var wwt = (function () {
     //   '1:opacity:r:g:b'
     // where the values are decimal 0-255 values
     //
-    const col = cir.get_fillColor();
-    if (col[0] === '#') {
-      const r = parseInt(col.slice(1, 3), 26);
-      const g = parseInt(col.slice(3, 5), 26);
-      const b = parseInt(col.slice(5, 7), 26);
-      const o = Math.floor(opacity * 256);
-
-      const newcol = '1:' + o + ':' + r + ':' + g + ':' + b;
-      cir.set_fillColor(newcol);
-
-      // Store the value to make it easy to recover
-      cir.store_fillColor = newcol;
-    }
+    // As of end-of-March 2023 this appears to not be needed
+    //
+    // const col = cir.get_fillColor();
+    // if (col[0] === '#') {
+    //   const r = parseInt(col.slice(1, 3), 26);  SHOULD THIS HAVE BEEN 16 NOT 26?
+    //   const g = parseInt(col.slice(3, 5), 26);
+    //   const b = parseInt(col.slice(5, 7), 26);
+    //   const o = Math.floor(opacity * 256);
+    //
+    //   const newcol = '1:' + o + ':' + r + ':' + g + ':' + b;
+    //   cir.set_fillColor(newcol);
+    //
+    //   // Store the value to make it easy to recover
+    //   cir.store_fillColor = newcol;
+    // }
 
     return cir;
   }
@@ -604,7 +612,8 @@ var wwt = (function () {
     const fillColor = unprocessed ? 'grey' : 'white';
 
     const ann = makeCircle(src.ra, src.dec, size, 1,
-			   lineColor, fillColor, true, 0.1);
+			   lineColor, fillColor,
+			   true, sourceOpacity);
 
     // Note: add a label to indicate that this is unprocessed, so we know not to
     //       change the color later.
@@ -624,7 +633,8 @@ var wwt = (function () {
     }
 
     return makeCircle(src.ra, src.dec, size, 1,
-		      color, color, true, 0.1);
+		      color, color,
+		      true, sourceOpacity);
   }
 
   function makeXMMSource(color, size, src) {
@@ -637,7 +647,8 @@ var wwt = (function () {
     }
 
     return makeCircle(ra, dec, size, 1,
-                      color, color, true, 0.1);
+                      color, color,
+		      true, sourceOpacity);
   }
 
   // Store data about the supported catalogs.
@@ -1016,7 +1027,7 @@ var wwt = (function () {
   // (and, if not, do not change it)? For now use a label
   // to indicate it is unprocessed.
   //
-  // This is frmo CSC 2.0 days: not sure of the status of this
+  // This is from CSC 2.0 days: not sure of the status of this
   // now.
   //
   function colorUpdate(val) {
@@ -1073,12 +1084,64 @@ var wwt = (function () {
     };
   }
 
+  // Experiment with changing the opacity. Note that it appears
+  // that the opacity will get included into any alpha setting
+  // set with the color - see
+  // https://github.com/WorldWideTelescope/wwt-webgl-engine/pull/238
+  //
+  function makeOpacityUpdate(props) {
+    return (newOpacity) => {
+	if ((newOpacity < 0) || (newOpacity > 1)) {
+        etrace(`Invalid source opacity: [${newOpacity}]`);
+        return;
+      }
+
+      props.opacity = newOpacity;
+      if (props.annotations === null) { return; }
+
+      // I am not sure this will work, but it may be that
+      // we also need to change some other field to get the display
+      // to update
+      //
+      //props.annotations.forEach(d => d.ann.set_opacity(newOpacity));
+	props.annotations.forEach(d => {
+	    d.ann.set_opacity(newOpacity);
+	    d.ann.set_radius(d.ann.get_radius());  // try to get a redraw
+	});
+
+	// This is taken from an old suggestion by Peter Williams.
+	//
+	//
+	//props.annotations.forEach(d => {
+	//    const cir = d.ann;
+	//    const col = cir.get_fillColor();
+	//    if (col[0] === '#') {
+	//	const r = parseInt(col.slice(1, 3), 16);
+	//	const g = parseInt(col.slice(3, 5), 16);
+	//	const b = parseInt(col.slice(5, 7), 16);
+	//	const o = Math.floor(newOpacity * 256);
+        //
+	//	const newcol = '1:' + o + ':' + r + ':' + g + ':' + b;
+	//	cir.set_fillColor(newcol);
+        //
+	//	// Store the value to make it easy to recover
+	//	// cir.store_fillColor = newcol;
+	//    }
+	//});
+
+    };
+  }
+
   // Unfortunately we can't make changeSourceSize a const as
   // it depends on the catalog version.
   //
   var changeSourceSize = null;
   const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
+
+  // Experiment
+  var changeSourceOpacity = null;
+  const changeXMMSourceOpacity = makeOpacityUpdate(catalogProps.xmm);
 
   // Position the element at the location given in event (clientX/Y).
   // The default buffer is +5 in both X and Y, but if this takes the
@@ -2828,6 +2891,8 @@ var wwt = (function () {
     const current = {fov: src,
 		     reset: () => {
 		       src.set_lineColor(origLineColor);
+			 // As of end-of-March 2023 we should not need
+			 // to  be concerned with store_fillColor
 		       if (src.store_fillColor === undefined) {
 		         src.set_fillColor(origFillColor);
 		         src.set_opacity(origOpacity);
@@ -4138,6 +4203,9 @@ var wwt = (function () {
     //
     changeSourceSize = makeSizeUpdate(catalogProps.csc);
 
+    // Experiment
+    changeSourceOpacity = makeOpacityUpdate(catalogProps.csc);
+
     // Now we have the toggle-sources code we can set the onclick
     // handler.
     //
@@ -4149,13 +4217,25 @@ var wwt = (function () {
     toggle.addEventListener("click", toggleSources, false);
 
     const size = document.querySelector("#sourcesize");
-    if (toggle === null) {
+    if (size === null) {
       alert("Internal error: unable to find the source-size button");
-      return;
+    } else {
+	size.addEventListener("change", (event) => {
+	    changeSourceSize(event.target.valueAsNumber);
+	}, false);
     }
-    size.addEventListener("change", (event) => {
-      changeSourceSize(event.target.valueAsNumber);
-    }, false);
+
+    // Do we have a source opacity handler?
+    //
+    const toggleOpacity = document.querySelector("#sourceopacity");
+    if (toggleOpacity === null) {
+      alert("Internal error: unable to find the source-opacity button");
+    } else {
+	toggleOpacity.addEventListener("change", (event) => {
+	    console.log(`-- opacity = ${event.target.valueAsNumber}`);
+	    changeSourceOpacity(event.target.valueAsNumber / 100);
+	}, false);
+    }
 
     // Pass in useful information to wwtsamp (even if later we turn
     // off support for SAMP).
@@ -5451,9 +5531,13 @@ var wwt = (function () {
     colorUpdate11: colorUpdate11,
     xmmColorUpdate: xmmColorUpdate,
 
-    changeSourceSize: changeSourceSize,
+    getChangeSourceSize: () => changeSourceSize,
     changeSource11Size: changeSource11Size,
     changeXMMSourceSize: changeXMMSourceSize,
+    changeXMMSourceOpacity: changeXMMSourceOpacity,
+
+    // Experiment
+    getChangeSourceOpacity: () => changeSourceOpacity,
 
     strToRA: strToRA, strToDec: strToDec,
 
