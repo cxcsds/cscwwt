@@ -934,14 +934,14 @@ main#content div.wrap {
 	    "<span class="term">Load CSC2.0 Sources</span>",
 	    "<span class="term">Load CSC1.1 Sources</span>",
 	    or
-	    "<span class="term">Load 4XMM-DR11 Detections</span>"
+	    "<span class="term">Load 4XMM-DR12 Detections</span>"
 	    buttons - before they can be shown. Once the data
 	    has loaded the button will change its label.
 	    Selecting the
 	    "<span class="term">Show CSC2.0 Sources</span>",
 	    "<span class="term">Show CSC1.1 Sources</span>"
 	    or
-	    "<span class="term">Show 4XMM-DR11 Detections</span>"
+	    "<span class="term">Show 4XMM-DR12 Detections</span>"
 	    button will add circles, indicating the sources, close
 	    to the location on the screen (the full catalogs are
 	    <em>not</em> drawn as this would result in the display
@@ -958,7 +958,7 @@ main#content div.wrap {
 	    generally <em>significantly larger</em> than the positional
 	    error on the location, as they were chosen to
 	    make sure that the sources are visible!
-	    The XMM source locations are taken from the DR11 list
+	    The XMM source locations are taken from the DR12 list
 	    as described on the
 	    <cxclink href="#"
 		     onclick="wwt.showBlockElement('credits')"
@@ -1364,16 +1364,16 @@ main#content div.wrap {
 	  </p>
 	  <h3>Source catalogs</h3>
 	  <p>
-	    The <span class="term">4XMM-DR11</span>
+	    The <span class="term">4XMM-DR12</span>
 	    locations are taken from the
 	    <span class="term">RA</span>
 	    and
 	    <span class="term">DEC</span>
 	    columns of the
-	    <span class="filename">4XMM_DR11cat_v1.0.fits.gz</span>
+	    <span class="filename">4XMM_DR12cat_v1.0.fits.gz</span>
 	    downloaded from the
 	    <extlink target="_blank"
-		     href="http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR11/4XMM_DR11.html">4XMM-DR11</extlink>
+		     href="http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR12/4XMM_DR12.html">4XMM-DR12</extlink>
 	    catalog page, after applying the following filter:
 	    <!-- <span class="term">OBS_CLASS &lt; 3</span> and -->
 	    <span class="term">SUM_FLAG &lt; 3</span>.
