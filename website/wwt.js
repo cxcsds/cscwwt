@@ -1063,7 +1063,7 @@ var wwt = (function () {
 
 	const color = `#${val}`;
 	props.color = color;
-	saveState(keyCatalogColor, color);
+	saveState(props.keys.color, color);
 	if (props.annotations === null) { return; }
 	props.annotations.forEach(d => {
 	    const cir = d.ann;
@@ -1079,12 +1079,12 @@ var wwt = (function () {
     // set of annotations. properties is an object with color
     // and annotations fields.
     //
-    function makeColorUpdate(props, key) {
+    function makeColorUpdate(props) {
 	return (val) => {
 	    const color = `#${val}`;
 	    props.color = color;
-	    if (key !== null) {
-		saveState(key, color);
+	    if ((props.keys !== null) && (props.keys.color !== null)) {
+		saveState(props.keys.color, color);
 	    }
 
 	    if (props.annotations === null) { return; }
@@ -1097,13 +1097,13 @@ var wwt = (function () {
     }
 
   const colorUpdate11 = makeColorUpdate(catalogProps.csc11);
-  const xmmColorUpdate = makeColorUpdate(catalogProps.xmm, keyXMMCatalogColor);
+  const xmmColorUpdate = makeColorUpdate(catalogProps.xmm);
 
     // Return a function that updates the size of the given
     // set of annotations. properties is an object with size
     // and annotations fields.
     //
-    function makeSizeUpdate(props, key) {
+    function makeSizeUpdate(props) {
 	return (newSize) => {
 	    if (newSize <= 0) {
 		etrace(`Invalid source size: [${newSize}]`);
@@ -1112,8 +1112,8 @@ var wwt = (function () {
 
 	    const size = newSize * 1.0 / 3600.0;
 	    props.size = size;
-	    if (key !== null) {
-		saveState(key, newSize);
+	    if ((props.keys !== null) && (props.keys.size !== null)) {
+		saveState(props.keys.size, newSize);
 	    }
 	    if (props.annotations === null) { return; }
 	    props.annotations.forEach(d => d.ann.set_radius(size));
@@ -1125,7 +1125,7 @@ var wwt = (function () {
     // set with the color - see
     // https://github.com/WorldWideTelescope/wwt-webgl-engine/pull/238
     //
-    function makeOpacityUpdate(props, key) {
+    function makeOpacityUpdate(props) {
 	return (newOpacity) => {
 	    if ((newOpacity < 0) || (newOpacity > 1)) {
 		etrace(`Invalid source opacity: [${newOpacity}]`);
@@ -1133,8 +1133,8 @@ var wwt = (function () {
 	    }
 
 	    props.opacity = newOpacity;
-	    if (key !== null) {
-		saveState(key, newOpacity);
+	    if ((props.keys !== null) && (props.keys.opacity !== null)) {
+		saveState(props.keys.opacity, newOpacity);
 	    }
 	    if (props.annotations === null) { return; }
 
@@ -1176,11 +1176,11 @@ var wwt = (function () {
   //
   var changeSourceSize = null;
   const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
-  const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm, keyXMMCatalogSize);
+  const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
 
   // Experiment
   var changeSourceOpacity = null;
-  const changeXMMSourceOpacity = makeOpacityUpdate(catalogProps.xmm, keyXMMCatalogOpacity);
+  const changeXMMSourceOpacity = makeOpacityUpdate(catalogProps.xmm);
 
   // Position the element at the location given in event (clientX/Y).
   // The default buffer is +5 in both X and Y, but if this takes the
@@ -4302,10 +4302,10 @@ var wwt = (function () {
 
     // These used to be const variables.
     //
-    changeSourceSize = makeSizeUpdate(catalogProps.csc, keyCatalogSize);
+    changeSourceSize = makeSizeUpdate(catalogProps.csc);
 
     // Experiment
-    changeSourceOpacity = makeOpacityUpdate(catalogProps.csc, keyCatalogOpacity);
+    changeSourceOpacity = makeOpacityUpdate(catalogProps.csc);
 
     // Now we have the toggle-sources code we can set the onclick
     // handler.
