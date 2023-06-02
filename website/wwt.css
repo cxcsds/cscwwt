@@ -548,6 +548,7 @@ option:disabled {
 }
 
 .sourceprops {
+  align-items: center;
   background-color: rgba(255, 255, 255, 0.6);
   border: 1px solid #D9D9D9;
   border-radius: 0.5em;
@@ -591,6 +592,28 @@ option:disabled {
 .sourcesize {
   margin-right: 0.5em;
   width: 4em;
+}
+
+.sourceopacity {
+  margin-right: 0.5em;
+  width: 6em;
+}
+
+.sourceprops , .sourceitem button {
+    font-variant: small-caps;
+    font-size: smaller;
+}
+
+.sourceitem label {
+    text-align: center;
+}
+
+/* this isn't working to align the labels and widgets */
+.sourceitem {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
 }
 
 #wwtuserbuttons {

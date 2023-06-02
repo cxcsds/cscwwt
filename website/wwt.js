@@ -75,6 +75,13 @@ var wwt = (function () {
   const keyKeypressFlag = "wwt-keypressflag";
   const keyMoveFlag = 'wwt-moveflag';
 
+  const keyCatalogColor = 'wwt-catalog-color';
+  const keyCatalogOpacity = 'wwt-catalog-opacity';
+  const keyCatalogSize = 'wwt-catalog-size';
+  const keyXMMCatalogColor = 'wwt-xmm-catalog-color';
+  const keyXMMCatalogOpacity = 'wwt-xmm-catalog-opacity';
+  const keyXMMCatalogSize = 'wwt-xmm-catalog-size';
+
   // Remove any user-stored values.
   //
   function clearState() {
@@ -83,7 +90,11 @@ var wwt = (function () {
 		  keyCoordinateGrid,
 		  keyCrosshairs, keyConstellations, keyBoundaries,
 		  keySAMP, keyWelcome,
-		  keyMilkyWay, keyClipboardFormat, keyMoveFlag, keyKeypressFlag];
+		  keyMilkyWay, keyClipboardFormat,
+		  keyMoveFlag, keyKeypressFlag,
+		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize,
+		  keyXMMCatalogColor, keyXMMCatalogOpacity, keyXMMCatalogSize
+		 ];
 
     keys.forEach(key => {
       trace(`-- clearing state for key=${key}`);
@@ -456,8 +467,15 @@ var wwt = (function () {
   var startFOV = 5;
 
   // What color to draw the selected source
-  var selectedSourceColor = 'white';
-  var selectedSourceOpacity = 1.0;
+  const selectedSourceColor = 'white';
+  // const selectedSourceOpacity = 1.0;
+  const selectedSourceOpacity = 0.65;
+
+  // What opacity to use for filled circles for sources that
+  // are not selected?
+  //
+  // var sourceOpacity = 0.1;
+  var sourceOpacity = 0.25;
 
   // The CSC2 data is returned as an array of values
   // which we used to convert to a Javascript object (ie
@@ -567,19 +585,21 @@ var wwt = (function () {
     //   '1:opacity:r:g:b'
     // where the values are decimal 0-255 values
     //
-    const col = cir.get_fillColor();
-    if (col[0] === '#') {
-      const r = parseInt(col.slice(1, 3), 26);
-      const g = parseInt(col.slice(3, 5), 26);
-      const b = parseInt(col.slice(5, 7), 26);
-      const o = Math.floor(opacity * 256);
-
-      const newcol = '1:' + o + ':' + r + ':' + g + ':' + b;
-      cir.set_fillColor(newcol);
-
-      // Store the value to make it easy to recover
-      cir.store_fillColor = newcol;
-    }
+    // As of end-of-March 2023 this appears to not be needed
+    //
+    // const col = cir.get_fillColor();
+    // if (col[0] === '#') {
+    //   const r = parseInt(col.slice(1, 3), 26);  SHOULD THIS HAVE BEEN 16 NOT 26?
+    //   const g = parseInt(col.slice(3, 5), 26);
+    //   const b = parseInt(col.slice(5, 7), 26);
+    //   const o = Math.floor(opacity * 256);
+    //
+    //   const newcol = '1:' + o + ':' + r + ':' + g + ':' + b;
+    //   cir.set_fillColor(newcol);
+    //
+    //   // Store the value to make it easy to recover
+    //   cir.store_fillColor = newcol;
+    // }
 
     return cir;
   }
@@ -601,10 +621,12 @@ var wwt = (function () {
     const unprocessed = src.nh_gal === null;
 
     const lineColor = unprocessed ? 'grey' : color;
-    const fillColor = unprocessed ? 'grey' : 'white';
+    // const fillColor = unprocessed ? 'grey' : 'white';
+    const fillColor = lineColor;
 
     const ann = makeCircle(src.ra, src.dec, size, 1,
-			   lineColor, fillColor, true, 0.1);
+			   lineColor, fillColor,
+			   true, sourceOpacity);
 
     // Note: add a label to indicate that this is unprocessed, so we know not to
     //       change the color later.
@@ -624,7 +646,8 @@ var wwt = (function () {
     }
 
     return makeCircle(src.ra, src.dec, size, 1,
-		      color, color, true, 0.1);
+		      color, color,
+		      true, sourceOpacity);
   }
 
   function makeXMMSource(color, size, src) {
@@ -637,7 +660,8 @@ var wwt = (function () {
     }
 
     return makeCircle(ra, dec, size, 1,
-                      color, color, true, 0.1);
+                      color, color,
+		      true, sourceOpacity);
   }
 
   // Store data about the supported catalogs.
@@ -660,47 +684,58 @@ var wwt = (function () {
   // one of csc21 or csc20 is valid for this process.
   //
   const catalogProps = {
-    csc21: { label: 'CSC2.1', button: '#togglesources',
-             sourcetype: 'Sources',
-             changeWidget: '#sourceprops',
-             color: 'cyan', size: 5.0 / 3600.0,
+      csc21: { label: 'CSC2.1', button: '#togglesources',
+	       keys: {size: keyCatalogSize,
+		      color: keyCatalogColor,
+		      opacity: keyCatalogOpacity},
+               sourcetype: 'Sources',
+               changeWidget: '#sourceprops',
+               color: 'cyan', size: 5.0 / 3600.0, opacity: 0.25,
+	       loaded: false, data: null,
+	       getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	       makeShape: makeSource,
+               annotations: null },
+      csc20: { label: 'CSC2.0', button: '#togglesources',
+	       keys: {size: keyCatalogSize,
+		      color: keyCatalogColor,
+		      opacity: keyCatalogOpacity},
+               sourcetype: 'Sources',
+               changeWidget: '#sourceprops',
+               color: 'cyan', size: 5.0 / 3600.0, opacity: 0.25,
+	       loaded: false, data: null,
+	       getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	       makeShape: makeSource,
+               annotations: null },
+      csc11: { label: 'CSC1.1', button: '#togglesources11',
+	       keys: null,
+               sourcetype: 'Sources',
+               changeWidget: 'source11props',
+               color: 'orange', size: 7.0 / 3600.0, opacity: 0.25,
+	       loaded: false, data: null,
+	       getPos: (d) => { return { ra: d.ra, dec: d.dec }; },
+	       makeShape: makeSource11,
+               annotations: null },
+      xmm: { label: 'XMM', button: '#toggleXMMsources',
+	     keys: {size: keyXMMCatalogSize,
+		    color: keyXMMCatalogColor,
+		    opacity: keyXMMCatalogOpacity},
+             sourcetype: 'Detections',
+             changeWidget: 'xmmsourceprops',
+             color: 'green', size: 10.0 / 3600.0, opacity: 0.25,
 	     loaded: false, data: null,
-	     getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
-	     makeShape: makeSource,
+	     getPos: (d) => { return { ra: d[0], dec: d[1] }; },
+	     makeShape: makeXMMSource,
              annotations: null },
-    csc20: { label: 'CSC2.0', button: '#togglesources',
-             sourcetype: 'Sources',
-             changeWidget: '#sourceprops',
-             color: 'cyan', size: 5.0 / 3600.0,
-	     loaded: false, data: null,
-	     getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
-	     makeShape: makeSource,
-             annotations: null },
-    csc11: { label: 'CSC1.1', button: '#togglesources11',
-             sourcetype: 'Sources',
-             changeWidget: 'source11props',
-             color: 'orange', size: 7.0 / 3600.0,
-	     loaded: false, data: null,
-	     getPos: (d) => { return { ra: d.ra, dec: d.dec }; },
-	     makeShape: makeSource11,
-             annotations: null },
-    xmm: { label: 'XMM', button: '#toggleXMMsources',
-           sourcetype: 'Detections',
-           changeWidget: 'xmmsourceprops',
-           color: 'green', size: 10.0 / 3600.0,
-	   loaded: false, data: null,
-	   getPos: (d) => { return { ra: d[0], dec: d[1] }; },
-	   makeShape: makeXMMSource,
-           annotations: null },
 
-    efeds: { label: 'eFEDS', button: null,
-           sourcetype: 'Detections',
-           changeWidget: 'efedssourceprops',
-           color: 'yellow', size: 10.0 / 3600.0,
-	   loaded: false, data: null,
-	   getPos: (d) => { return { ra: d[0], dec: d[1] }; },
-	   makeShape: makeXMMSource,  // same data model as XMM
-           annotations: null }
+      efeds: { label: 'eFEDS', button: null,
+	       keys: null,
+               sourcetype: 'Detections',
+               changeWidget: 'efedssourceprops',
+               color: 'yellow', size: 10.0 / 3600.0,
+	       loaded: false, data: null,
+	       getPos: (d) => { return { ra: d[0], dec: d[1] }; },
+	       makeShape: makeXMMSource,  // same data model as XMM
+               annotations: null }
 
   };
 
@@ -1016,62 +1051,125 @@ var wwt = (function () {
   // (and, if not, do not change it)? For now use a label
   // to indicate it is unprocessed.
   //
-  // This is frmo CSC 2.0 days: not sure of the status of this
+  // This is from CSC 2.0 days: not sure of the status of this
   // now.
   //
-  function colorUpdate(val) {
-    const props = catalogProps.csc;
-
-    const color = `#${val}`;
-    props.color = color;
-    if (props.annotations === null) { return; }
-    props.annotations.forEach(d => {
-      const cir = d.ann;
-      var x = cir.get_label();
-      if (typeof x === 'undefined') {
-        cir.set_lineColor(color);
-        // cir.set_fillColor(color);
-      }
-    });
-  }
-
-  // Return a function that updates the color of the given
-  // set of annotations. properties is an object with color
-  // and annotations fields.
+  // This used to be different to makeColorUpdate, but as time
+  // has gone by they are moving closer together. The main change
+  // here is the check for the label
   //
-  function makeColorUpdate(props) {
-    return (val) => {
-      const color = `#${val}`;
-      props.color = color;
-      if (props.annotations === null) { return; }
-      props.annotations.forEach(d => {
-        const cir = d.ann;
-        cir.set_lineColor(color);
-        cir.set_fillColor(color);
-      });
-    };
-  }
+    function colorUpdate(val) {
+	const props = catalogProps.csc;
+
+	const color = `#${val}`;
+	props.color = color;
+	saveState(props.keys.color, color);
+	if (props.annotations === null) { return; }
+	props.annotations.forEach(d => {
+	    const cir = d.ann;
+	    var x = cir.get_label();
+	    if (typeof x === 'undefined') {
+		cir.set_lineColor(color);
+		cir.set_fillColor(color);
+	    }
+	});
+    }
+
+    // Return a function that updates the color of the given
+    // set of annotations. properties is an object with color
+    // and annotations fields.
+    //
+    function makeColorUpdate(props) {
+	return (val) => {
+	    const color = `#${val}`;
+	    props.color = color;
+	    if ((props.keys !== null) && (props.keys.color !== null)) {
+		saveState(props.keys.color, color);
+	    }
+
+	    if (props.annotations === null) { return; }
+	    props.annotations.forEach(d => {
+		const cir = d.ann;
+		cir.set_lineColor(color);
+		cir.set_fillColor(color);
+	    });
+	};
+    }
 
   const colorUpdate11 = makeColorUpdate(catalogProps.csc11);
   const xmmColorUpdate = makeColorUpdate(catalogProps.xmm);
 
-  // Return a function that updates the size of the given
-  // set of annotations. properties is an object with size
-  // and annotations fields.
-  //
-  function makeSizeUpdate(props) {
-    return (newSize) => {
-      if (newSize <= 0) {
-        etrace(`Invalid source size: [${newSize}]`);
-        return;
-      }
+    // Return a function that updates the size of the given
+    // set of annotations. properties is an object with size
+    // and annotations fields.
+    //
+    function makeSizeUpdate(props) {
+	return (newSize) => {
+	    if (newSize <= 0) {
+		etrace(`Invalid source size: [${newSize}]`);
+		return;
+	    }
 
-      const size = newSize * 1.0 / 3600.0;
-      props.size = size;
-      if (props.annotations === null) { return; }
-      props.annotations.forEach(d => d.ann.set_radius(size));
-    };
-  }
+	    const size = newSize * 1.0 / 3600.0;
+	    props.size = size;
+	    if ((props.keys !== null) && (props.keys.size !== null)) {
+		saveState(props.keys.size, newSize);
+	    }
+	    if (props.annotations === null) { return; }
+	    props.annotations.forEach(d => d.ann.set_radius(size));
+	};
+    }
+
+    // Experiment with changing the opacity. Note that it appears
+    // that the opacity will get included into any alpha setting
+    // set with the color - see
+    // https://github.com/WorldWideTelescope/wwt-webgl-engine/pull/238
+    //
+    function makeOpacityUpdate(props) {
+	return (newOpacity) => {
+	    if ((newOpacity < 0) || (newOpacity > 1)) {
+		etrace(`Invalid source opacity: [${newOpacity}]`);
+		return;
+	    }
+
+	    props.opacity = newOpacity;
+	    if ((props.keys !== null) && (props.keys.opacity !== null)) {
+		saveState(props.keys.opacity, newOpacity);
+	    }
+	    if (props.annotations === null) { return; }
+
+	    // I am not sure this will work, but it may be that
+	    // we also need to change some other field to get the display
+	    // to update
+	    //
+	    //props.annotations.forEach(d => d.ann.set_opacity(newOpacity));
+	    props.annotations.forEach(d => {
+		d.ann.set_opacity(newOpacity);
+		d.ann.set_radius(d.ann.get_radius());  // try to get a redraw
+	    });
+
+	    // This is taken from an old suggestion by Peter Williams.
+	    //
+	    //
+	    //props.annotations.forEach(d => {
+	    //    const cir = d.ann;
+	    //    const col = cir.get_fillColor();
+	    //    if (col[0] === '#') {
+	    //	const r = parseInt(col.slice(1, 3), 16);
+	    //	const g = parseInt(col.slice(3, 5), 16);
+	    //	const b = parseInt(col.slice(5, 7), 16);
+	    //	const o = Math.floor(newOpacity * 256);
+            //
+	    //	const newcol = '1:' + o + ':' + r + ':' + g + ':' + b;
+	    //	cir.set_fillColor(newcol);
+            //
+	    //	// Store the value to make it easy to recover
+	    //	// cir.store_fillColor = newcol;
+	    //    }
+	    //});
+
+	};
+    }
 
   // Unfortunately we can't make changeSourceSize a const as
   // it depends on the catalog version.
@@ -1079,6 +1177,10 @@ var wwt = (function () {
   var changeSourceSize = null;
   const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
+
+  // Experiment
+  var changeSourceOpacity = null;
+  const changeXMMSourceOpacity = makeOpacityUpdate(catalogProps.xmm);
 
   // Position the element at the location given in event (clientX/Y).
   // The default buffer is +5 in both X and Y, but if this takes the
@@ -1750,9 +1852,9 @@ var wwt = (function () {
   // Display all the sources in the catalog, even if
   // "off camera".
   //
-  function showCatalog(props) {
+  function showAllCatalog(props) {
     if (!props.loaded) {
-      itrace(`showCatalog ${props.label} ` +
+      itrace(`showAllCatalog ${props.label} ` +
              ' called when no data exists!');
       return;
     }
@@ -1760,11 +1862,11 @@ var wwt = (function () {
     // If already shown, bail.
     //
     if (props.annotations !== null) {
-      itrace(`showCatalog ${props.label} already shown`);
+      itrace(`showAllCatalog ${props.label} already shown`);
       return;
     }
 
-    trace(`showCatalog adding ${props.data.length} items`);
+    trace(`showAllCatalog adding ${props.data.length} items`);
     props.data.forEach(d => {
       const pos = props.getPos(d);
       const shp = props.makeShape(props.color, props.size, d);
@@ -2828,6 +2930,8 @@ var wwt = (function () {
     const current = {fov: src,
 		     reset: () => {
 		       src.set_lineColor(origLineColor);
+			 // As of end-of-March 2023 we should not need
+			 // to  be concerned with store_fillColor
 		       if (src.store_fillColor === undefined) {
 		         src.set_fillColor(origFillColor);
 		         src.set_opacity(origOpacity);
@@ -4066,6 +4170,113 @@ var wwt = (function () {
     });
   }
 
+    // Are there user-saved values we need to support?
+    //
+    function restoreCatalogSourceProperties(cat) {
+	const label = cat.label;
+	const keys = cat.keys;
+
+	if (keys === null) {
+	    etrace(`Internal error - no keys found for catalog ${label}`);
+	    return {keys: null, color: null, opacity: null};
+	}
+
+	const nsize = getState(keys.size);
+	if (nsize !== null) {
+	    trace(`restoring catalog ${label} size to ${nsize} arcsec`);
+	    cat.size = toNumber(nsize) / 3600.0;  // assume this is not invalid
+	}
+
+	const nopacity = getState(keys.opacity);
+	if (nopacity !== null) {
+	    trace(`restoring catalog ${label} opacity to ${nopacity}`);
+	    cat.opacity = toNumber(nopacity);  // assume this is not invalid
+	}
+
+	const ncolor = getState(keys.color);
+	if (ncolor !== null) {
+	    trace(`restoring catalog ${label} color to ${ncolor}`);
+	    cat.color = ncolor;
+	}
+
+	const out = {size: nsize, opacity: nopacity, color: ncolor};
+
+	// Note there's a problem so if it ever occurs we can worry about it.
+	if ((nsize === null) && (nopacity === null) && (ncolor === null)) { return out; }
+	if (cat.annotations === null) { return out; }
+	etrace(`catalog properties changed but annotations already created`);
+	return out;
+    }
+
+    // If the user has changed the default settings we need to adjust the
+    // widgets to match.
+    //
+    function processXMMCatalogChanges(nprops) {
+	const size = document.querySelector("#xmmsourcesize");
+	if ((size !== null) && (nprops.size !== null)) {
+	    size.value = nprops.size;
+	}
+
+	const opacity = document.querySelector("#xmmsourceopacity");
+	if ((opacity !== null) && (nprops.opacity !== null)) {
+	    opacity.value = 100 * nprops.opacity;
+	}
+
+	const color = document.querySelector("#xmmsourcecolor");
+	if ((color !== null) && (nprops.color !== null)) {
+	    color.jscolor.fromString(nprops.color);
+	}
+
+    }
+
+    // We want to reset the source properties: color, size, opacity
+    //
+    function resetCatalog() {
+
+	changeSourceSize(5);
+	changeSourceOpacity(0.25);
+	colorUpdate('cyan');
+
+	const size = document.querySelector("#sourcesize");
+	if (size !== null) { size.value = 5; }
+
+	const opacity = document.querySelector("#sourceopacity");
+	if (opacity !== null) { opacity.value = 25; }
+
+	const color = document.querySelector("#sourcecolor");
+	if (color !== null) { color.jscolor.fromString('#00ffff'); }
+
+	// Clear these keys after resetting everything
+	const cat = catalogProps.csc;
+	for (const key in cat.keys) {
+	    window.localStorage.removeItem(cat.keys[key]);
+	}
+    }
+    
+    function resetXMMCatalog() {
+
+	changeXMMSourceSize(10);
+	changeXMMSourceOpacity(0.25);
+	xmmColorUpdate('green');
+
+	const size = document.querySelector("#xmmsourcesize");
+	if (size !== null) { size.value = 10; }
+
+	const opacity = document.querySelector("#xmmsourceopacity");
+	if (opacity !== null) { opacity.value = 25; }
+
+	// unfortunately the color picker doesn't understand names,
+	// so use the hex version
+	const color = document.querySelector("#xmmsourcecolor");
+	if (color !== null) { color.jscolor.fromString('#008000'); }
+
+	// Clear these keys after resetting everything
+	const cat = catalogProps.xmm;
+	for (const key in cat.keys) {
+	    window.localStorage.removeItem(cat.keys[key]);
+	}
+    }
+    
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
@@ -4134,9 +4345,15 @@ var wwt = (function () {
       return;
     }
 
+      const nprops = restoreCatalogSourceProperties(catalogProps.csc);
+      const xmmnprops = restoreCatalogSourceProperties(catalogProps.xmm);
+
     // These used to be const variables.
     //
     changeSourceSize = makeSizeUpdate(catalogProps.csc);
+
+    // Experiment
+    changeSourceOpacity = makeOpacityUpdate(catalogProps.csc);
 
     // Now we have the toggle-sources code we can set the onclick
     // handler.
@@ -4148,14 +4365,50 @@ var wwt = (function () {
     }
     toggle.addEventListener("click", toggleSources, false);
 
+    // This should exist, but just in case
     const size = document.querySelector("#sourcesize");
-    if (toggle === null) {
-      alert("Internal error: unable to find the source-size button");
-      return;
+    if (size !== null) {
+	// Change the value before we set up the onchange handler.
+	//
+	if (nprops.size !== null) {
+	    size.value = nprops.size;
+	}
+
+	size.addEventListener("change", (event) => {
+	    const nsize = event.target.valueAsNumber;
+	    changeSourceSize(nsize);
+	}, false);
     }
-    size.addEventListener("change", (event) => {
-      changeSourceSize(event.target.valueAsNumber);
-    }, false);
+
+    // Do we have a source opacity handler? We may not, as it isn't
+    // currently in the CSC 2.0 page
+    //
+    const toggleOpacity = document.querySelector("#sourceopacity");
+    if (toggleOpacity !== null) {
+	// Change the value before we set up the onchange handler.
+	//
+	if (nprops.opacity !== null) {
+	    toggleOpacity.value = 100 * nprops.opacity;
+	    sourceOpacity = nprops.opacity;
+	}
+
+	toggleOpacity.addEventListener("change", (event) => {
+	    const nopacity = event.target.valueAsNumber / 100;
+	    changeSourceOpacity(nopacity);
+	}, false);
+    }
+
+    // Do we need to adjust the color handler?
+    //
+      const toggleColor = document.querySelector("#sourcecolor");
+      if ((nprops.color !== null) && (toggleColor !== null)) {
+	  if (toggleColor.jscolor !== null) {
+	      toggleColor.jscolor.fromString(nprops.color);
+	  }
+      }
+
+      // Need to handle the XMM catalog sizes
+      processXMMCatalogChanges(xmmnprops);
 
     // Pass in useful information to wwtsamp (even if later we turn
     // off support for SAMP).
@@ -5451,9 +5704,13 @@ var wwt = (function () {
     colorUpdate11: colorUpdate11,
     xmmColorUpdate: xmmColorUpdate,
 
-    changeSourceSize: changeSourceSize,
+    getChangeSourceSize: () => changeSourceSize,
     changeSource11Size: changeSource11Size,
     changeXMMSourceSize: changeXMMSourceSize,
+    changeXMMSourceOpacity: changeXMMSourceOpacity,
+
+    // Experiment
+    getChangeSourceOpacity: () => changeSourceOpacity,
 
     strToRA: strToRA, strToDec: strToDec,
 
@@ -5465,6 +5722,9 @@ var wwt = (function () {
     clearState: clearState,
     switchSelectionMode: switchSelectionMode,
 
+    resetCatalog: resetCatalog,
+    resetXMMCatalog: resetXMMCatalog,
+      
     startSpinner: startSpinner,
     stopSpinner: stopSpinner,
     trace: trace,
@@ -5481,7 +5741,7 @@ var wwt = (function () {
     outlines21_annotations: () => { return outlines21_annotations; },
 
     downloadEFEDSData: () => { return downloadEFEDSData; },
-    displayEFEDSData: () => { return showCatalog(catalogProps.efeds); }
+    displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); }
 
   };
 

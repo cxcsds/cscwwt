@@ -258,13 +258,33 @@ main#content div.wrap {
 	  </div>
 
 	  <div class="sourceprops" id="sourceprops">
-	    <button class="jscolor" id="sourcecolor"
-		    data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
-		    />
-            <!-- The onchange handler is set in wwt.js unlike other buttons -->
-	    <input type="range" id="sourcesize" min="1" max="30"
-		   value="5" class="sourcesize"
-		   />
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Color</label>
+	      <button class="jscolor" id="sourcecolor"
+		      data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="sourcesize">Size</label>
+              <!-- The onchange handler is set in wwt.js unlike other buttons -->
+	      <input type="range" id="sourcesize" min="1" max="30"
+		     value="5" class="sourcesize"
+		     />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="sourceopacity">Opacity</label>
+	      <input type="range" id="sourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     />
+	    </div>
+
+	    <div class="sourceitem">
+	      <button type="reset" id="sourcereset"
+		      onclick="wwt.resetCatalog()">Reset</button>
+	    </div>
+
 	  </div>
 
 	  <!-- how to style CHS -->
@@ -322,13 +342,34 @@ main#content div.wrap {
 	  </div>
 
 	  <div class="sourceprops" id="xmmsourceprops">
-	    <button class="jscolor" id="xmmsourcecolor"
-		    data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
-		    />
-	    <input type="range" id="xmmsourcesize" min="1" max="30"
-		   value="10" class="sourcesize"
-		   onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
-		   />
+	    <div class="sourceitem">
+	      <label for="xmmsourcecolor">Color</label>
+	      <button class="jscolor" id="xmmsourcecolor"
+		      data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="xmmsourcesize">Size</label>
+	      <input type="range" id="xmmsourcesize" min="1" max="30"
+		     value="10" class="sourcesize"
+		     onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
+		     />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="xmmsourceopacity">Opacity</label>
+	      <input type="range" id="xmmsourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     onchange="wwt.changeXMMSourceOpacity(this.valueAsNumber / 100)"
+		     />
+	    </div>
+	    
+	    <div class="sourceitem">
+	      <button type="reset" id="xmmsourcereset"
+		      onclick="wwt.resetXMMCatalog()">Reset</button>
+	    </div>
+
 	  </div>
 
 	  <!-- moving into the settings
@@ -722,8 +763,8 @@ main#content div.wrap {
 	    <dd>
 	      <p>
 		This icon will appear once the source information has
-		been loaded, and allows you to change the color and
-		size of the circles used to mark the source locations.
+		been loaded, and allows you to change the color, size,
+		and opacity of the circles used to mark the source locations.
 		Selecting the icon a second time will hide the
 		source-property controls:
 	      </p>
@@ -741,6 +782,13 @@ main#content div.wrap {
 		    Source size:
 		    <input type="range" class="sourcesize" min="1" max="30"
 			   value="5"/>
+		  </p>
+		</li>
+		<li>
+		  <p>
+		    Source opacity:
+		    <input type="range" class="sourceopacity" min="0" max="100"
+			   value="25"/>
 		  </p>
 		</li>
 	      </list>
@@ -943,13 +991,13 @@ main#content div.wrap {
 	    source catalogs must be loaded - using the
 	    "<span class="term">Load CSC2.1 Sources</span>"
 	    or
-	    "<span class="term">Load 4XMM-DR11 Detections</span>"
+	    "<span class="term">Load 4XMM-DR12 Detections</span>"
 	    buttons - before they can be shown. Once the data
 	    has loaded the button will change its label.
 	    Selecting the
 	    "<span class="term">Show CSC2.1 Sources</span>"
 	    or
-	    "<span class="term">Show 4XMM-DR11 Detections</span>"
+	    "<span class="term">Show 4XMM-DR12 Detections</span>"
 	    button will add circles, indicating the sources, close
 	    to the location on the screen (the full catalogs are
 	    <em>not</em> drawn as this would result in the display
@@ -965,7 +1013,7 @@ main#content div.wrap {
 	    generally <em>significantly larger</em> than the positional
 	    error on the location, as they were chosen to
 	    make sure that the sources are visible!
-	    The XMM source locations are taken from the DR11 list
+	    The XMM source locations are taken from the DR12 list
 	    as described on the
 	    <cxclink href="#"
 		     onclick="wwt.showBlockElement('credits')"
@@ -1371,16 +1419,16 @@ main#content div.wrap {
 	  </p>
 	  <h3>Source catalogs</h3>
 	  <p>
-	    The <span class="term">4XMM-DR11</span>
+	    The <span class="term">4XMM-DR12</span>
 	    locations are taken from the
 	    <span class="term">RA</span>
 	    and
 	    <span class="term">DEC</span>
 	    columns of the
-	    <span class="filename">4XMM_DR11cat_v1.0.fits.gz</span>
+	    <span class="filename">4XMM_DR12cat_v1.0.fits.gz</span>
 	    downloaded from the
 	    <extlink target="_blank"
-		     href="http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR11/4XMM_DR11.html">4XMM-DR11</extlink>
+		     href="http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR12/4XMM_DR12.html">4XMM-DR12</extlink>
 	    catalog page, after applying the following filter:
 	    <!-- <span class="term">OBS_CLASS &lt; 3</span> and -->
 	    <span class="term">SUM_FLAG &lt; 3</span>.
