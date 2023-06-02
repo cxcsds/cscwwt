@@ -92,7 +92,7 @@ var wwt = (function () {
 		  keySAMP, keyWelcome,
 		  keyMilkyWay, keyClipboardFormat,
 		  keyMoveFlag, keyKeypressFlag,
-		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize.
+		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize,
 		  keyXMMCatalogColor, keyXMMCatalogOpacity, keyXMMCatalogSize
 		 ];
 
