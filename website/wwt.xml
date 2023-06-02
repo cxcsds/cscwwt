@@ -256,13 +256,20 @@ main#content div.wrap {
 	  </div>
 
 	  <div class="sourceprops" id="sourceprops">
-	    <button class="jscolor" id="sourcecolor"
-		    data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
-		    />
-            <!-- The onchange handler is set in wwt.js unlike other buttons -->
-	    <input type="range" id="sourcesize" min="1" max="30"
-		   value="5" class="sourcesize"
-		   />
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Color</label>
+	      <button class="jscolor" id="sourcecolor"
+		      data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Size</label>
+              <!-- The onchange handler is set in wwt.js unlike other buttons -->
+	      <input type="range" id="sourcesize" min="1" max="30"
+		     value="5" class="sourcesize"
+		     />
+	    </div>
 	  </div>
 
 	  <!-- how to style CHS -->
@@ -297,13 +304,20 @@ main#content div.wrap {
 	  </div>
 
 	  <div class="sourceprops" id="source11props">
-	    <button class="jscolor" id="source11color"
-		    data-jscolor="{onFineChange:'wwt.colorUpdate11(this)',valueElement:null,closable:true,value:'ffa500'}"
-		    />
-	    <input type="range" id="source11size" min="1" max="30"
-		   value="7" class="sourcesize"
-		   onchange="wwt.changeSource11Size(this.valueAsNumber)"
-		   />
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Color</label>
+	      <button class="jscolor" id="source11color"
+		      data-jscolor="{onFineChange:'wwt.colorUpdate11(this)',valueElement:null,closable:true,value:'ffa500'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Size</label>
+	      <input type="range" id="source11size" min="1" max="30"
+		     value="7" class="sourcesize"
+		     onchange="wwt.changeSource11Size(this.valueAsNumber)"
+		     />
+	    </div>
 	  </div>
 
 	  <div id="xmmsourcebar">
@@ -324,13 +338,20 @@ main#content div.wrap {
 	  </div>
 
 	  <div class="sourceprops" id="xmmsourceprops">
-	    <button class="jscolor" id="xmmsourcecolor"
-		    data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
-		    />
-	    <input type="range" id="xmmsourcesize" min="1" max="30"
-		   value="10" class="sourcesize"
-		   onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
-		   />
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Color</label>
+	      <button class="jscolor" id="xmmsourcecolor"
+		      data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Size</label>
+	      <input type="range" id="xmmsourcesize" min="1" max="30"
+		     value="10" class="sourcesize"
+		     onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
+		     />
+	    </div>
 	  </div>
 
 	  <!-- moving into the settings

@@ -258,11 +258,14 @@ main#content div.wrap {
 	  </div>
 
 	  <div class="sourceprops" id="sourceprops">
-	    <button class="jscolor" id="sourcecolor"
-		    data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
-		    />
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Color</label>
+	      <button class="jscolor" id="sourcecolor"
+		      data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
+		      />
+	    </div>
 
-	    <div>
+	    <div class="sourceitem">
 	      <label for="sourcesize">Size</label>
               <!-- The onchange handler is set in wwt.js unlike other buttons -->
 	      <input type="range" id="sourcesize" min="1" max="30"
@@ -270,7 +273,7 @@ main#content div.wrap {
 		     />
 	    </div>
 
-	    <div>
+	    <div class="sourceitem">
 	      <label for="sourceopacity">Opacity</label>
 	      <input type="range" id="sourceopacity" min="0" max="100"
 		     value="25" class="sourceopacity"
@@ -334,11 +337,14 @@ main#content div.wrap {
 	  </div>
 
 	  <div class="sourceprops" id="xmmsourceprops">
-	    <button class="jscolor" id="xmmsourcecolor"
-		    data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
-		    />
+	    <div class="sourceitem">
+	      <label for="xmmsourcecolor">Color</label>
+	      <button class="jscolor" id="xmmsourcecolor"
+		      data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
+		      />
+	    </div>
 
-	    <div>
+	    <div class="sourceitem">
 	      <label for="xmmsourcesize">Size</label>
 	      <input type="range" id="xmmsourcesize" min="1" max="30"
 		     value="10" class="sourcesize"
@@ -346,7 +352,7 @@ main#content div.wrap {
 		     />
 	    </div>
 
-	    <div>
+	    <div class="sourceitem">
 	      <label for="xmmsourceopacity">Opacity</label>
 	      <input type="range" id="xmmsourceopacity" min="0" max="100"
 		     value="25" class="sourceopacity"
