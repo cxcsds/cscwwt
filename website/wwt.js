@@ -4229,6 +4229,54 @@ var wwt = (function () {
 
     }
 
+    // We want to reset the source properties: color, size, opacity
+    //
+    function resetCatalog() {
+
+	changeSourceSize(5);
+	changeSourceOpacity(0.25);
+	colorUpdate('cyan');
+
+	const size = document.querySelector("#sourcesize");
+	if (size !== null) { size.value = 5; }
+
+	const opacity = document.querySelector("#sourceopacity");
+	if (opacity !== null) { opacity.value = 25; }
+
+	const color = document.querySelector("#sourcecolor");
+	if (color !== null) { color.jscolor.fromString('#00ffff'); }
+
+	// Clear these keys after resetting everything
+	const cat = catalogProps.csc;
+	for (const key in cat.keys) {
+	    window.localStorage.removeItem(cat.keys[key]);
+	}
+    }
+    
+    function resetXMMCatalog() {
+
+	changeXMMSourceSize(10);
+	changeXMMSourceOpacity(0.25);
+	xmmColorUpdate('green');
+
+	const size = document.querySelector("#xmmsourcesize");
+	if (size !== null) { size.value = 10; }
+
+	const opacity = document.querySelector("#xmmsourceopacity");
+	if (opacity !== null) { opacity.value = 25; }
+
+	// unfortunately the color picker doesn't understand names,
+	// so use the hex version
+	const color = document.querySelector("#xmmsourcecolor");
+	if (color !== null) { color.jscolor.fromString('#008000'); }
+
+	// Clear these keys after resetting everything
+	const cat = catalogProps.xmm;
+	for (const key in cat.keys) {
+	    window.localStorage.removeItem(cat.keys[key]);
+	}
+    }
+    
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
@@ -5674,6 +5722,9 @@ var wwt = (function () {
     clearState: clearState,
     switchSelectionMode: switchSelectionMode,
 
+    resetCatalog: resetCatalog,
+    resetXMMCatalog: resetXMMCatalog,
+      
     startSpinner: startSpinner,
     stopSpinner: stopSpinner,
     trace: trace,

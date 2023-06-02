@@ -733,8 +733,9 @@ main#content div.wrap {
 	    <dd>
 	      <p>
 		This icon will appear once the source information has
-		been loaded, and allows you to change the color and
-		size of the circles used to mark the source locations.
+		been loaded, and allows you to change the color and size
+		<!-- note no opacity support as yet -->
+		of the circles used to mark the source locations.
 		Selecting the icon a second time will hide the
 		source-property controls:
 	      </p>
@@ -754,6 +755,15 @@ main#content div.wrap {
 			   value="5"/>
 		  </p>
 		</li>
+		<!--
+		<li>
+		  <p>
+		    Source opacity (for some catalogs):
+		    <input type="range" class="sourceopacity" min="0" max="100"
+			   value="25"/>
+		  </p>
+		</li>
+		-->
 	      </list>
 	    </dd>
 

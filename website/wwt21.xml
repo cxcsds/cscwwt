@@ -280,6 +280,11 @@ main#content div.wrap {
 		     />
 	    </div>
 
+	    <div class="sourceitem">
+	      <button type="reset" id="sourcereset"
+		      onclick="wwt.resetCatalog()">Reset</button>
+	    </div>
+
 	  </div>
 
 	  <!-- how to style CHS -->
@@ -359,6 +364,12 @@ main#content div.wrap {
 		     onchange="wwt.changeXMMSourceOpacity(this.valueAsNumber / 100)"
 		     />
 	    </div>
+	    
+	    <div class="sourceitem">
+	      <button type="reset" id="xmmsourcereset"
+		      onclick="wwt.resetXMMCatalog()">Reset</button>
+	    </div>
+
 	  </div>
 
 	  <!-- moving into the settings
@@ -752,8 +763,8 @@ main#content div.wrap {
 	    <dd>
 	      <p>
 		This icon will appear once the source information has
-		been loaded, and allows you to change the color and
-		size of the circles used to mark the source locations.
+		been loaded, and allows you to change the color, size,
+		and opacity of the circles used to mark the source locations.
 		Selecting the icon a second time will hide the
 		source-property controls:
 	      </p>
@@ -771,6 +782,13 @@ main#content div.wrap {
 		    Source size:
 		    <input type="range" class="sourcesize" min="1" max="30"
 			   value="5"/>
+		  </p>
+		</li>
+		<li>
+		  <p>
+		    Source opacity:
+		    <input type="range" class="sourceopacity" min="0" max="100"
+			   value="25"/>
 		  </p>
 		</li>
 	      </list>

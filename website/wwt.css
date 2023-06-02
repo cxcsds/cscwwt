@@ -599,9 +599,13 @@ option:disabled {
   width: 6em;
 }
 
-.sourceprops label {
+.sourceprops , .sourceitem button {
     font-variant: small-caps;
     font-size: smaller;
+}
+
+.sourceitem label {
+    text-align: center;
 }
 
 /* this isn't working to align the labels and widgets */
