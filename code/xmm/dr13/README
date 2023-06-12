@@ -1,0 +1,27 @@
+
+# Use 4XMM-DR13
+
+This is based on the code written for 3XMM-DR8.
+
+From http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR13/4XMM_DR13.html
+
+we have
+
+    The slimline version of the catalogue contains one row per unique source
+    (while the the main catalogue has one row per detection) and thus has 602543 rows.
+
+% wget http://xmmssc.irap.omp.eu/Catalogue/4XMM-DR13/4XMM_DR13cat_v1.0.fits.gz
+
+The 4XMM documentation suggests using SUMMARY<3 as a determinant
+
+% dmcopy 4XMM_DR13cat_v1.0.fits.gz"[4xmm-dr13][SUM_FLAG=:2][cols ra,dec]" 4xmm-dr13-filtered.fits
+% python cat2json.py 4xmm-dr13-filtered.fits > xmm.filtered.json
+% ls -lt xmm.filtered.json
+-rw-r--r-- 1 dburke dburke 18609949 Jun 12 13:07 xmm.filtered.json
+
+% dmlist ../dr11/4xmm-dr11-filtered.fits"[2]" counts
+787963
+% dmlist ../dr12/4xmm-dr12-filtered.fits"[2]" counts
+821953
+% dmlist 4xmm-dr13-filtered.fits"[2]" counts
+854095
