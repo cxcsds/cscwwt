@@ -82,8 +82,8 @@ def process(indir):
     print("{")
     spacer = ""
     for stack in sorted(stacks):
-        obsids = set(obi[0] for obi in stacks[stack])
-        names = set(f'"{targets[obsid]}"' for obsid in obsids)
+        obsids = sorted(set(obi[0] for obi in stacks[stack]))
+        names = sorted(set(f'"{targets[obsid]}"' for obsid in obsids))
 
         obis = [nice(obi) for obi in stacks[stack]]
         print(f'{spacer}"{stack}": {{')
