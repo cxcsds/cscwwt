@@ -276,6 +276,8 @@ main#content div.wrap {
 		     />
 	    </div>
 
+	    <!-- why do we not set the onchange handler here, but we do
+		 for the other catalogs? -->
 	    <div class="sourceitem">
 	      <label for="sourceopacity">Opacity</label>
 	      <input type="range" id="sourceopacity" min="0" max="100"
@@ -283,10 +285,13 @@ main#content div.wrap {
 		     />
 	    </div>
 
+	    <!--  opacity currently is not being reset properly
+                  is it because it gets mixed up with the color?
 	    <div class="sourceitem">
 	      <button type="reset" id="sourcereset"
 		      onclick="wwt.resetCatalog()">Reset</button>
 	    </div>
+	    -->
 
 	  </div>
 
@@ -367,11 +372,14 @@ main#content div.wrap {
 		     onchange="wwt.changeXMMSourceOpacity(this.valueAsNumber / 100)"
 		     />
 	    </div>
-	    
+
+	    <!--  opacity currently is not being reset properly
+                  is it because it gets mixed up with the color?
 	    <div class="sourceitem">
 	      <button type="reset" id="xmmsourcereset"
 		      onclick="wwt.resetXMMCatalog()">Reset</button>
 	    </div>
+	    -->
 
 	  </div>
 

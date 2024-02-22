@@ -5709,12 +5709,11 @@ var wwt = (function () {
     xmmColorUpdate: xmmColorUpdate,
 
     getChangeSourceSize: () => changeSourceSize,
+    getChangeSourceOpacity: () => changeSourceOpacity,
+
     changeSource11Size: changeSource11Size,
     changeXMMSourceSize: changeXMMSourceSize,
     changeXMMSourceOpacity: changeXMMSourceOpacity,
-
-    // Experiment
-    getChangeSourceOpacity: () => changeSourceOpacity,
 
     strToRA: strToRA, strToDec: strToDec,
 

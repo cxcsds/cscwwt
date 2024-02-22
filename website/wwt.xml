@@ -273,6 +273,24 @@ main#content div.wrap {
 		     value="5" class="sourcesize"
 		     />
 	    </div>
+
+	    <!-- why do we not set the onchange handler here, but we do
+		 for the other catalogs? -->
+	    <div class="sourceitem">
+	      <label for="sourceopacity">Opacity</label>
+	      <input type="range" id="sourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     />
+	    </div>
+
+	    <!--  opacity currently is not being reset properly
+                  is it because it gets mixed up with the color?
+	    <div class="sourceitem">
+	      <button type="reset" id="sourcereset"
+		      onclick="wwt.resetCatalog()">Reset</button>
+	    </div>
+	    -->
+
 	  </div>
 
 	  <!-- how to style CHS -->
@@ -355,6 +373,23 @@ main#content div.wrap {
 		     onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
 		     />
 	    </div>
+
+	    <div class="sourceitem">
+	      <label for="xmmsourceopacity">Opacity</label>
+	      <input type="range" id="xmmsourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     onchange="wwt.changeXMMSourceOpacity(this.valueAsNumber / 100)"
+		     />
+	    </div>
+
+	    <!--  opacity currently is not being reset properly
+                  is it because it gets mixed up with the color?
+	    <div class="sourceitem">
+	      <button type="reset" id="xmmsourcereset"
+		      onclick="wwt.resetXMMCatalog()">Reset</button>
+	    </div>
+	    -->
+
 	  </div>
 
 	  <!-- moving into the settings
@@ -736,11 +771,10 @@ main#content div.wrap {
 	    <dd>
 	      <p>
 		This icon will appear once the source information has
-		been loaded, and allows you to change the color and size
-		<!-- note no opacity support as yet -->
-		of the circles used to mark the source locations.
-		Selecting the icon a second time will hide the
-		source-property controls:
+		been loaded, and allows you to change the color, size,
+		and opacity of the circles used to mark the source
+		locations.  Selecting the icon a second time will hide
+		the source-property controls:
 	      </p>
 	      <list>
 		<li>
@@ -758,15 +792,13 @@ main#content div.wrap {
 			   value="5"/>
 		  </p>
 		</li>
-		<!--
 		<li>
 		  <p>
-		    Source opacity (for some catalogs):
+		    Source opacity:
 		    <input type="range" class="sourceopacity" min="0" max="100"
 			   value="25"/>
 		  </p>
 		</li>
-		-->
 	      </list>
 	    </dd>
 
