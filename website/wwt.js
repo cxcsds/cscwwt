@@ -81,6 +81,9 @@ var wwt = (function () {
   const keyXMMCatalogColor = 'wwt-xmm-catalog-color';
   const keyXMMCatalogOpacity = 'wwt-xmm-catalog-opacity';
   const keyXMMCatalogSize = 'wwt-xmm-catalog-size';
+  const keyeROSITACatalogColor = 'wwt-erosita-catalog-color';
+  const keyeROSITACatalogOpacity = 'wwt-erosita-catalog-opacity';
+  const keyeROSITACatalogSize = 'wwt-erosita-catalog-size';
 
   // Remove any user-stored values.
   //
@@ -93,7 +96,8 @@ var wwt = (function () {
 		  keyMilkyWay, keyClipboardFormat,
 		  keyMoveFlag, keyKeypressFlag,
 		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize,
-		  keyXMMCatalogColor, keyXMMCatalogOpacity, keyXMMCatalogSize
+		  keyXMMCatalogColor, keyXMMCatalogOpacity, keyXMMCatalogSize,
+		  keyeROSITACatalogColor, keyeROSITACatalogOpacity, keyeROSITACatalogSize
 		 ];
 
     keys.forEach(key => {
@@ -727,6 +731,18 @@ var wwt = (function () {
 	     makeShape: makeXMMSource,
              annotations: null },
 
+      eROSITA: { label: 'eROSITA', button: '#toggleeROSITAsources',
+		 keys: {size: keyeROSITACatalogSize,
+			color: keyeROSITACatalogColor,
+			opacity: keyeROSITACatalogOpacity},
+		 sourcetype: 'Sources',
+		 changeWidget: 'eROSITAsourceprops',
+		 color: 'yellow', size: 30.0 / 3600.0, opacity: 0.25,
+		 loaded: false, data: null,
+		 getPos: (d) => { return { ra: d[0], dec: d[1] }; },
+		 makeShape: makeXMMSource,  // same "data model" as XMM
+		 annotations: null },
+
       efeds: { label: 'eFEDS', button: null,
 	       keys: null,
                sourcetype: 'Detections',
@@ -1098,6 +1114,7 @@ var wwt = (function () {
 
   const colorUpdate11 = makeColorUpdate(catalogProps.csc11);
   const xmmColorUpdate = makeColorUpdate(catalogProps.xmm);
+  const eROSITAColorUpdate = makeColorUpdate(catalogProps.eROSITA);
 
     // Return a function that updates the size of the given
     // set of annotations. properties is an object with size
@@ -1181,10 +1198,11 @@ var wwt = (function () {
   var changeSourceSize = null;
   const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
+  const changeeROSITASourceSize = makeSizeUpdate(catalogProps.eROSITA);
 
-  // Experiment
   var changeSourceOpacity = null;
   const changeXMMSourceOpacity = makeOpacityUpdate(catalogProps.xmm);
+  const changeeROSITASourceOpacity = makeOpacityUpdate(catalogProps.eROSITA);
 
   // Position the element at the location given in event (clientX/Y).
   // The default buffer is +5 in both X and Y, but if this takes the
@@ -1759,6 +1777,11 @@ var wwt = (function () {
 					   'XMM catalog',
 					   processXMMData);
 
+  const downloadeROSITAData = makeDownloadData('wwtdata/erosita.json.gz',
+					       '#toggleeROSITAsources',
+					       'eROSITA catalog',
+					       processeROSITAData);
+
   const downloadEFEDSData = makeDownloadData('wwtdata/efeds.json.gz',
 					     null,
 					     'eFEDS catalog',
@@ -1921,6 +1944,8 @@ var wwt = (function () {
                                             downloadCatalog11Data);
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
                                              downloadXMMData);
+  const toggleeROSITASources = makeToggleCatalog(catalogProps.eROSITA,
+						 downloadeROSITAData);
 
   // manual version of CHS toggle code
   //
@@ -4233,6 +4258,27 @@ var wwt = (function () {
 
     }
 
+    // If the user has changed the default settings we need to adjust the
+    // widgets to match.
+    //
+    function processeROSITACatalogChanges(nprops) {
+	const size = document.querySelector("#eROSITAsourcesize");
+	if ((size !== null) && (nprops.size !== null)) {
+	    size.value = nprops.size;
+	}
+
+	const opacity = document.querySelector("#eROSITAsourceopacity");
+	if ((opacity !== null) && (nprops.opacity !== null)) {
+	    opacity.value = 100 * nprops.opacity;
+	}
+
+	const color = document.querySelector("#eROSITAsourcecolor");
+	if ((color !== null) && (nprops.color !== null)) {
+	    color.jscolor.fromString(nprops.color);
+	}
+
+    }
+
     // We want to reset the source properties: color, size, opacity
     //
     function resetCatalog() {
@@ -4281,6 +4327,30 @@ var wwt = (function () {
 	}
     }
     
+    function reseteROSITACatalog() {
+
+	changeeROSITASourceSize(30);
+	changeeROSITASourceOpacity(0.25);
+	eROSITAColorUpdate('yellow');
+
+	const size = document.querySelector("#eROSITAsourcesize");
+	if (size !== null) { size.value = 30; }
+
+	const opacity = document.querySelector("#eROSITAsourceopacity");
+	if (opacity !== null) { opacity.value = 25; }
+
+	// unfortunately the color picker doesn't understand names,
+	// so use the hex version
+	const color = document.querySelector("#eROSITAsourcecolor");
+	if (color !== null) { color.jscolor.fromString('C6C618'); } // TODO: what is yellow?
+
+	// Clear these keys after resetting everything
+	const cat = catalogProps.eROSITA;
+	for (const key in cat.keys) {
+	    window.localStorage.removeItem(cat.keys[key]);
+	}
+    }
+
   // Note that the WWT "control" panel will not be displayed until
   // WWT is initalized, even though various elements of the panel are
   // set up in initialize.
@@ -4351,6 +4421,7 @@ var wwt = (function () {
 
       const nprops = restoreCatalogSourceProperties(catalogProps.csc);
       const xmmnprops = restoreCatalogSourceProperties(catalogProps.xmm);
+      const eROSITAnprops = restoreCatalogSourceProperties(catalogProps.eROSITA);
 
     // These used to be const variables.
     //
@@ -4413,6 +4484,9 @@ var wwt = (function () {
 
       // Need to handle the XMM catalog sizes
       processXMMCatalogChanges(xmmnprops);
+
+      // Do we need this?
+      processeROSITACatalogChanges(eROSITAnprops);
 
     // Pass in useful information to wwtsamp (even if later we turn
     // off support for SAMP).
@@ -5527,6 +5601,40 @@ var wwt = (function () {
     trace('Loaded XMM data');
   }
 
+  function processeROSITAData(json) {
+    if (json === null) {
+      wtrace('unable to download eROSITA catalog data');
+
+      // leave as disabled
+      document.querySelector('#toggleeROSITAsources')
+        .innerHTML = 'Unable to load eROSITA catalog';
+      return;
+    }
+
+    trace('Processing eROSITA data');
+    const props = catalogProps.eROSITA;
+
+    trace(` from [${props.label}]`);
+    props.label = json.catalog;
+    trace(`   to [${props.label}]`);
+
+    props.data = json.sources;
+    props.loaded = true;
+
+    // Let the user know they can "show eROSITA sources"
+    //
+    const el = document.querySelector('#toggleeROSITAsources');
+    el.innerHTML = `Show ${props.label} ${props.sourcetype}`;
+    el.disabled = false;
+
+    showBlockElement('eROSITAsourcecolor');
+
+    document.querySelector('#toggleeROSITAsourceprops')
+      .style.display = 'inline-block';
+
+    trace('Loaded eROSITA data');
+  }
+
   function processEFEDSData(json) {
     if (json === null) {
       wtrace('unable to download eFEDS catalog data');
@@ -5672,6 +5780,7 @@ var wwt = (function () {
     showSources: showSources,
     toggleSources11: toggleSources11,
     toggleXMMSources: toggleXMMSources,
+    toggleeROSITASources: toggleeROSITASources,
     toggleStacks: toggleStacks,
 
     toggleCHS: toggleCHS,
@@ -5707,6 +5816,7 @@ var wwt = (function () {
     colorUpdate: colorUpdate,
     colorUpdate11: colorUpdate11,
     xmmColorUpdate: xmmColorUpdate,
+    eROSITAColorUpdate: eROSITAColorUpdate,
 
     getChangeSourceSize: () => changeSourceSize,
     getChangeSourceOpacity: () => changeSourceOpacity,
@@ -5714,6 +5824,8 @@ var wwt = (function () {
     changeSource11Size: changeSource11Size,
     changeXMMSourceSize: changeXMMSourceSize,
     changeXMMSourceOpacity: changeXMMSourceOpacity,
+    changeeROSITASourceSize: changeeROSITASourceSize,
+    changeeROSITASourceOpacity: changeeROSITASourceOpacity,
 
     strToRA: strToRA, strToDec: strToDec,
 
@@ -5727,6 +5839,7 @@ var wwt = (function () {
 
     resetCatalog: resetCatalog,
     resetXMMCatalog: resetXMMCatalog,
+    reseteROSITACatalog: reseteROSITACatalog,
       
     startSpinner: startSpinner,
     stopSpinner: stopSpinner,

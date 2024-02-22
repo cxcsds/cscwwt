@@ -392,14 +392,51 @@ main#content div.wrap {
 
 	  </div>
 
-	  <!-- moving into the settings
-	  <div>
+	  <div id="eROSITAsourcebar">
             <button class="button"
-                    type="button" id="togglefullscreen">
-              Full screen
+                    type="button" id="toggleeROSITAsources"
+                    onclick="wwt.toggleeROSITASources()">
+              Load eROSITA DR1 Sources
             </button>
+	    <button type="button" id="toggleeROSITAsourceprops"
+		    onclick="wwt.toggleSourceProps(event, 'eROSITAsourceprops')">
+	      <img src="wwtimg/fa/cog.svg" class="icon"
+		   alt="Change Properties"/>
+	    </button>
 	  </div>
-	  -->
+
+	  <div class="sourceprops" id="eROSITAsourceprops">
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Color</label>
+	      <button class="jscolor" id="eROSITAsourcecolor"
+		      data-jscolor="{onFineChange:'wwt.eROSITAColorUpdate(this)',valueElement:null,closable:true,value:'C6C618'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="eROSITAsourcecolor">Size</label>
+	      <input type="range" id="eROSITAsourcesize" min="10" max="60"
+		     value="30" class="sourcesize"
+		     onchange="wwt.changeeROSITASourceSize(this.valueAsNumber)"
+		     />
+	    </div>
+	    <div class="sourceitem">
+	      <label for="eROSITAsourceopacity">Opacity</label>
+	      <input type="range" id="eROSITAsourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     onchange="wwt.changeeROSITASourceOpacity(this.valueAsNumber / 100)"
+		     />
+	    </div>
+
+	    <!--  opacity currently is not being reset properly
+                  is it because it gets mixed up with the color?
+	    <div class="sourceitem">
+	      <button type="reset" id="eROSITAsourcereset"
+		      onclick="wwt.reseteROSITACatalog()">Reset</button>
+	    </div>
+	    -->
+
+	  </div>
 
 	  <div>
             <button class="button"
@@ -554,9 +591,10 @@ main#content div.wrap {
 		     href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
 	    is running on
 	    the same machine as the web browser.
-	    The positions of detections from release 1.1 of the CSC and a recent
+	    The positions of detections from release 1.1 of the CSC, a recent
 	    <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
-	    source catalog</extlink>
+	    source catalog</extlink>, and
+	    <extlink target="_blank" href="https://erosita.mpe.mpg.de/dr1/">eROSITA DR1</extlink>
 	    can also be displayed.
 	  </p>
 	  <p>
@@ -992,22 +1030,24 @@ main#content div.wrap {
             page.
           </p>
 
-	  <h3>Chandra and XMM sources</h3>
+	  <h3>Chandra, XMM, and eROSITA sources</h3>
 
 	  <p>
 	    Since the data files can take some time to load, the
 	    source catalogs must be loaded - using the
 	    "<span class="term">Load CSC2.0 Sources</span>",
 	    "<span class="term">Load CSC1.1 Sources</span>",
+	    "<span class="term">Load 4XMM-DR&xmmdr; Detections</span>",
 	    or
-	    "<span class="term">Load 4XMM-DR&xmmdr; Detections</span>"
+	    "<span class="term">Load eROSITA DR1 Sources</span>",
 	    buttons - before they can be shown. Once the data
 	    has loaded the button will change its label.
 	    Selecting the
 	    "<span class="term">Show CSC2.0 Sources</span>",
 	    "<span class="term">Show CSC1.1 Sources</span>"
+	    "<span class="term">Show 4XMM-DR&xmmdr; Detections</span>",
 	    or
-	    "<span class="term">Show 4XMM-DR&xmmdr; Detections</span>"
+	    "<span class="term">Show eROSITA DR1 Sources</span>"
 	    button will add circles, indicating the sources, close
 	    to the location on the screen (the full catalogs are
 	    <em>not</em> drawn as this would result in the display
@@ -1016,19 +1056,18 @@ main#content div.wrap {
 	  </p>
 
 	  <p>
-	    By default, the CSC2.0 sources are drawn as cyan circles with
-	    a radius
-	    of 5 arcseconds, the CSC1.1 sources are drawn as orange circles
-	    with a radius of 7 arcseconds, and the XMM sources are green
-	    circles with a radius of 10 arcseconds. These radii are
-	    generally <em>significantly larger</em> than the positional
-	    error on the location, as they were chosen to
-	    make sure that the sources are visible!
-	    The XMM source locations are taken from the DR&xmmdr; list
-	    as described on the
-	    <cxclink href="#"
-		     onclick="wwt.showBlockElement('credits')"
-		     >credits page</cxclink>.
+	    By default, the CSC2.0 sources are drawn as cyan circles
+	    with a radius of 5 arcseconds, the CSC1.1 sources are
+	    drawn as orange circles with a radius of 7 arcseconds, the
+	    XMM sources are green circles with a radius of 10
+	    arcseconds, and the eROSITA sources are yellow with a
+	    radius of 30 arcseconds. These radii are generally
+	    <em>significantly larger</em> than the positional error on
+	    the location, as they were chosen to make sure that the
+	    sources are visible!  The XMM source locations are taken
+	    from the DR&xmmdr; list as described on the <cxclink
+	    href="#" onclick="wwt.showBlockElement('credits')"
+	    >credits page</cxclink>.
 	  </p>
 
 	  <p>
