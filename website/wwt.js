@@ -654,7 +654,7 @@ var wwt = (function () {
     const ra = src[0];
     const dec = src[1];
     if ((ra === null) || (dec === null)) {
-      etrace('Err, no location for XMM source:');
+      etrace('Err, no location for source:');
       console.log(src);
       return null;
     }
@@ -1147,6 +1147,10 @@ var wwt = (function () {
 		d.ann.set_opacity(newOpacity);
 		d.ann.set_radius(d.ann.get_radius());  // try to get a redraw
 	    });
+
+	    // Should we only redraw the last one (as hopefully it will
+	    // trigger the preceeding elements?). It probably won't.
+	    //
 
 	    // This is taken from an old suggestion by Peter Williams.
 	    //
@@ -1896,7 +1900,7 @@ var wwt = (function () {
     return () => {
       if (!props.loaded) {
         const el = document.querySelector(props.button);
-        el.innerHTML = `Loading ${props.label} Sources`;
+        el.innerHTML = `Loading ${props.label} ${props.sourcetype}`;
         el.disabled = true;
 
         download();
