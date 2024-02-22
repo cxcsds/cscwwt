@@ -1265,8 +1265,8 @@ main#content div.wrap {
 	</div>
 
         <div class="main gridable">
-          <input type="button" id="m31" value="Andromeda"
-	         onclick="wwt.setPosition(10.68458, 41.26917, 'Andromeda')"/>
+          <input type="button" id="andromeda" value="Andromeda (M31)"
+	         onclick="wwt.setPosition(10.68458, 41.26917, 'Andromeda (M31)')"/>
           <input type="button" id="antennae" value="The Antennae"
                  onclick="wwt.setPosition(180.47083, -18.86944, 'The Antennae', 1)"/>
           <input type="button" id="casa" value="Cassiopeia A"
@@ -1298,8 +1298,6 @@ main#content div.wrap {
           <input type="button" id="lmc" value="LMC"
 	         onclick="wwt.setPosition(80.89417, -69.7561,
                           'Large Magellanic Cloud', 5)"/>
-          <input type="button" id="m31" value="M31"
-	         onclick="wwt.setPosition(10.68471, 41.26875, 'M31', 3)"/>
           <input type="button" id="m87" value="M87"
 	         onclick="wwt.setPosition(187.70592, 12.39112, 'M87', 2)"/>
           <input type="button" id="m101" value="M101"
