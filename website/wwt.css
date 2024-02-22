@@ -537,7 +537,7 @@ option:disabled {
   color: rgba(0, 0, 0, 0.4);
 }
 
-#sourcebar , #source11bar , #xmmsourcebar {
+#sourcebar , #source11bar , #xmmsourcebar, #eROSITAsourcebar {
   display: flex;
   flex-direction: row;
 }
@@ -561,14 +561,14 @@ option:disabled {
   -webkit-transform: translateY(-100%);
 }
 
-#togglesources , #togglesources11 , #toggleXMMsources {
+#togglesources , #togglesources11 , #toggleXMMsources, #toggleeROSITAsources {
   flex: auto;
 }
 
 /* Looks like may need to explicitly replace margin/padding settings
  * as seeing significant variations on different browsers
  */
-#togglesourceprops , #togglesource11props , #togglexmmsourceprops {
+#togglesourceprops , #togglesource11props , #togglexmmsourceprops, #toggleeROSITAsourceprops {
   border-radius: 0.5em;
   display: none;
   flex: 18px;
