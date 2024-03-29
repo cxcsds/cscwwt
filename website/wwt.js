@@ -18,6 +18,9 @@
  * which means our "wwt ready" function isn't called. So we use a timer
  * to manually call the function if it hasn't been executed. This seems to
  * work.
+ *
+ * This has been modified to assume CSC 2.1 (i.e. drop some 2.0 support
+ * code).
  */
 
 var wwt = (function () {
@@ -29,12 +32,11 @@ var wwt = (function () {
   // The features available are controlled by default choices (the
   // values of the displayXXX fields below), but they can be over-ridden
   // by the presence of the following tokens as query terms - e.g.
-  //   ?csc11,chs,polygon,stack,source
+  //   ?chs,polygon,stack,source
   // This can only "turn on" a field, not turn it off.
   //
   //   - do we display the
   //     - CHS sources
-  //     - CSC 1.1 sources
   //     - "select sources with a polygon"
   //     - show nearest stacks
   //     - show nearest sources
@@ -43,7 +45,6 @@ var wwt = (function () {
   // DISABLED).
   //
   let displayCHS = false;
-  let displayCSC11 = true;
   let displayPolygonSelect = false;
   let displayNearestStacks = false;
   let displayNearestSources = false;
@@ -642,18 +643,6 @@ var wwt = (function () {
     return ann;
   }
 
-  function makeSource11(color, size, src) {
-    if ((src.ra === null) || (src.dec == null)) {
-      etrace('Err, no location for CSC 1.1 source:');
-      console.log(src);
-      return null;
-    }
-
-    return makeCircle(src.ra, src.dec, size, 1,
-		      color, color,
-		      true, sourceOpacity);
-  }
-
   function makeXMMSource(color, size, src) {
     const ra = src[0];
     const dec = src[1];
@@ -699,26 +688,7 @@ var wwt = (function () {
 	       getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
 	       makeShape: makeSource,
                annotations: null },
-      csc20: { label: 'CSC2.0', button: '#togglesources',
-	       keys: {size: keyCatalogSize,
-		      color: keyCatalogColor,
-		      opacity: keyCatalogOpacity},
-               sourcetype: 'Sources',
-               changeWidget: '#sourceprops',
-               color: 'cyan', size: 5.0 / 3600.0, opacity: 0.25,
-	       loaded: false, data: null,
-	       getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
-	       makeShape: makeSource,
-               annotations: null },
-      csc11: { label: 'CSC1.1', button: '#togglesources11',
-	       keys: null,
-               sourcetype: 'Sources',
-               changeWidget: 'source11props',
-               color: 'orange', size: 7.0 / 3600.0, opacity: 0.25,
-	       loaded: false, data: null,
-	       getPos: (d) => { return { ra: d.ra, dec: d.dec }; },
-	       makeShape: makeSource11,
-               annotations: null },
+
       xmm: { label: 'XMM', button: '#toggleXMMsources',
 	     keys: {size: keyXMMCatalogSize,
 		    color: keyXMMCatalogColor,
@@ -1112,7 +1082,6 @@ var wwt = (function () {
 	};
     }
 
-  const colorUpdate11 = makeColorUpdate(catalogProps.csc11);
   const xmmColorUpdate = makeColorUpdate(catalogProps.xmm);
   const eROSITAColorUpdate = makeColorUpdate(catalogProps.eROSITA);
 
@@ -1196,7 +1165,6 @@ var wwt = (function () {
   // it depends on the catalog version.
   //
   var changeSourceSize = null;
-  const changeSource11Size = makeSizeUpdate(catalogProps.csc11);
   const changeXMMSourceSize = makeSizeUpdate(catalogProps.xmm);
   const changeeROSITASourceSize = makeSizeUpdate(catalogProps.eROSITA);
 
@@ -1704,27 +1672,6 @@ var wwt = (function () {
 
   // TODO: make this version agnostic.
   //
-  function downloadCatalog20Data() {
-
-    // number of chunks for the source properties
-    const NCHUNK = 8;
-    const chunks = new Array(NCHUNK).fill(false);
-
-    // Have to be careful about scoping rules, so make a function
-    // that returns a function to process the chunk
-    //
-    const processChunk = (x) => (d) => { processCatalogData(chunks, x, d); };
-
-    for (var ctr = 1; ctr <= NCHUNK; ctr++) {
-      // Try without any cache-busting identifier
-      const url = `wwtdata/wwt20_srcprop.${ctr}.json.gz`;
-      const func = makeDownloadData(url, '#togglesources',
-				    'CSC2.0 catalog',
-				    processChunk(ctr));
-      func();
-    }
-  }
-
   // This requires that the input status data has been processed
   function downloadCatalog21Data() {
 
@@ -1766,11 +1713,6 @@ var wwt = (function () {
 					   '#togglechs',
 					   'CHS data',
 					   processCHSData);
-
-  const downloadCatalog11Data = makeDownloadData('wwtdata/csc1.json.gz',
-						 '#togglesources11',
-						 'CSC1.1 catalog',
-						 processCatalog11Data);
 
   const downloadXMMData = makeDownloadData('wwtdata/xmm.json.gz',
 					   '#toggleXMMsources',
@@ -1940,8 +1882,6 @@ var wwt = (function () {
 
   // Do we use these?
   var toggleSources = null;
-  const toggleSources11 = makeToggleCatalog(catalogProps.csc11,
-                                            downloadCatalog11Data);
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
                                              downloadXMMData);
   const toggleeROSITASources = makeToggleCatalog(catalogProps.eROSITA,
@@ -3293,9 +3233,10 @@ var wwt = (function () {
     // Download the stack polygons and add the annotations.
     //
     let outlineURL = outlineLocation;
-    if (isVersion21()) {
-      outlineURL += cacheBuster();
-    }
+      
+    // Add a cache buster (as the 2.1 data is not guaranteed finalized)
+    outlineURL += cacheBuster();
+
     download.getJSON(outlineURL, addFOV,
 		     (flag) => {
 			 alert("Unable to dowload the stack outlines");
@@ -3753,10 +3694,6 @@ var wwt = (function () {
       setDisplay('chsbar', 'inline');
     }
 
-    if (displayCSC11) {
-      setDisplay('source11bar', 'flex');
-    }
-
     // Unlike the others, the default is to show this
     if (!displayPolygonSelect) {
       const el = document.querySelector('option[value=polygon]');
@@ -4003,7 +3940,6 @@ var wwt = (function () {
     const origin = loc.origin;
     if (typeof origin !== 'undefined' && origin.indexOf('cxc-dmz-prev') > 0) {
       displayPolygonSelect = true;
-      displayCSC11 = true;
       displayCHS = true;
       displayNearestStacks = true;
       displayNearestSources = true;
@@ -4012,12 +3948,11 @@ var wwt = (function () {
 
     // Only ever support turning on an option, not off.
     displayPolygonSelect = displayPolygonSelect || params.has('polygon');
-    displayCSC11 = displayCSC11 | params.has('csc11');
     displayCHS = displayCHS || params.has('chs');
     displayNearestStacks = displayNearestStacks || params.has('stack');
     displayNearestSources = displayNearestSources || params.has('source');
 
-    trace(` -> polygon=${displayPolygonSelect} csc11=${displayCSC11} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
+    trace(` -> polygon=${displayPolygonSelect} chs=${displayCHS} nearest-stacks=${displayNearestStacks} nearest-sources=${displayNearestSources}`);
 
     // If we are using a book-marked location handle the settings.
     //
@@ -4396,32 +4331,20 @@ var wwt = (function () {
     versionString = version;
     outlineLocation = outlinefile;
 
-    // Set up catalog properties dependent on the version string.
+    // Set up catalog properties.
     //
     // The downloadCatalogxxData routine could be made generic.
     //
-    if (isVersion20()) {
-      catalogProps.csc = catalogProps.csc20;
+    catalogProps.csc = catalogProps.csc21;
 
-      toggleSources = makeToggleCatalog(catalogProps.csc,
-                                        downloadCatalog20Data,
-                                        showSources,
-                                        hideSources);
-    } else if (isVersion21()) {
-      catalogProps.csc = catalogProps.csc21;
+    toggleSources = makeToggleCatalog(catalogProps.csc,
+                                      downloadCatalog21Data,
+                                      showSources,
+                                      hideSources);
 
-      toggleSources = makeToggleCatalog(catalogProps.csc,
-                                        downloadCatalog21Data,
-                                        showSources,
-                                        hideSources);
-    } else {
-      alert(`Unknown catalog version: {versionString}`);
-      return;
-    }
-
-      const nprops = restoreCatalogSourceProperties(catalogProps.csc);
-      const xmmnprops = restoreCatalogSourceProperties(catalogProps.xmm);
-      const eROSITAnprops = restoreCatalogSourceProperties(catalogProps.eROSITA);
+    const nprops = restoreCatalogSourceProperties(catalogProps.csc);
+    const xmmnprops = restoreCatalogSourceProperties(catalogProps.xmm);
+    const eROSITAnprops = restoreCatalogSourceProperties(catalogProps.eROSITA);
 
     // These used to be const variables.
     //
@@ -4456,7 +4379,8 @@ var wwt = (function () {
     }
 
     // Do we have a source opacity handler? We may not, as it isn't
-    // currently in the CSC 2.0 page
+    // currently in the CSC 2.0 page. This code has grown organically
+    // and could do with a review and clean up.
     //
     const toggleOpacity = document.querySelector("#sourceopacity");
     if (toggleOpacity !== null) {
@@ -4475,18 +4399,18 @@ var wwt = (function () {
 
     // Do we need to adjust the color handler?
     //
-      const toggleColor = document.querySelector("#sourcecolor");
-      if ((nprops.color !== null) && (toggleColor !== null)) {
-	  if (toggleColor.jscolor !== null) {
-	      toggleColor.jscolor.fromString(nprops.color);
-	  }
-      }
+    const toggleColor = document.querySelector("#sourcecolor");
+    if ((nprops.color !== null) && (toggleColor !== null)) {
+    	  if (toggleColor.jscolor !== null) {
+    	      toggleColor.jscolor.fromString(nprops.color);
+    	  }
+    }
 
-      // Need to handle the XMM catalog sizes
-      processXMMCatalogChanges(xmmnprops);
+    // Need to handle the XMM catalog sizes
+    processXMMCatalogChanges(xmmnprops);
 
-      // Do we need this?
-      processeROSITACatalogChanges(eROSITAnprops);
+    // Do we need this?
+    processeROSITACatalogChanges(eROSITAnprops);
 
     // Pass in useful information to wwtsamp (even if later we turn
     // off support for SAMP).
@@ -5176,6 +5100,7 @@ var wwt = (function () {
   //     ens <n>
   //     ensemble <n>
   //     ens0xxxx00_001
+  //     ens0xxxx00_002
   //
   // where n = 1 to 4404. A lot easier than trying to support multiple
   // formats and this is for testing purposes only. The target name
@@ -5188,7 +5113,11 @@ var wwt = (function () {
 
     let ens = null;
     let label = null;
+    // Could write this more succinctly  
     if (target.startsWith('ens0') && target.endsWith('00_001') &&
+	target.length === 14) {
+      label = target.slice(4, -6);
+    } else if (target.startsWith('ens0') && target.endsWith('00_002') &&
 	target.length === 14) {
       label = target.slice(4, -6);
     } else if (target.startsWith('ensemble')) {
@@ -5541,32 +5470,6 @@ var wwt = (function () {
     trace('Loaded CHS data');
   }
 
-  function processCatalog11Data(json) {
-    if (json === null) {
-      console.log('ERROR: unable to download catalog 1.1 data');
-
-      // leave as disabled
-      document.querySelector('#togglesources11')
-        .innerHTML = 'Unable to load CSC1.1 catalog';
-      return;
-    }
-
-    const props = catalogProps.csc11;
-
-    props.data = json;
-    props.loaded = true;
-
-    const el = document.querySelector('#togglesources11');
-    el.innerHTML = 'Show CSC1.1 Sources';
-    el.disabled = false;
-
-    showBlockElement('source11color');
-    document.querySelector('#togglesource11props')
-      .style.display = 'inline-block';
-
-    trace('Loaded CSC 1.1 data');
-  }
-
   function processXMMData(json) {
     if (json === null) {
       wtrace('unable to download XMM catalog data');
@@ -5768,8 +5671,6 @@ var wwt = (function () {
 
     // NOte: we have two concepts of getVersion here
     getVersion: () => { return versionString; },
-    isVersion20: isVersion20,
-    isVersion21: isVersion21,
 
     getCSCObject: getCSCObject,
 
@@ -5778,7 +5679,6 @@ var wwt = (function () {
 
     hideSources: hideSources,
     showSources: showSources,
-    toggleSources11: toggleSources11,
     toggleXMMSources: toggleXMMSources,
     toggleeROSITASources: toggleeROSITASources,
     toggleStacks: toggleStacks,
@@ -5810,18 +5710,13 @@ var wwt = (function () {
     zoomIn: zoomIn,
     zoomOut: zoomOut,
 
-    // 1.1 test
-    loadSource11: downloadCatalog11Data,
-
     colorUpdate: colorUpdate,
-    colorUpdate11: colorUpdate11,
     xmmColorUpdate: xmmColorUpdate,
     eROSITAColorUpdate: eROSITAColorUpdate,
 
     getChangeSourceSize: () => changeSourceSize,
     getChangeSourceOpacity: () => changeSourceOpacity,
 
-    changeSource11Size: changeSource11Size,
     changeXMMSourceSize: changeXMMSourceSize,
     changeXMMSourceOpacity: changeXMMSourceOpacity,
     changeeROSITASourceSize: changeeROSITASourceSize,
