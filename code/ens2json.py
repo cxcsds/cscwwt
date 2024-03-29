@@ -15,15 +15,21 @@ information is valid. Output is to the screen.
 
 import json
 
+from stk import build
 from coords.utils import calculate_nominal_position
 
 
 def stk2coord(stack):
-    """Get the stack center from the name"""
+    """Get the stack center from the name
+
+    With the changes in CSC 2.1 the position may no longer be
+    "correct", but it should be good enough for our purposes.
+
+    """
 
     assert stack.startswith('acisfJ') or stack.startswith('hrcfJ'), \
         stack
-    assert stack.endswith('_001'), stack
+    assert stack.endswith('_001') or stack.endswith('_002'), stack
 
     idx = stack.find('J')
     cstr = stack[idx + 1:-4]
@@ -81,11 +87,11 @@ def clean(ensemble):
     """
 
     assert ensemble.startswith('ens'), ensemble
-    assert ensemble.endswith('00_001'), ensemble
+    assert ensemble.endswith('00_001') or ensemble.endswith('00_002'), ensemble
     return int(ensemble[3:-6])
 
 
-def convert(infile):
+def convert_old(infile):
 
     store = {}
     coords = []
@@ -113,6 +119,29 @@ def convert(infile):
                 coords = []
 
     assert coords == []
+    print(json.dumps(store))
+
+
+def convert(infile):
+
+    store = {}
+    with open(infile, 'r') as fh:
+        for l in fh.readlines():
+            l = l.strip()
+            if l == '' or l.startswith('#'):
+                continue
+
+            toks = l.split()
+            assert len(toks) == 3, l
+            assert toks[1] in ["NEW", "OLD"], toks[1]
+
+            stks = build(toks[2])
+            coords = [stk2coord(stk) for stk in stks]
+            center = coords2center(coords)
+            ens = clean(toks[0])
+            store[ens] = center
+            store[ens]["nstacks"] = len(stks)
+
     print(json.dumps(store))
 
 

@@ -1702,7 +1702,7 @@ var wwt = (function () {
 
   // VERY experimental: load in the ensemble data for CXC testing
   //
-  const downloadEnsData = makeDownloadData('wwtdata/ens20.json.gz',
+  const downloadEnsData = makeDownloadData('wwtdata/ens21.json.gz',
 					   null, null,
 					   processEnsData);
 
@@ -2277,7 +2277,7 @@ var wwt = (function () {
       return ann;
     };
 
-    const selected = findNearestTo(ra0, dec0, fov, props.data, 
+    const selected = findNearestTo(ra0, dec0, fov, props.data,
 				   props.getPos, toStore);
 
     // can bail out now if there are no sources
@@ -3233,7 +3233,7 @@ var wwt = (function () {
     // Download the stack polygons and add the annotations.
     //
     let outlineURL = outlineLocation;
-      
+
     // Add a cache buster (as the 2.1 data is not guaranteed finalized)
     outlineURL += cacheBuster();
 
@@ -3244,12 +3244,6 @@ var wwt = (function () {
 
     setupUserSelection();
     stopExcessScrolling();
-
-    // Display the CSC 2.1 outlines if loaded
-    // (the current interface is rather ugly, and
-    if (request_outline21) {
-      loadOutline21();
-    }
 
     // TODO: should this only be changed once the ready function has
     //       finished?
@@ -3701,153 +3695,12 @@ var wwt = (function () {
     }
   }
 
-  // Development code to show the CSC 2.1 outlines.
-  // For now there is little control.
-  //
-  // We split the new from updated stacks so they can be
-  // styled differently, although at present the polygon
-  // API doesn't give us that much to change.
-  //
-  var outlines21_new = null;
-  var outlines21_updated = null;
-  var outlines21_annotations = {};
-  var request_outline21 = false;
-
-  function addOutline21(newStack, stack) {
-    const line_width = 1;  // polygons do not use the line width at present
-    const opacity = 0.4;
-
-    // Colors: see
-    // https://docs.worldwidetelescope.org/webgl-reference/latest/apiref/engine/modules/color.html#fromname
-    //
-    var edge_color;
-    var fill_color;
-    if (newStack) {
-      edge_color = "#ff69b4"; // hot pink
-      fill_color = "1:100:255:105:180";
-    } else {
-      // edge_color = "#d2691e"; // chocolate
-      edge_color = "green";  // aka "#008000"
-      fill_color = "1:100:0:128:0";
-    }
-
-    var annotations = [];
-    for (var poly of stack["polygons"]) {
-      var fov = wwt.createPolygon(false);
-      fov.set_lineColor(edge_color);
-      fov.set_fillColor(fill_color);
-      fov.set_lineWidth(line_width);
-      fov.set_opacity(opacity);
-
-      // The data is stored differently to some other cases.
-      //
-      // I am also trying to reverse the order to hopefully get the winding
-      // angle right so we can fill the polygons.
-      //
-      // note this an in-place change which requires we only proces the data once
-      poly.reverse();
-      for (var pos of poly) {
-        fov.addPoint(pos[0], pos[1]);
-      }
-
-      // This appears to slow the interface down so we turn off for now
-      // fov.set_fill(true);
-
-      wwt.addAnnotation(fov);
-      annotations.push(fov);
-    }
-
-    return annotations;
-  }
-
-  function processOutline21Data(json) {
-    if (json === null) {
-      console.log("outline21 data (new) request returned null");
-      alert("Unable to download new development outlines!");
-      return;
-    }
-
-    outlines21_new = json;
-    trace(`Found ${outlines21_new.length} stacks in outlines21 [new]`);
-
-    outlines21_annotations["new"] = [];
-    for (var stack of outlines21_new) {
-      var annotations = addOutline21(true, stack);
-      for (var annotation of annotations) {
-	outlines21_annotations["new"].push(annotation);
-      }
-    }
-  }
-
-  function processOutline21DataUpdated(json) {
-    if (json === null) {
-      console.log("outline21 data (update) request returned null");
-      alert("Unable to download updated development outlines!");
-      return;
-    }
-
-    outlines21_updated = json;
-    trace(`Found ${outlines21_updated.length} stacks in outlines21 [updated]`);
-
-    outlines21_annotations["updated"] = [];
-    for (var stack of outlines21_updated) {
-      var annotations = addOutline21(false, stack);
-      for (var annotation of annotations) {
-	outlines21_annotations["updated"].push(annotation);
-      }
-    }
-  }
-
-  // Only load the data once.
-  //
-  function loadOutline21() {
-    trace("Asked to load outline21 data");
-
-    outlines21_new = null;
-    outlines21_updated = null;
-
-    // As this islikely to change, ensure we add a cache-busting term
-    if (!download.getJSON('wwtdata/coverage.csc21-development.new.json' + cacheBuster(),
-			  (response) => {
-			      trace("-- downloaded outline (new) data");
-			      processOutline21Data(response);
-			      trace("-- added outline data (new)");
-			  },
-			  (flag) => {
-			      trace(`-- error downloading outline (new) data: flag=${flag}`);
-			      reportUpdateMessage("Unable to download CSC 2.1 outline data (new)");
-			  })) {
-      return;
-    }
-
-    if (!download.getJSON('wwtdata/coverage.csc21-development.updated.json' + cacheBuster(),
-			  (response) => {
-			      trace("-- downloaded outline (updated) data");
-                              processOutline21DataUpdated(response);
-			      trace("-- added outline data (updated)");
-			  },
-			  (flag) => {
-			      trace(`-- error downloading outline (new) data: flag=${flag}`);
-			      reportUpdateMessage("Unable to download CSC 2.1 outline data (updated)");
-			  })) {
-      return;
-    }
-
-  }
-
   // Locations can be handled by
   //    ra=decimal&dec=decimal[&zoom=factor]
   //
   function handleQueryLocation(params) {
 
     trace("querying any parameters set in the URL");
-
-    // special-case the development options
-    //
-    if (params.has('outline21')) {
-      trace("user has asked for outline21");
-      request_outline21 = true;
-    }
 
     // zoom is optional.
     //
@@ -4237,7 +4090,7 @@ var wwt = (function () {
 	    window.localStorage.removeItem(cat.keys[key]);
 	}
     }
-    
+
     function resetXMMCatalog() {
 
 	changeXMMSourceSize(10);
@@ -4261,7 +4114,7 @@ var wwt = (function () {
 	    window.localStorage.removeItem(cat.keys[key]);
 	}
     }
-    
+
     function reseteROSITACatalog() {
 
 	changeeROSITASourceSize(30);
@@ -5102,7 +4955,7 @@ var wwt = (function () {
   //     ens0xxxx00_001
   //     ens0xxxx00_002
   //
-  // where n = 1 to 4404. A lot easier than trying to support multiple
+  // where n = 1 to 6055. A lot easier than trying to support multiple
   // formats and this is for testing purposes only. The target name
   // is expected to be in lower case.
   //
@@ -5113,7 +4966,7 @@ var wwt = (function () {
 
     let ens = null;
     let label = null;
-    // Could write this more succinctly  
+    // Could write this more succinctly
     if (target.startsWith('ens0') && target.endsWith('00_001') &&
 	target.length === 14) {
       label = target.slice(4, -6);
@@ -5735,7 +5588,7 @@ var wwt = (function () {
     resetCatalog: resetCatalog,
     resetXMMCatalog: resetXMMCatalog,
     reseteROSITACatalog: reseteROSITACatalog,
-      
+
     startSpinner: startSpinner,
     stopSpinner: stopSpinner,
     trace: trace,
