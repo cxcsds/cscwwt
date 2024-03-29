@@ -137,7 +137,7 @@ main#content div.wrap {
 
 	<div>
 	  <p class='title'>
-	    <cxclink href="/csc2/">Chandra Source Catalog 2.0</cxclink>
+	    <cxclink href="/csc2.0/">Chandra Source Catalog 2.0</cxclink>
 	  </p>
 
 	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
@@ -547,7 +547,7 @@ main#content div.wrap {
 	    Astronomical Society's World Wide Telescope</extlink>
 	    interface to let you explore the
 	    sky coverage and source properties of
-	    <cxclink target="_blank" href="/csc2/">version 2.0 of
+	    <cxclink target="_blank" href="/csc2.0/">version 2.0 of
 	    the Chandra Source Catalog</cxclink>.
 	  </p>
 	  <p>
@@ -1614,7 +1614,7 @@ main#content div.wrap {
 	    Observatory application,
 	    since this provides more columns from the catalog, or use
 	    <cxclink target="_blank"
-		     href="/csc2/gui/intro.html">CSCView</cxclink> to
+		     href="/csc2.0/gui/intro.html">CSCView</cxclink> to
 	    search the CSC 2.0 database.
 	  </p>
 
@@ -1663,7 +1663,7 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The plots use the following
-		<cxclink target="_blank" href="/csc2/columns/master.html">master-source
+		<cxclink target="_blank" href="/csc2.0/columns/master.html">master-source
 		columns</cxclink>:
 		<span class="term">significance</span>,
 		<span class="term">flux_aper_b</span>,
@@ -1682,7 +1682,7 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The plots use the following
-		<cxclink target="_blank" href="/csc2/columns/master.html">master-source
+		<cxclink target="_blank" href="/csc2.0/columns/master.html">master-source
 		columns</cxclink>:
 		<span class="term">err_ellipse_r0</span> and
 		<span class="term">err_ellipse_r1</span>
@@ -1705,7 +1705,7 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The plots use the following
-		<cxclink target="_blank" href="/csc2/columns/master.html">master-source
+		<cxclink target="_blank" href="/csc2.0/columns/master.html">master-source
 		columns</cxclink>:
 		<span class="term">hard_hm</span> and
 		<span class="term">hard_ms</span>.
@@ -1725,7 +1725,7 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The plots use the following
-		<cxclink target="_blank" href="/csc2/columns/master.html">master-source
+		<cxclink target="_blank" href="/csc2.0/columns/master.html">master-source
 		columns</cxclink>:
 		<span class="term">acis_num</span> and
 		<span class="term">hrc_num</span>.

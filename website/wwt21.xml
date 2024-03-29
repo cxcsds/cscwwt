@@ -131,15 +131,8 @@ main#content div.wrap {
 	</div>
 
 	<div>
-	  <p class='title warning-block'>
-	    <cxclink href="/csc2/">Chandra Source Catalog 2.1</cxclink>
-	    <!-- *
-                 * TODO: How best to point this out?
-		 *
-		 * At the moment this gets replaced by the "last modified" date
-		 * before users should be able to see this text
-	         * -->
-	    <br/><span id="csc21-warning-span">provisional</span>
+	  <p class='title'>
+	    <cxclink href="/csc2.1/">Chandra Source Catalog 2.1</cxclink>
 	  </p>
 
 	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
@@ -534,15 +527,6 @@ main#content div.wrap {
 
 	<div class="pane-body">
 
-	  <p class="warning-block">
-	    This page provides access to the pre-release catalog. It
-	    is regularly updated with <cxclink target="_blank"
-	    href="processing21/status.html">new data from the CSC 2.1
-	    processing</cxclink>, but the results should not be relied
-	    on until the catalog has been fully processed and
-	    released.
-	  </p>
-
 	  <p>
 	    This page uses the
 	    <extlink target="_blank"
@@ -550,7 +534,7 @@ main#content div.wrap {
 	    Astronomical Society's World Wide Telescope</extlink>
 	    interface to let you explore the
 	    sky coverage and source properties of
-	    <cxclink target="_blank" href="/csc2/">version 2.1 of
+	    <cxclink target="_blank" href="/csc2.1/">version 2.1 of
 	    the Chandra Source Catalog</cxclink>.
 	  </p>
 	  <p>
@@ -596,7 +580,8 @@ main#content div.wrap {
 	    the same machine as the web browser.
 	    The positions of detections from a recent
 	    <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
-	    source catalog</extlink>, and
+	    source catalog</extlink>
+	    and
 	    <extlink target="_blank" href="https://erosita.mpe.mpg.de/dr1/">eROSITA DR1</extlink>
 	    can also be displayed.
 	  </p>
@@ -1286,7 +1271,7 @@ main#content div.wrap {
 		<option value="colons">colon separated</option>
 		<option value="letters">hms °'"</option>
 	      </select>
-	      <label for="clipformat">
+	      <label for="clipboardformat">
 		Coordinate format (clipboard)
 	      </label>
 	    </div>
@@ -1614,37 +1599,39 @@ main#content div.wrap {
 	    Observatory application,
 	    since this provides more columns from the catalog, or use
 	    <cxclink target="_blank"
-		     href="/csc2/gui/intro.html">CSCView</cxclink> to
+		     href="/csc2.1/gui/intro.html">CSCView</cxclink> to
 	    search the CSC 2.1 database.
 	  </p>
 
-	  <!-- set autocomplete=off to stop firefox from remembering the
-	       state; not sure it's relevant but see
+	  <!-- this used to set autocomplete=off to stop firefox from
+               remembering the state but the validator complains about
+	       this, since autocomplete is not valid for radio buttons,
+	       and the link I had noted is no-longer relevant:
 	       https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked
 	       -->
 	  <div id="plotchoice">
 	    Select plot type:
 	    <input type="radio" id="plot1sel" name="plotchoice" checked="true"
 		   onclick='wwt.showBlockElement("plot1area"); wwt.hideElement("plot2area"); wwt.hideElement("plot3area"); wwt.hideElement("plot4area");'
-		   autocomplete="off" class="plotchoice"
+		   class="plotchoice"
 		   />
             <label class="plotchoice" id="plot1lbl" for="plot1sel">Flux vs Significance</label>
 
 	    <input type="radio" id="plot2sel" name="plotchoice"
 		   onclick='wwt.showBlockElement("plot2area"); wwt.hideElement("plot1area"); wwt.hideElement("plot3area"); wwt.hideElement("plot4area");'
-		   autocomplete="off" class="plotchoice"
+		   class="plotchoice"
 		   />
             <label class="plotchoice" id="plot2lbl" for="plot2sel">Positional errors</label>
 
 	    <input type="radio" id="plot3sel" name="plotchoice"
 		   onclick='wwt.showBlockElement("plot3area"); wwt.hideElement("plot1area"); wwt.hideElement("plot2area"); wwt.hideElement("plot4area");'
-		   autocomplete="off" class="plotchoice"
+		   class="plotchoice"
 		   />
             <label class="plotchoice" id="plot3lbl" for="plot3sel">Hardness Ratios</label>
 
 	    <input type="radio" id="plot4sel" name="plotchoice"
 		   onclick='wwt.showBlockElement("plot4area"); wwt.hideElement("plot1area"); wwt.hideElement("plot2area"); wwt.hideElement("plot3area");'
-		   autocomplete="off" class="plotchoice"
+		   class="plotchoice"
 		   />
             <label class="plotchoice" id="plot4lbl" for="plot4sel">Number of observations</label>
 	  </div>
@@ -1663,7 +1650,7 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The plots use the following
-		<cxclink target="_blank" href="/csc2/columns/master.html">master-source
+		<cxclink target="_blank" href="/csc2.1/columns/master.html">master-source
 		columns</cxclink>:
 		<span class="term">significance</span>,
 		<span class="term">flux_aper_b</span>,
@@ -1682,7 +1669,7 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The plots use the following
-		<cxclink target="_blank" href="/csc2/columns/master.html">master-source
+		<cxclink target="_blank" href="/csc2.1/columns/master.html">master-source
 		columns</cxclink>:
 		<span class="term">err_ellipse_r0</span> and
 		<span class="term">err_ellipse_r1</span>
@@ -1705,7 +1692,7 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The plots use the following
-		<cxclink target="_blank" href="/csc2/columns/master.html">master-source
+		<cxclink target="_blank" href="/csc2.1/columns/master.html">master-source
 		columns</cxclink>:
 		<span class="term">hard_hm</span> and
 		<span class="term">hard_ms</span>.
@@ -1725,7 +1712,7 @@ main#content div.wrap {
 	      </p>
 	      <p>
 		The plots use the following
-		<cxclink target="_blank" href="/csc2/columns/master.html">master-source
+		<cxclink target="_blank" href="/csc2.1/columns/master.html">master-source
 		columns</cxclink>:
 		<span class="term">acis_num</span> and
 		<span class="term">hrc_num</span>.

@@ -574,8 +574,7 @@ const wwtprops = (function () {
   // versionTable - fields with version numbers (or null)
   // active - boolean, if true then links and handlers are used
   //
-  // The text depends on the available data, which depends on the
-  // catalog version (2.0 vs 2.1).
+  // The text depends on the available data.
   //
   function addStackInfoContents(parent, stack, versionTable, active) {
 
@@ -635,35 +634,33 @@ const wwtprops = (function () {
     descPara.setAttribute('class', 'description');
 
     // Do we want to note the completed date?
-    // This also adds in the number of sources, which is currently only
-    // available to 2.1 data.
     //
     var desc = stack.description;
-    if (wwt.isVersion21()) {
-      if (stack.status === 1) {
-        // Do not need the exact time, just the day
-        var date = new Date(stack.lastmod * 1e3);
-        desc += ' The stack was processed on '
-             + dayName[date.getUTCDay()] + ', '
-             + date.getUTCDate().toString() + ' '
-             + monthName[date.getUTCMonth()] + ', '
-             + date.getUTCFullYear().toString()
-             + '.';
+    if (stack.status === 1) {
+      // Do not need the exact time, just the day
+      var date = new Date(stack.lastmod * 1e3);
+      desc += ' The stack was processed on '
+           + dayName[date.getUTCDay()] + ', '
+           + date.getUTCDate().toString() + ' '
+           + monthName[date.getUTCMonth()] + ', '
+           + date.getUTCFullYear().toString()
+           + '.';
 
 	const nsrc = stack.nsource;
-        if (typeof nsrc !== 'undefined') {
+      if (typeof nsrc !== 'undefined') {
 	    const num = wwt.intToStr(nsrc);
 	    let suffix = "s";
 	    if (nsrc === 1) { suffix = ""; }
 
 	    desc += ` The stack contains ${num} source${suffix}.`;
-        }
-
-      } else if (stack.status === 2) {
-        desc += ' The stack is being processed.';
-      } else {
-        desc += ' The stack has not been fully processed.';
       }
+
+    } else if (stack.status === 2) {
+      // Note: should not be releavant now
+      desc += ' The stack is being processed.';
+    } else {
+      // Note: should not be releavant now
+      desc += ' The stack has not been fully processed.';
     }
 
     addText(descPara, desc);
