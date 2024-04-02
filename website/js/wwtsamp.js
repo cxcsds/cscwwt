@@ -12,14 +12,19 @@ const wwtsamp = (function () {
 
   // Only try to register with a SAMP hub when we are called.
   //
-  const sampName = 'CSC 2.0 + WWT';
+  const catName = 'CSC 2.1';
+  const sampName = `${catName} + WWT`;
   const sampMeta = {
     'samp.name': sampName,
-    'samp.description': 'Explore CSC 2.0 with WWT',
+    'samp.description': `Explore ${catName} with WWT`,
     'author.affiliation': 'Chandra X-ray Center',
     // This icon is too large, but better than nothing
     'samp.icon.url': 'http://cxc.harvard.edu/csc2/imgs/csc_logo_navbar.gif'
   };
+
+  // what version option are we using?
+  // const queryVersion = "version=cur";
+  const queryVersion = "version=rel2.1";
 
   var sampConnection = null;
   var sampClientTracker = null;
@@ -269,7 +274,7 @@ const wwtsamp = (function () {
   // CSCView does, but I haven't checked how it handles near the poles.
   //
   function masterQueryNear(ra, dec, rmax, cols) {
-    return `http://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&version=cur&query=select%20distinct%20${cols.join(',')}%20from%20master_source%20where%20dbo.cone_distance%28ra,dec,${ra},${dec}%29%3C%3D${rmax}%20order%20by%20flux_aper_b%20desc,%20flux_aper_w%20desc`;
+    return `http://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&${queryVersion}&query=select%20distinct%20${cols.join(',')}%20from%20master_source%20where%20dbo.cone_distance%28ra,dec,${ra},${dec}%29%3C%3D${rmax}%20order%20by%20flux_aper_b%20desc,%20flux_aper_w%20desc`;
   }
 
   // Master Source: Basic Summary
@@ -321,7 +326,10 @@ const wwtsamp = (function () {
 		  'flux_bb_aper_b', 'flux_bb_aper_lolim_b', 'flux_bb_aper_hilim_b',
 		  'flux_bb_aper_w', 'flux_bb_aper_lolim_w', 'flux_bb_aper_hilim_w',
 		  'flux_brems_aper_b', 'flux_brems_aper_lolim_b', 'flux_brems_aper_hilim_b',
-		  'flux_brems_aper_w', 'flux_brems_aper_lolim_w', 'flux_brems_aper_hilim_w'];
+		  'flux_brems_aper_w', 'flux_brems_aper_lolim_w', 'flux_brems_aper_hilim_w',
+		  'flux_apec_aper_b', 'flux_apec_aper_lolim_b', 'flux_apec_aper_hilim_b',
+		  'flux_apec_aper_w', 'flux_apec_aper_lolim_w', 'flux_apec_aper_hilim_w',
+		 ];
     return masterQueryNear(ra, dec, rmax, cols);
   }
 
@@ -354,7 +362,7 @@ const wwtsamp = (function () {
   // all the master-source table does
   //
   function masterSourcePropertiesByName(name) {
-    return 'http://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&version=cur&query=select%20*%20from%20master_source%20where%20name%20%3D%20%27' +
+    return 'http://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&${queryVersion}&query=select%20*%20from%20master_source%20where%20name%20%3D%20%27' +
       encodeURIComponent(name) +
       '%27';
   }
@@ -572,14 +580,14 @@ const wwtsamp = (function () {
     const rmax = fov * 60.0;  // convert to arcmin
     const url = searchURL.get(ra, dec, rmax);
     sendURL(event, target, 'table.load.votable', url,
-            `CSC 2.0 ${searchURL.label} source properties (cone-search)`);
+            `${catName} ${searchURL.label} source properties (cone-search)`);
   }
 
   function sendSourcePropertiesName(event, target, name) {
     sampTrace(`SAMP: source properties name ${name}`);
     const url = masterSourcePropertiesByName(name);
     sendURL(event, target, 'table.load.votable', url,
-            'CSC 2.0 master-source properties (single source)');
+            `${catName} master-source properties (single source)`);
   }
 
   // Send the stack file (e.g. event file or sensitivity image).
@@ -594,7 +602,7 @@ const wwtsamp = (function () {
     else                     { verstr = stackver.toString(); }
 
     const url = 'http://cda.harvard.edu/csccli/retrieveFile?' +
-      `version=cur&filetype=${filetype}&filename=${stack}N${verstr}_${suffix}.fits`;
+      `${queryVersion}&filetype=${filetype}&filename=${stack}N${verstr}_${suffix}.fits`;
 
     console.log(`--> sending image.load.fits for ${url}`);
     sendURL(event, target, 'image.load.fits', url,
