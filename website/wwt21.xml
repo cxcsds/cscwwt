@@ -69,7 +69,12 @@ main#content div.wrap {
                                'wwtdata/wwt21_stacks.json',
                                'wwtdata/wwt21_status.json',
                                'wwtdata/wwt21_outlines.json',
-                               {});"
+  {stkevt3: 'wwtdata/version21.stkevt3.json',
+   sensity: 'wwtdata/version21.sensity.json',
+   stkecorrimg: 'wwtdata/version21.stkecorrimg.json',
+   stkexpmap: 'wwtdata/version21.stkexpmap.json',
+   stkbkgimg: 'wwtdata/version21.stkbkgimg.json'}
+);"
 	onunload="wwt.unload();"
 	onresize="wwt.resize();">
 
