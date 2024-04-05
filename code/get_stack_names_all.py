@@ -47,6 +47,9 @@ def get_url(stacks, options, maxlen=4000):
     if all properties can be queried at once. This means that this
     does *not* minimise the number of calls.
 
+    Actually, we now only process a single stacl at a time,
+    to make it easier to track down problems.
+
     Returns
     -------
     url, remaining_stack: str, list_of_str
@@ -54,19 +57,25 @@ def get_url(stacks, options, maxlen=4000):
     """
 
     # version = 'version=cur&'
-    version = ''
-    head = 'http://cda.harvard.edu/csccli/browse?{}packageset='.format(version)
+    version = 'version=rel2.1&'
+    head = f'http://cda.harvard.edu/csccli/browse?{version}packageset='
 
     nchar = len(head)
     if nchar >= maxlen:
-        raise ValueError("maxlen={} is too small".format(maxlen))
+        raise ValueError(f"maxlen={maxlen} is too small")
 
     processed_stacks = []
 
     for i, stack in enumerate(stacks):
+
+        # Actually, force this to be a stack at a time
+        #
+        if i > 0:
+            return head, stacks[i + 1:], processed_stacks
+
         codes = []
         for option in options:
-            code = '{}%2F{}'.format(stack, option)
+            code = f'{stack}%2F{option}'
 
             if option != 'stkevt3':
                 code += '%2F'
@@ -104,15 +113,14 @@ def report_filename(fhs, stacks):
     try:
         resp = urllib.request.urlopen(url).read()
     except urllib.error.URLError as ue:
-        sys.stderr.write("ERROR: url={} error={}\n".format(url, ue))
+        sys.stderr.write(f"ERROR: url={url} error={ue}\n")
         # sys.exit(1)
         return
 
     # oh, let's be all python3-ey
     cts = json.loads(resp.decode('utf8'))
     if len(cts) == 0:
-        sys.stderr.write("ERROR: stacks={} returned {}\n".format(stacks,
-                                                                 cts))
+        sys.stderr.write(f"ERROR: stacks={stacks} returned {cts}")
         return
 
     # We can not guarantee the ordering of the response (e.g. in the
@@ -129,7 +137,7 @@ def report_filename(fhs, stacks):
             filetype = content['filetype']
             filename = content['filename']
         except KeyError as ke:
-            sys.stderr.write("Error: {} in {}\n".format(ke, content))
+            sys.stderr.write(f"Error: {ke} in {content}\n")
             continue
 
         assert filestack in processed_stacks
@@ -138,9 +146,10 @@ def report_filename(fhs, stacks):
         fileinfo = filenames[filetype]
 
         if filestack in fileinfo:
-            sys.stderr.write("MULTIPLE RESPONSES for {} {}:\n".format(filetype, filestack))
-            sys.stderr.write("  {}\n".format(fileinfo[filestack]))
-            sys.stderr.write("  {}\n".format(filename))
+            sys.stderr.write(f"MULTIPLE RESPONSES for {filetype}"
+                             f" {filestack}:\n")
+            sys.stderr.write(f"  {fileinfo[filestack]}\n")
+            sys.stderr.write(f"  {filename}\n")
 
         fileinfo[filestack] = filename
 
@@ -157,7 +166,8 @@ def report_filename(fhs, stacks):
             missing = expected_stacks.difference(got_stacks)
             extra = got_stacks.difference(expected_stacks)
             assert len(extra) == 0
-            sys.stderr.write("No {} data for stacks: {}\n".format(option, sorted(list(missing))))
+            sys.stderr.write(f"No {option} data for stacks: "
+                             f"{sorted(list(missing))}\n")
 
             nmiss = max(nmiss, len(missing))
 
@@ -165,7 +175,7 @@ def report_filename(fhs, stacks):
             if stack not in fileinfo:
                 continue
 
-            fh.write("{} {}\n".format(stack, fileinfo[stack]))
+            fh.write(f"{stack} {fileinfo[stack]}\n")
 
         fh.flush()
 
@@ -173,7 +183,7 @@ def report_filename(fhs, stacks):
 
 
 def usage():
-    sys.stderr.write("Usage: {} stackfile\n".format(sys.argv[0]))
+    sys.stderr.write(f"Usage: {sys.argv[0]} stackfile\n")
     sys.exit(1)
 
 
@@ -192,16 +202,16 @@ if __name__ == "__main__":
 
             stack = l.split()[0]
             assert stack.startswith('acisfJ') or stack.startswith('hrcfJ')
-            assert stack.endswith('_001')
+            assert stack.endswith('_001') or stack.endswith('_002')
             stacks.append(stack)
 
     nstacks = len(stacks)
-    assert nstacks == 7287
+    assert nstacks == 10033  # CSC 2.1
 
     # Create the output files
     fhs = {}
     for option in all_options:
-        fh = open('version20.{}'.format(option), 'w')
+        fh = open(f'version21.{option}', 'w')
         fh.write('# stack filename\n')
         fhs[option] = fh
 
@@ -219,4 +229,4 @@ if __name__ == "__main__":
 
     for option, fh in fhs.items():
         fh.close()
-        print('Created: version20.{}'.format(option))
+        print(f'Created: version21.{option}')
