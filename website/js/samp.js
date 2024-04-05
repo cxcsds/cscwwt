@@ -8,6 +8,18 @@
 // currently visible at http://astrojs.github.com/sampjs/
 // (gh-pages branch of github sources).
 
+// LICENCE
+// =======
+// samp.js - A Javascript module for connection to VO SAMP hubs
+// Written in 2013 by Mark Taylor
+//
+// This file is distributed under the CC0 Public Domain Dedication,
+// <http://creativecommons.org/publicdomain/zero/1.0/>.
+// To the extent possible under law, the author(s) have dedicated all
+// copyright and related and neighboring rights to this software to the
+// public domain worldwide. This software is distributed without any
+// warranty.
+
 var samp = (function() {
 
     // Constants defining well-known location of SAMP Web Profile hub etc.
@@ -17,9 +29,9 @@ var samp = (function() {
     var WEBSAMP_CLIENT_PREFIX = "";
 
     // Tokens representing permissible types in a SAMP object (e.g. a message)
-    TYPE_STRING = "string";
-    TYPE_LIST = "list";
-    TYPE_MAP = "map";
+    var TYPE_STRING = "string";
+    var TYPE_LIST = "list";
+    var TYPE_MAP = "map";
 
     var heir = function(proto) {
         function F() {};
@@ -77,7 +89,7 @@ var samp = (function() {
         var child;
         for (i = 0; i < el.childNodes.length; i++ ) {
             child = el.childNodes[i];
-            if (child.nodeType === 1) {           // Element 
+            if (child.nodeType === 1) {           // Element
                 throw new Error("Element found in text content");
             }
             else if (child.nodeType === 3 ||      // Text
@@ -131,7 +143,7 @@ var samp = (function() {
             ok = ok && typeList[i] === actualTypeList[i];
         }
         if (!ok) {
-            throw new Error("Param type list mismatch: " 
+            throw new Error("Param type list mismatch: "
                           + "[" + typeList + "] != "
                           + "[" + actualTypeList + "]");
         }
@@ -162,7 +174,7 @@ var samp = (function() {
             result.push(prefix + "    </data>",
                         prefix + "  </array>",
                         prefix + "</value>");
-          
+
             return result.join("\n");
         }
         else if (type === TYPE_MAP) {
@@ -729,7 +741,7 @@ var samp = (function() {
     //     receiveNotification(string sender-id, map message)
     //     receiveCall(string sender-id, string msg-id, map message)
     //     receiveResponse(string responder-id, string msg-tag, map response)
-    // 
+    //
     // The successHandler argument will be called with no arguments if the
     // allowCallbacks hub method completes successfully - it is a suitable
     // hook to use for declaring subscriptions.
@@ -1305,3 +1317,5 @@ var samp = (function() {
 
     return jss;
 })();
+
+module.exports = { samp }
