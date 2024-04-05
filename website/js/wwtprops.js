@@ -440,7 +440,7 @@ const wwtprops = (function () {
 
   // Add in the SAMP export button for the stack info panel.
   //
-  // versionTable is expected to contain fielts which are either
+  // versionTable is expected to contain fields which are either
   // numbers or null, and refer to the filetypes available to
   // download (and must match the value field of the opts array
   // below).
