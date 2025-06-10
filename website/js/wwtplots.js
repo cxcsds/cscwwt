@@ -200,7 +200,8 @@ const wwtplots = (function () {
       // simplifications.
       //
 
-      // Plot data
+	// Plot data
+	// - NOTE: we no longer have all fields but leave in support for now
       const sigB = [];
       const sigW = [];
       const fluxB = [];
@@ -213,16 +214,17 @@ const wwtplots = (function () {
       const hrcNum = [];
 
       const r0 = [];
-      const r1 = [];
+      // const r1 = [];
 
       catinfo.annotations.forEach(ann => {
-	const src = wwt.getCSCObject(ann.data);
+	// const src = wwt.getCSCObject(ann.data);
+	const src = ann.data;
 
-	if (src.err_ellipse_r0 !== null &&
-            src.err_ellipse_r1 !== null) {
-          r0.push(src.err_ellipse_r0);
-          r1.push(src.err_ellipse_r1);
-	}
+	// if (src.err_ellipse_r0 !== null &&
+        //     src.err_ellipse_r1 !== null) {
+        //   r0.push(src.err_ellipse_r0);
+        //   r1.push(src.err_ellipse_r1);
+	// }
 
 	// For hardness ratio, we want to remove undefined values
 	// AND those that are pegged at +1 or -1, since the latter
@@ -236,12 +238,12 @@ const wwtplots = (function () {
           hrMS.push(src.hard_ms);
 	}
 
-	if ((src.acis_num !== null) && (src.acis_num > 0)) {
-          acisNum.push(src.acis_num);
-	}
-	if ((src.hrc_num !== null) && (src.hrc_num > 0)) {
-          hrcNum.push(src.hrc_num);
-	}
+	// if ((src.acis_num !== null) && (src.acis_num > 0)) {
+        //   acisNum.push(src.acis_num);
+	// }
+	// if ((src.hrc_num !== null) && (src.hrc_num > 0)) {
+        //   hrcNum.push(src.hrc_num);
+	// }
 
 	// Support old and new labelling
 	if (src.significance !== null) {
@@ -295,8 +297,8 @@ const wwtplots = (function () {
     //
     //   significance vs flux (b and w separately)
     //   hr (hm vs ms)
-    //   r0 vs r1
-    //   histogram of acis_num, hrc_num
+    //   r0 vs r1                             NO LONGER HAVE
+    //   histogram of acis_num, hrc_num       NO LONGER HAVE
     //
     function plotSources(catinfo) {
       if ((catinfo === null) || (catinfo.annotations === null)) {

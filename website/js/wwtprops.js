@@ -995,6 +995,10 @@ const wwtprops = (function () {
   // Add the table of source properties (if they exist) to the
   // given element.
   //
+  // This tries to support the "load all the data first" and
+  // the "load via conesearch" code, which have different
+  // fields (the latter is more restrictive).
+  //
   function addSourceProperties(parent, src, active) {
     if (typeof active === 'undefined') { active = true; }
 
@@ -1002,14 +1006,15 @@ const wwtprops = (function () {
     // finalised (the values don't seem to match up, so may
     // not be including the correct data).
     //
-    if (src.nh_gal === null) {
-      const noDataPara = document.createElement('p');
-      addText(noDataPara,
-	      'Source properties have not been calculated for ' +
-	      'this source yet.');
-      parent.appendChild(noDataPara);
-      return;
-    }
+    // THIS SHOULD NOT BE NEEDED AYMORE  
+    //if (src.nh_gal === null) {
+    //  const noDataPara = document.createElement('p');
+    //  addText(noDataPara,
+    //	      'Source properties have not been calculated for ' +
+    //	      'this source yet.');
+    //  parent.appendChild(noDataPara);
+    //  return;
+    //}
 
     // Support new and old labelling (1 or TRUE)
     const confused = (src.conf_flag === 1) || (src.conf_flag === 'TRUE');
@@ -1029,7 +1034,8 @@ const wwtprops = (function () {
       addPara(parent, stext);
     }
 
-    if ((src.var_flag === 1) || (src.var_flag === 'TRUE')) {
+    // Unfortunately do not have this info from cone search
+    if (typeof src.var_flag !== 'undefined' && ((src.var_flag === 1) || (src.var_flag === 'TRUE'))) {
       addPara(parent,
 	      'Source is variable (within or between observations).');
     }
@@ -1045,22 +1051,32 @@ const wwtprops = (function () {
 
     // Only include the angle if the ellipse is not circular.
     //
-    let errlbl = src.err_ellipse_r0.toString() + '" by ' +
-	src.err_ellipse_r1.toString() + '"';
-    if (src.err_ellipse_ang !== 0) {
-      errlbl += ' at ' + src.err_ellipse_ang + '°';
-    }
+    if (typeof src.err_ellipse_r1 !== 'undefined') {  
+      let errlbl = src.err_ellipse_r0.toString() + '" by ' +
+  	  src.err_ellipse_r1.toString() + '"';
+      if (src.err_ellipse_ang !== 0) {
+        errlbl += ' at ' + src.err_ellipse_ang + '°';
+      }
 
-    addLinkRow(tbody, 'columns/positions.html',
-	       '95% confidence position error ellipse',
-	       errlbl, active);
+      addLinkRow(tbody, 'columns/positions.html',
+  	         '95% confidence position error ellipse',
+	         errlbl, active);
+    } else {
+      let errlbl = src.err_ellipse_r0.toString() + '"';
+	
+      addLinkRow(tbody, 'columns/positions.html',
+  	         '95% confidence position r0 error',
+	         errlbl, active);
+    }	
 
     // TODO: should we convert to the appropriate power of 10,
     //       or always leave as 10^20?
     //
-    addRow(tbody,
-	   'Galactic n<sub>H</sub> column density',
-	   src.nh_gal + ' × 10²⁰ cm⁻²');
+    if (typeof src.nh_gal !== 'undefined') {
+      addRow(tbody,
+	     'Galactic n<sub>H</sub> column density',
+	     src.nh_gal + ' × 10²⁰ cm⁻²');
+    }
 
     // Support old and new system)
     const hasFluxes = ['broad', 'wide', 0, 1];
@@ -1112,8 +1128,10 @@ const wwtprops = (function () {
 		   active);
     }
 
-    addRow(tbody, 'Number of ACIS observations', src.acis_num);
-    addRow(tbody, 'Number of HRC observations', src.hrc_num);
+    if (typeof src.acis_num !== 'undefined') {
+      addRow(tbody, 'Number of ACIS observations', src.acis_num);
+      addRow(tbody, 'Number of HRC observations', src.hrc_num);
+    }
 
     // add a warning about the values
     const warnPara = document.createElement('p');

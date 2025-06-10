@@ -161,9 +161,16 @@ var wwt = (function () {
   // It should not be run multiple times (although it probably doesn't matter
   // if it does).
   //
+  // This is being co-opted to be a "version" number, so it can cover
+  // non-schema changes too.
+  //
+  function getSchema() {
+    return getState(keySchema);
+  };
+
   function updateSchema() {
-    trace('Setting schema version to 1');
-    window.localStorage.setItem(keySchema, '1');
+    trace('Setting schema version to 2');
+    window.localStorage.setItem(keySchema, '2');
   }
 
   // What is the minimum FOV size we want to try and "enforce"?
@@ -609,38 +616,11 @@ var wwt = (function () {
     return cir;
   }
 
-  // Note: set fill color if it has not been processed yet - not ideal
-  //       as no way to change this color.
-  //
-  // Sent in an object, since it is also used to create the plot
-  // properties, rather than the raw array.
-  //
+  // This used to be more complex as it had to support partially-complete
+  // data.
   function makeSource(color, size, src) {
-    if ((src.ra === null) || (src.dec === null)) {
-      etrace('Err, no location for source:');
-      console.log(src);
-      return null;
-    }
-
-    // Use nh as a proxy for whether we have the source properties or not
-    const unprocessed = src.nh_gal === null;
-
-    const lineColor = unprocessed ? 'grey' : color;
-    // const fillColor = unprocessed ? 'grey' : 'white';
-    const fillColor = lineColor;
-
-    const ann = makeCircle(src.ra, src.dec, size, 1,
-			   lineColor, fillColor,
-			   true, sourceOpacity);
-
-    // Note: add a label to indicate that this is unprocessed, so we know not to
-    //       change the color later.
-    //
-    if (unprocessed) {
-      ann.set_label('unprocessed');
-    }
-
-    return ann;
+      return makeCircle(src.ra, src.dec, size, 1, color, color,
+			true, sourceOpacity);
   }
 
   function makeXMMSource(color, size, src) {
@@ -2230,10 +2210,40 @@ var wwt = (function () {
 
   }
 
-  var sourceCircle = undefined;
-  var sourceRA = undefined;
+  var sourceCircle = null;
+  var sourceRA = undefined;  // TODO: remove
   var sourceDec = undefined;
   var sourceFOV = undefined;
+    
+  // Display a circle to represent the approximate search used
+  // (it's not great near the poles).
+  //
+  function addSourceCircle(ra, dec, fov) {
+    if (sourceCircle !== null) {
+      itrace(`Expected to add circle at ${ra} ${dec} ${fov} but one already exists.`);
+      return;
+    }
+
+    // Could cache the annotation and just move it, but
+    // let's just create a new one each time for now.
+    sourceCircle = wwt.createCircle(false);
+    sourceCircle.setCenter(ra, dec);
+    sourceCircle.set_skyRelative(true);
+    sourceCircle.set_radius(fov);
+    sourceCircle.set_lineColor('orange');
+
+    wwt.addAnnotation(sourceCircle);
+  }
+
+  function removeSourceCircle() {
+    if (sourceCircle === null) {
+      itrace("No source circle to remove");
+      return;
+    }
+
+    wwt.removeAnnotation(sourceCircle);
+    sourceCircle = null;
+  }
 
   // Display the sources
   //
@@ -2276,17 +2286,9 @@ var wwt = (function () {
 
     // Only draw on the circle if there are any sources
     //
-    // Could cache the annotation and just move it, but
-    // let's just create a new one each time for now.
-    sourceCircle = wwt.createCircle(false);
-    sourceCircle.setCenter(ra0, dec0);
-    sourceCircle.set_skyRelative(true);
-    sourceCircle.set_radius(fov);
-    sourceCircle.set_lineColor('orange');
+    addSourceCircle(ra0, dec0, fov);  
 
-    wwt.addAnnotation(sourceCircle);
-
-    sourceRA = ra0;
+    sourceRA = ra0;  // TODO: remove
     sourceDec = dec0;
     sourceFOV = fov;
 
@@ -2937,7 +2939,8 @@ var wwt = (function () {
     // Let the user know what was selected.
     //
     selectSource(ann0.ann);
-    wwtprops.addSourceInfo(getCSCObject(src0));
+    // wwtprops.addSourceInfo(getCSCObject(src0));  OLD
+    wwtprops.addSourceInfo(src0);
 
     if (!displayNearestSources) { return; }
 
@@ -2958,6 +2961,7 @@ var wwt = (function () {
     //
     const neighbors = neighborsAll.slice(1, 11);
 
+      // TODO: we do not have most of these fields ....
     const indexes = {
       name: getCSCColIdx('name'),
       significance: getCSCColIdx('significance'),
@@ -3581,34 +3585,25 @@ var wwt = (function () {
 
   // '2CXO J061859.6-705831'
   const sourceExample =
-    ['2CXO J061859.6-705831',
-     94.74868,
-     -70.97541,
-     0.93,
-     0.61,
-     25.5,
-     0,
-     0,
-     3,
-     0,
-     0,
-     2.78,
-     0,
-     8.111e-16,
-     4.442e-16,
-     1.159e-15,
-     8.76,
-     -0.2561,
-     -0.634,
-     0.1418,
-     -0.1549,
-     -0.4716,
-     0.203];
+	{name: '2CXO J061859.6-705831',
+	 ra: 94.74868,
+	 dec: -70.97541,
+	 err_ellipse_r0: 0.93,
+	 significance: 2.78,
+	 fluxband: 0,
+	 flux: 8.111e-16,
+	 flux_lolim: 4.442e-16,
+	 flux_hilim: 1.159e-15,
+	 hard_hm: -0.2561,
+	 hard_hm_lolim: -0.634,
+	 hard_hm_hilim: 0.1418,
+	 hard_ms: -0.1549,
+	 hard_ms_lolim: -0.4716,
+	 hard_ms_hilim: 0.203
+	};
 
-  // base on sourceExample
-  //
-  const raExample = 94.74868;
-  const decExample = -70.97541;
+  const raExample = sourceExample.ra;
+  const decExample = sourceExample.dec;
   const rExample = 30.0 / 3600.0;
 
   // define as a function because
@@ -3617,10 +3612,9 @@ var wwt = (function () {
   //      available when the code is first processed (I think).
   //
   function makeSourceSelectionExample() {
-    const csc = catalogProps.csc;
-    const pos = csc.getPos(sourceExample);
     return {
-      annotations: [makeAnnotation(sourceExample, pos, null)]
+	annotations: [makeAnnotation(sourceExample, sourceExample, null)],
+	label: catalogProps.csc.label
     };
   }
 
@@ -4176,11 +4170,6 @@ var wwt = (function () {
     //
     catalogProps.csc = catalogProps.csc21;
 
-    toggleSources = makeToggleCatalog(catalogProps.csc,
-                                      downloadCatalog21Data,
-                                      showSources,
-                                      hideSources);
-
     const nprops = restoreCatalogSourceProperties(catalogProps.csc);
     const xmmnprops = restoreCatalogSourceProperties(catalogProps.xmm);
     const eROSITAnprops = restoreCatalogSourceProperties(catalogProps.eROSITA);
@@ -4191,16 +4180,6 @@ var wwt = (function () {
 
     // Experiment
     changeSourceOpacity = makeOpacityUpdate(catalogProps.csc);
-
-    // Now we have the toggle-sources code we can set the onclick
-    // handler.
-    //
-    const toggle = document.querySelector("#togglesources");
-    if (toggle === null) {
-      alert("Internal error: unable to find the toggle-source button");
-      return;
-    }
-    toggle.addEventListener("click", toggleSources, false);
 
     // This should exist, but just in case
     const size = document.querySelector("#sourcesize");
@@ -4258,6 +4237,20 @@ var wwt = (function () {
 
     toggleOptionalBehavior();
 
+    // Do we want to let the user know about the change in CSC 2.1
+    // source loading?
+    // This is a temporary change.
+    //  
+    const schema = getSchema();
+    if ((schema !== null) && (schema === "1")) {
+	const el = document.querySelector("#csc21-load-change");
+	if (el !== null) {
+	  el.style.display = 'block';
+	} else {
+          etrace('no #csc21-load-change element to display!');
+	}
+    }
+
     // In case the local-storage schema ever needs to be updated.
     updateSchema();
 
@@ -4306,7 +4299,7 @@ var wwt = (function () {
     wwtprops.addSourceSelectionHelp(raExample, decExample, rExample,
 				    makeSourceSelectionExample());
     wwtprops.addStackInfoHelp(stackExample);
-    wwtprops.addSourceInfoHelp(getCSCObject(sourceExample));
+    wwtprops.addSourceInfoHelp(sourceExample);
 
     // TODO: should this check that the name is not blank/empty?
     const tfind = host.querySelector('#targetFind');
@@ -5156,6 +5149,155 @@ var wwt = (function () {
 
   }
 
+  // Find nearby source information or hide them.
+  //
+  function toggleCSCSources() {
+
+    // If there are are any annotations then assume this is "Hide"
+    // otherwise "Show".
+    const props = catalogProps.csc;
+    if (props.annotations === null) {
+	showCSCSources();
+    } else {
+	hideCSCSources();
+    }
+  }
+
+  // This runs a cone search to find the data to display.
+  //
+  function showCSCSources() {
+
+    const button = document.querySelector('#togglesources');
+    if (button === null) {
+      etrace("-- unable to find #togglesources");
+      return;
+    }
+
+    const props = catalogProps.csc;
+
+    const ra0 = 15.0 * wwt.getRA();
+    const dec0 = wwt.getDec();
+    const fov = wwt.get_fov();
+
+    const hideSourceLabel = () => {
+      button.innerHTML = `Hide ${props.label} Sources`;
+    };
+    // How do we enforce this when the source properties window is
+    // closed?
+    //
+    // const showSourceLabel = () => {
+    //   button.innerHTML = `Show ${props.label} Sources`;
+    // };
+
+    const success = (sources) => {
+	if (sources.length === 0) {
+	    reportUpdateMessage(`No ${props.label} sources found in this area of the sky.`);
+	    return;
+	}
+
+	reportUpdateMessage(`Found ${sources.length} sources in ${props.label}.`);
+
+	props.annotations = [];
+	sources.forEach((row) => {
+	    const shp = props.makeShape(props.color, props.size, row);
+	    const ann = makeAnnotation(row, row, shp);
+	    ann.add();
+	    props.annotations.push(ann);
+	});
+
+	addSourceCircle(ra0, dec0, fov);
+	hideSourceLabel();
+
+	// Display the plot data.
+	//
+    const sel = document.querySelector('#selectionmode');
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if (opt.value === 'source') {
+	opt.disabled = false;
+	opt.selected = true;
+      } else if (opt.value === 'polygon') {
+	opt.disabled = false;
+      }
+    }
+
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      itrace(`unable to change selection mode: ${e}`);
+    }
+
+    // Show the 'source window'.
+    //
+    wwtprops.addSourceSelection(ra0, dec0, fov, props);
+
+    };
+
+    const failure = (flag) => {
+      reportUpdateMessage(`Unable to query ${props.label}!`);
+    };
+
+    cone.coneSearch(ra0, dec0, fov, success, failure);
+  }
+
+  function hideCSCSources() {
+
+    const button = document.querySelector('#togglesources');
+    if (button === null) {
+      etrace("-- unable to find #togglesources");
+      return;
+    }
+
+    const props = catalogProps.csc;
+
+    // Clear out any existing sources (the assumption is that they
+    // exist, but allow for them not too).
+    //
+    if (props.annotations !== null) { 
+      props.annotations.forEach(ann => ann.remove());
+      props.annotations = null;
+    } else {
+      itrace("Expected annotations but found none");
+    }
+
+    removeSourceCircle();
+
+    // Change the label
+    //
+    button.innerHTML = `Show ${props.label} Sources`;
+
+    // Clear out the source-selection window, if it exists.
+    wwtprops.clearSourceSelection();
+
+    // from hideSources
+    ['sourceprops', 'plot'].forEach(hideElement);
+    clearNearestSource();
+
+    // What is the best option to switch to here:
+    // stack, nothing, or leave as is if not source-related?
+    //
+    const switchTo = stacksShown ? 'stack' : 'nothing';
+
+    const sel = document.querySelector('#selectionmode');
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if ((opt.value === 'source') || (opt.value === 'polygon')) {
+	opt.disabled = true;
+      } else if (opt.value === switchTo) {
+	opt.selected = true;
+      }
+    }
+
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      itrace(`unable to change selection mode: ${e}`);
+    }
+      
+  }
+
   // Based on
   // https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
   //
@@ -5534,8 +5676,8 @@ var wwt = (function () {
     setPosition: setPosition,
     moveTo: moveTo,
 
-    hideSources: hideSources,
-    showSources: showSources,
+    hideSources: hideCSCSources,
+    // showSources: showCSCSources,
     toggleXMMSources: toggleXMMSources,
     toggleeROSITASources: toggleeROSITASources,
     toggleStacks: toggleStacks,
@@ -5592,6 +5734,8 @@ var wwt = (function () {
     resetCatalog: resetCatalog,
     resetXMMCatalog: resetXMMCatalog,
     reseteROSITACatalog: reseteROSITACatalog,
+
+    toggleCSCSources: toggleCSCSources,
 
     startSpinner: startSpinner,
     stopSpinner: stopSpinner,

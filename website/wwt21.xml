@@ -43,6 +43,7 @@
       <htmlscript src="js/samp.js"/>
 
       <htmlscript src="js/lookup.js"/>
+      <htmlscript src="js/cone.js"/>
 
       <htmlscript src="js/spinner.js"/>
       <htmlscript src="js/draggable.js"/>
@@ -245,12 +246,13 @@ main#content div.wrap {
 	  </div>
 
 	  <div id="sourcebar">
-            <!-- The onclick handler is set in wwt.js unlike other buttons -->
             <button class="button"
-                    type="button" id="togglesources">
-              Load CSC2.1 Sources
+                    type="button" id="togglesources"
+		    onclick="wwt.toggleCSCSources()">
+              Show CSC2.1 Sources
             </button>
 	    <button type="button" id="togglesourceprops"
+		    style="display: inline-block;"
 		    onclick="wwt.toggleSourceProps(event, 'sourceprops')">
 	      <img src="wwtimg/fa/cog.svg" class="icon"
 		   alt="Change Properties"
@@ -532,6 +534,15 @@ main#content div.wrap {
 
 	<div class="pane-body">
 
+	  <p style="display: none;
+                    text-align: center; font-size: larger;
+                    background-color: #99CC66;
+                    padding: 0.2em 0;
+                   " id="csc21-load-change">
+	    You no-longer need to "load" the CSC source locations
+	    before displaying them.
+	  </p>
+	  
 	  <p>
 	    This page uses the
 	    <extlink target="_blank"
@@ -557,38 +568,33 @@ main#content div.wrap {
 	    Microwave to Gamma ray), and defaults to the optical.
 	  </p>
 	  <p>
-	    Polygons indicate areas observed by Chandra that are included
-	    in CSC 2.1 ("stacks"), and the default behavior -
-	    <span class="example-text">Select nearest stack</span> - is
-	    that selecting an area of sky will highlight the nearest
-	    polygon and provide information on the observations that
-	    form the stack.
-	    The locations of sources in CSC 2.1 can be loaded
-	    (<span class="example-button">Load CSC2.1 Sources</span>),
-	    after which the button will change to
-	    <span class="example-button">Show CSC2.1 Sources</span>,
+	    Polygons indicate areas observed by Chandra that are
+	    included in CSC 2.1 ("stacks"), and the default behavior -
+	    <span class="example-text">Select nearest stack</span> -
+	    is that selecting an area of sky will highlight the
+	    nearest polygon and provide information on the
+	    observations that form the stack.  The locations of
+	    sources in CSC 2.1 can be displayed with the <span
+	    class="example-button">Show CSC2.1 Sources</span> button,
 	    which will show all sources close to the current location
-	    and create a window which can be used to
-	    display several plots and send their properties to
+	    and create a window which can be used to display several
+	    plots and send their properties to <extlink
+	    target="_blank" href="https://www.ivoa.net/">Virtual
+	    Observatory</extlink> applications - such as <extlink
+	    target="_blank"
+	    href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
+	    or <extlink target="_blank"
+	    href="https://ds9.si.edu/">SAOImageDS9</extlink> - if a
 	    <extlink target="_blank"
-		     href="https://www.ivoa.net/">Virtual Observatory</extlink>
-	    applications - such as
+	    href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP
+	    hub</extlink> is running on the same machine as the web
+	    browser.  The positions of detections from a recent
 	    <extlink target="_blank"
-		     href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
-	    or
-	    <extlink target="_blank"
-		     href="https://ds9.si.edu/">SAOImageDS9</extlink>
-	    - if a
-	    <extlink target="_blank"
-		     href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
-	    is running on
-	    the same machine as the web browser.
-	    The positions of detections from a recent
-	    <extlink target="_blank" href="http://xmm-catalog.irap.omp.eu/">XMM-Newton
-	    source catalog</extlink>
-	    and
-	    <extlink target="_blank" href="https://erosita.mpe.mpg.de/dr1/">eROSITA DR1</extlink>
-	    can also be displayed.
+	    href="http://xmm-catalog.irap.omp.eu/">XMM-Newton source
+	    catalog</extlink> and <extlink target="_blank"
+	    href="https://erosita.mpe.mpg.de/dr1/">eROSITA
+	    DR1</extlink> can also be displayed, but they need to be
+	    loaded <em>before</em> they can then be displayed.
 	  </p>
 	  <p>
 	    More details can be found using the
@@ -600,8 +606,6 @@ main#content div.wrap {
 	    button, including turning off this "Welcome banner"
 	    (this information is stored by your browser and not saved
 	    anywhere else).
-	  </p>
-	  <p>
 	    The <tt>k</tt> key will display the available keyboard
 	    actions, which mainly let you display this information
 	    and the "help" page.
@@ -656,12 +660,14 @@ main#content div.wrap {
 	  </p>
 
 	  <!-- temporary paragraph -->
+	  <!--
 	  <p>
 	    The <cxclink target="_blank"
 	    href="processing21/status.html">Processing Status</cxclink>
             page provides more information on the current status
             of version 2.1 of the Chandra Source Catalog.
 	  </p>
+	  -->
 
 	  <h3>What do all the icons mean?</h3>
 
@@ -887,12 +893,14 @@ main#content div.wrap {
 
 	  <h3>Searching for a name or position</h3>
 
+	  <!--
 	  <p>
 	    Unfortunately we are currently unable to search by name,
 	    such as <span class="term">M31</span>, as the service we used
 	    for this had to be closed down because it was being misused.
 	    We hope to bring this feature soon.
           </p>
+	  -->
 
 	  <p>
 	    The <tt>Enter a Name or Position</tt> box lets you quickly move
@@ -979,11 +987,10 @@ main#content div.wrap {
 	  </div>
 
           <p>
-	    The exact set of properties shown depend on the source, but
-	    the basics are the positional error, Galactic column Hydrogen
-	    density, the best estimate of the model-independent flux
-	    using an aperture correction, hardness-ratios, and several
-	    details about the data used for the source.
+	    The exact set of properties shown depend on the source,
+	    but the basics are the positional error, the best estimate
+	    of the model-independent flux using an aperture
+	    correction, and hardness ratios.
 	  </p>
 
 	  <p>
@@ -1026,24 +1033,30 @@ main#content div.wrap {
 	  <h3>Chandra, XMM, and eROSITA sources</h3>
 
 	  <p>
-	    Since the data files can take some time to load, the
-	    source catalogs must be loaded - using the
-	    "<span class="term">Load CSC2.1 Sources</span>",
+	    The Chandra sources are found using the
+	    <extlink href="https://cda.cfa.harvard.edu/csc21scs/">
+	      CSC Simple Cone Search
+	      </extlink> service.
+	      An orange circle is drawn to show the
+	      maximum radius used for sources (only for the CSC 2.1 sources).
+	  </p>
+
+	  <p>
+	    To display the XMM or eROSITA catalogs, the data must
+	    first be loaded, using the
 	    "<span class="term">Load 4XMM-DR&xmmdr; Detections</span>",
 	    or
-	    "<span class="term">Load eROSITA DR1 Sources</span>",
-	    buttons - before they can be shown. Once the data
+	    "<span class="term">Load eROSITA DR1 Sources</span>"
+	    buttons. Once the data
 	    has loaded the button will change its label.
 	    Selecting the
-	    "<span class="term">Show CSC2.1 Sources</span>",
-	    "<span class="term">Show 4XMM-DR&xmmdr; Detections</span>",
+	    "<span class="term">Show 4XMM-DR&xmmdr; Detections</span>"
 	    or
 	    "<span class="term">Show eROSITA DR1 Sources</span>",
 	    button will add circles, indicating the sources, close
 	    to the location on the screen (the full catalogs are
 	    <em>not</em> drawn as this would result in the display
-	    being unusable!). An orange circle is drawn to show the
-	    maximum radius used for sources (only for the CSC 2.1 sources).
+	    being unusable!).
 	  </p>
 
 	  <p>
