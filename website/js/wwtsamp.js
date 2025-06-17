@@ -19,7 +19,7 @@ const wwtsamp = (function () {
     'samp.description': `Explore ${catName} with WWT`,
     'author.affiliation': 'Chandra X-ray Center',
     // This icon is too large, but better than nothing
-    'samp.icon.url': 'http://cxc.harvard.edu/csc2/imgs/csc_logo_navbar.gif'
+    'samp.icon.url': 'https://cxc.harvard.edu/csc2/imgs/csc_logo_navbar.gif'
   };
 
   // what version option are we using?
