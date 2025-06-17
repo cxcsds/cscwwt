@@ -384,7 +384,8 @@ const wwtprops = (function () {
     }
     addText(lbl1, 'What:');
 
-    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+    const clientList = createSAMPClientList(active, clientListId, mtype,
+                                            false, selected);
 
     const lbl2 = document.createElement('label');
     lbl2.setAttribute('for', clientList.id);
@@ -411,29 +412,6 @@ const wwtprops = (function () {
 
     div.appendChild(bdiv);
     div.appendChild(sdiv);
-
-    if (active) {
-      // NOTE:
-      //
-      // If TARGET_FIND is selected then the target is still changed,
-      // even though downstream code will treat this as a no-op. This
-      // is because the registration and then UI updates to include the
-      // clients can take a significant amount of time, during which
-      // the user can select the export button. Without changing the
-      // field then this would likely cause the TARGET_CLIPBOARD
-      // action to fire, which is a bit confusing (seen during user
-      // testing). It is also confusing to have the button do nothing,
-      // but possibly less confusing. One option would be to disable
-      // the button until the update has been done, but leave that
-      // for now as tricky to get right.
-      //
-      clientList.addEventListener('change', ev => {
-	selected.target = ev.target.value;
-	if (ev.target.value === wwtsamp.TARGET_FIND) {
-	  wwtsamp.register(); // This is an asynchronous action
-	}
-      }, false);
-    }
 
     return {container: div, list: clientList, button: btn};
   }
@@ -1229,7 +1207,7 @@ const wwtprops = (function () {
   // and a client name, the values are opt-<value> or client-<name>,
   // other than the 'select target' option, which is empty.
   //
-  function createSAMPClientList(active, id, mtype, unselected) {
+  function createSAMPClientList(active, id, mtype, unselected, selected) {
     const sel = document.createElement('select');
     if (active) {
       sel.id = id;
@@ -1247,6 +1225,32 @@ const wwtprops = (function () {
     }
 
     addOption(sel, wwtsamp.TARGET_CLIPBOARD, 'copy to clipboard');
+
+    // Set the handler before calling refreshSAMPClientList so it
+    // picks up any changes made.
+    //
+    if (active) {
+      // NOTE:
+      //
+      // If TARGET_FIND is selected then the target is still changed,
+      // even though downstream code will treat this as a no-op. This
+      // is because the registration and then UI updates to include the
+      // clients can take a significant amount of time, during which
+      // the user can select the export button. Without changing the
+      // field then this would likely cause the TARGET_CLIPBOARD
+      // action to fire, which is a bit confusing (seen during user
+      // testing). It is also confusing to have the button do nothing,
+      // but possibly less confusing. One option would be to disable
+      // the button until the update has been done, but leave that
+      // for now as tricky to get right.
+      //
+      sel.addEventListener('change', ev => {
+	selected.target = ev.target.value;
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
+	  wwtsamp.register(); // This is an asynchronous action
+	}
+      }, false);
+    }
 
     refreshSAMPClientList(sel);
     return sel;
