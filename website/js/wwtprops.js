@@ -376,7 +376,9 @@ const wwtprops = (function () {
     btn.id = buttonId;
     btn.setAttribute('class', 'button');
     btn.setAttribute('type', 'button');
-    addText(btn, 'Export ...');
+    // addText(btn, 'Export ...');
+    // addText(btn, 'Export &#8230;');  // does not work
+    addText(btn, 'Export …');  // try U+2026
 
     const lbl1 = document.createElement('label');
     if (whatEl.id !== '') {
