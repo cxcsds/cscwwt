@@ -1006,31 +1006,17 @@ var wwt = (function () {
     if (typeof stack === 'undefined') {
       return;
     }
+    reportUpdate(`Moving to stack ${stackname}`);
     wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, moveFlag);
     wwtsamp.moveTo(stack[0], stack.pos[1]);
   }
 
-  function zoomToSource(sourcename) {
-
-    // Slightly optimise the name query as could be called
-    // many times. Do not bother with ra/dec as only
-    // called once.
-    //
-    const nameIdx = getCSCColIdx('name');
-    if (nameIdx === null) {
-      return;
-    }
-
-    for (var src of catalogProps.csc.data) {
-      const sname = src[nameIdx];
-      if (sname !== sourcename) { continue; }
-
-      const ra = src[raIdx];
-      const dec = src[decIdx];
-      wwt.gotoRaDecZoom(ra, dec, 0.06, moveFlag);
-      wwtsamp.moveTo(ra, dec);
-      return;
-    }
+  // This used to send in the name, but at a point where we knew
+  // what the RA/Dec was, so it is now much simpler.
+  function zoomToSource(name, ra, dec) {
+    reportUpdate(`Moving to ${name}`);
+    wwt.gotoRaDecZoom(ra, dec, 0.06, moveFlag);
+    wwtsamp.moveTo(ra, dec);
   }
 
   // Can we identify whether this source has been processed or not

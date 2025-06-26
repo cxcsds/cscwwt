@@ -1123,7 +1123,7 @@ const wwtprops = (function () {
     binfoDiv.appendChild(span);
 
     addSpanLink(binfoDiv, 'zoomto', 'Zoom to source',
-		active ? () => wwt.zoomToSource(src.name) : null);
+		active ? () => wwt.zoomToSource(src.name, src.ra, src.dec) : null);
 
     mainDiv.appendChild(document.createElement('br'));
 
