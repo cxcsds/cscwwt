@@ -783,7 +783,7 @@ main#content div.wrap {
 		and
 		<extlink target="_blank"
 			 href="https://ds9.si.edu/">SAOImageDS9</extlink>.
-		Selecting the icon will register the WWT/CSC2 display with
+		Selecting the icon will register the WWT/CSC2.1 display with
 		the SAMP hub: this is an <em>optional step</em>,
 		but selecting it will
 		mean that the WWT interface will <!-- both send and -->
@@ -968,9 +968,9 @@ main#content div.wrap {
 	    selction mode - which is displayed in the second row of the
 	    menu bar on the left of the page - changes to
 	    "<span class="term">Select nearest source</span>" - and
-	    the nearest <em>displayed</em> source from CSC2 will be
+	    the nearest <em>displayed</em> source from CSC 2.1 will be
 	    selected. A different window is created, this time containing
-	    summary details about the source from CSC 2.1.
+	    summary details about the source.
 	  </p>
 
 	  <div class="infocontainer">
@@ -1047,7 +1047,7 @@ main#content div.wrap {
 	  </p>
 
 	  <p>
-	    By default, the CSC2.1 sources are drawn as cyan circles
+	    By default, the CSC 2.1 sources are drawn as cyan circles
 	    with a radius of 5 arcseconds, the XMM sources are green
 	    circles with a radius of 10 arcseconds, and the eROSITA
 	    sources are yellow circles with a radius of 30 arcseconds.

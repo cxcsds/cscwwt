@@ -93,6 +93,21 @@ const wwtprops = (function () {
     parent.appendChild(a);
   }
 
+  // Taken from wwt.js - should consolidate the ned/simbad link
+  // routines.
+  //
+  // integer to "xx" format string, 0-padded to the left.
+  //
+  function i2(x) {
+    return x.toString().padStart(2, '0');
+  }
+
+  // float to "xx.y" format, where the number of decimal places is ndp
+  function f2(x, ndp) {
+    return x.toFixed(ndp).padStart(3 + ndp, '0')
+  }
+
+
   // hard-code a ~5" search radius
   //
   // could add incsrcs=1 as a term, but not clear what this
@@ -101,9 +116,39 @@ const wwtprops = (function () {
   function addNEDCoordLink(parent, ra, dec, active) {
     if (typeof active === 'undefined') { active = true; }
 
+      /***
+
+	  argh - this used to work
     const url = 'http://ned.ipac.caltech.edu/?q=nearposn&lon=' +
 	  ra.toString() + 'd&lat=' + dec.toString() +
 	  '&sr=0.0833&incsrcs=0&coordsys=Equatorial&equinox=J2000';
+      ***/
+
+    const raElems = raToTokens(ra);
+    const decElems = decToTokens(dec);
+
+    /* At least one source has sec=60 thanks to rounding */
+    let sec = f2(raElems.seconds, 2);
+    if (sec === "60.00") { sec = "59.99"; }
+
+    const raStr = i2(raElems.hours) + "h" +
+          i2(raElems.minutes) + "m" +
+          sec + "s";
+
+    /* repeat just in case; but should do this properly */
+    sec = f2(decElems.seconds, 1);
+    if (sec === "60.0") { sec = "59.9"; }
+
+    const decStr = decElems.sign +
+          i2(decElems.degrees) + "d" +
+          i2(decElems.minutes) + "m" +
+          sec + "s";
+
+    /* Is there some way to avoid the conversion to sexagessimal? */
+    const url = 'https://ned.ipac.caltech.edu/conesearch?search_type=Near%20Position%20Search&in_csys=Equatorial&in_equinox=J2000&' +
+	  'ra=' + raStr + '&dec=' + decStr +
+          '&radius=0.083' +
+	  '&Z_CONSTAINT=Unconstrained';
 
     const a = document.createElement('a');
     if (active) {
@@ -122,7 +167,7 @@ const wwtprops = (function () {
   function addSIMBADNameLink(parent, name, active) {
     if (typeof active === 'undefined') { active = true; }
 
-    const url = 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident=' +
+    const url = 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=' +
 	  cleanQueryValue(name);
 
     const a = document.createElement('a');
@@ -143,9 +188,12 @@ const wwtprops = (function () {
   function addSIMBADCoordLink(parent, ra, dec, active) {
     if (typeof active === 'undefined') { active = true; }
 
-    const url = 'http://simbad.u-strasbg.fr/simbad/sim-coo?Coord=' +
-	  ra.toString() + '%20' + dec.toString() +
-	  '&CooFrame=FK5&CooEpoch=2000&CooEqui=2000&CooDefinedFrames=none&Radius=5&Radius.unit=arcsec&submit=submit%20query&CoordList=';
+    const url = 'https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=' +
+	  ra.toString() + '+' + dec.toString() +
+	  '&CooFrame=FK5&CooEpoch=2000' +
+	  '&CooEqui=2000&CooDefinedFrames=none' +
+	  '&Radius=5&Radius.unit=arcsec' +
+	  '&submit=submit+query&CoordList=';
 
     const a = document.createElement('a');
     if (active) {
@@ -376,7 +424,9 @@ const wwtprops = (function () {
     btn.id = buttonId;
     btn.setAttribute('class', 'button');
     btn.setAttribute('type', 'button');
-    addText(btn, 'Export ...');
+    // addText(btn, 'Export ...');
+    // addText(btn, 'Export &#8230;');  // does not work
+    addText(btn, 'Export …');  // try U+2026
 
     const lbl1 = document.createElement('label');
     if (whatEl.id !== '') {
@@ -384,7 +434,8 @@ const wwtprops = (function () {
     }
     addText(lbl1, 'What:');
 
-    const clientList = createSAMPClientList(active, clientListId, mtype, false);
+    const clientList = createSAMPClientList(active, clientListId, mtype,
+                                            false, selected);
 
     const lbl2 = document.createElement('label');
     lbl2.setAttribute('for', clientList.id);
@@ -411,29 +462,6 @@ const wwtprops = (function () {
 
     div.appendChild(bdiv);
     div.appendChild(sdiv);
-
-    if (active) {
-      // NOTE:
-      //
-      // If TARGET_FIND is selected then the target is still changed,
-      // even though downstream code will treat this as a no-op. This
-      // is because the registration and then UI updates to include the
-      // clients can take a significant amount of time, during which
-      // the user can select the export button. Without changing the
-      // field then this would likely cause the TARGET_CLIPBOARD
-      // action to fire, which is a bit confusing (seen during user
-      // testing). It is also confusing to have the button do nothing,
-      // but possibly less confusing. One option would be to disable
-      // the button until the update has been done, but leave that
-      // for now as tricky to get right.
-      //
-      clientList.addEventListener('change', ev => {
-	selected.target = ev.target.value;
-	if (ev.target.value === wwtsamp.TARGET_FIND) {
-	  wwtsamp.register(); // This is an asynchronous action
-	}
-      }, false);
-    }
 
     return {container: div, list: clientList, button: btn};
   }
@@ -1140,7 +1168,7 @@ const wwtprops = (function () {
     binfoDiv.appendChild(span);
 
     addSpanLink(binfoDiv, 'zoomto', 'Zoom to source',
-		active ? () => wwt.zoomToSource(src.name) : null);
+		active ? () => wwt.zoomToSource(src.name, src.ra, src.dec) : null);
 
     mainDiv.appendChild(document.createElement('br'));
 
@@ -1229,7 +1257,7 @@ const wwtprops = (function () {
   // and a client name, the values are opt-<value> or client-<name>,
   // other than the 'select target' option, which is empty.
   //
-  function createSAMPClientList(active, id, mtype, unselected) {
+  function createSAMPClientList(active, id, mtype, unselected, selected) {
     const sel = document.createElement('select');
     if (active) {
       sel.id = id;
@@ -1247,6 +1275,32 @@ const wwtprops = (function () {
     }
 
     addOption(sel, wwtsamp.TARGET_CLIPBOARD, 'copy to clipboard');
+
+    // Set the handler before calling refreshSAMPClientList so it
+    // picks up any changes made.
+    //
+    if (active) {
+      // NOTE:
+      //
+      // If TARGET_FIND is selected then the target is still changed,
+      // even though downstream code will treat this as a no-op. This
+      // is because the registration and then UI updates to include the
+      // clients can take a significant amount of time, during which
+      // the user can select the export button. Without changing the
+      // field then this would likely cause the TARGET_CLIPBOARD
+      // action to fire, which is a bit confusing (seen during user
+      // testing). It is also confusing to have the button do nothing,
+      // but possibly less confusing. One option would be to disable
+      // the button until the update has been done, but leave that
+      // for now as tricky to get right.
+      //
+      sel.addEventListener('change', ev => {
+	selected.target = ev.target.value;
+	if (ev.target.value === wwtsamp.TARGET_FIND) {
+	  wwtsamp.register(); // This is an asynchronous action
+	}
+      }, false);
+    }
 
     refreshSAMPClientList(sel);
     return sel;
