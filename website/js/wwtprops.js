@@ -93,6 +93,21 @@ const wwtprops = (function () {
     parent.appendChild(a);
   }
 
+  // Taken from wwt.js - should consolidate the ned/simbad link
+  // routines.
+  //
+  // integer to "xx" format string, 0-padded to the left.
+  //
+  function i2(x) {
+    return x.toString().padStart(2, '0');
+  }
+
+  // float to "xx.y" format, where the number of decimal places is ndp
+  function f2(x, ndp) {
+    return x.toFixed(ndp).padStart(3 + ndp, '0')
+  }
+
+
   // hard-code a ~5" search radius
   //
   // could add incsrcs=1 as a term, but not clear what this
@@ -101,9 +116,39 @@ const wwtprops = (function () {
   function addNEDCoordLink(parent, ra, dec, active) {
     if (typeof active === 'undefined') { active = true; }
 
+      /***
+
+	  argh - this used to work
     const url = 'http://ned.ipac.caltech.edu/?q=nearposn&lon=' +
 	  ra.toString() + 'd&lat=' + dec.toString() +
 	  '&sr=0.0833&incsrcs=0&coordsys=Equatorial&equinox=J2000';
+      ***/
+
+    const raElems = raToTokens(ra);
+    const decElems = decToTokens(dec);
+
+    /* At least one source has sec=60 thanks to rounding */
+    let sec = f2(raElems.seconds, 2);
+    if (sec === "60.00") { sec = "59.99"; }
+
+    const raStr = i2(raElems.hours) + "h" +
+          i2(raElems.minutes) + "m" +
+          sec + "s";
+
+    /* repeat just in case; but should do this properly */
+    sec = f2(decElems.seconds, 1);
+    if (sec === "60.0") { sec = "59.9"; }
+
+    const decStr = decElems.sign +
+          i2(decElems.degrees) + "d" +
+          i2(decElems.minutes) + "m" +
+          sec + "s";
+
+    /* Is there some way to avoid the conversion to sexagessimal? */
+    const url = 'https://ned.ipac.caltech.edu/conesearch?search_type=Near%20Position%20Search&in_csys=Equatorial&in_equinox=J2000&' +
+	  'ra=' + raStr + '&dec=' + decStr +
+          '&radius=0.083' +
+	  '&Z_CONSTAINT=Unconstrained';
 
     const a = document.createElement('a');
     if (active) {

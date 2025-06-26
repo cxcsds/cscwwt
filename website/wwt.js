@@ -1006,7 +1006,7 @@ var wwt = (function () {
     if (typeof stack === 'undefined') {
       return;
     }
-    reportUpdate(`Moving to stack ${stackname}`);
+    reportUpdateMessage(`Moving to stack ${stackname}`);
     wwt.gotoRaDecZoom(stack.pos[0], stack.pos[1], 1.0, moveFlag);
     wwtsamp.moveTo(stack[0], stack.pos[1]);
   }
@@ -1014,7 +1014,7 @@ var wwt = (function () {
   // This used to send in the name, but at a point where we knew
   // what the RA/Dec was, so it is now much simpler.
   function zoomToSource(name, ra, dec) {
-    reportUpdate(`Moving to ${name}`);
+    reportUpdateMessage(`Moving to ${name}`);
     wwt.gotoRaDecZoom(ra, dec, 0.06, moveFlag);
     wwtsamp.moveTo(ra, dec);
   }
@@ -5424,10 +5424,17 @@ var wwt = (function () {
           i2(raElems.minutes) + "m" +
           f2(raElems.seconds, 2) + "s";
 
+      /***
     const decStr = decElems.sign +
           i2(decElems.degrees) + "d" +
           i2(decElems.minutes) + "'" +
           f2(decElems.seconds, 1) + '"';
+      ***/
+
+    const decStr = decElems.sign +
+          i2(decElems.degrees) + "d" +
+          i2(decElems.minutes) + "m" +
+          f2(decElems.seconds, 1) + "s";
 
     /*** I can not get the "new" version to work, in that it
          seems to not submit the actual search
@@ -5437,11 +5444,18 @@ var wwt = (function () {
          '&radius=1&in_csys=Equatorial&in_equinox=J2000.0&in_csys_IAU=Equatorial&in_equinox_IAU=B1950&z_constraint=Unconstrained&z_unit=z&ot_include=ANY&nmp_op=ANY&hconst=67.8&omegam=0.308&omegav=0.692&wmap=4&corr_z=1&out_csys=Same%20as%20Input&out_equinox=Same%20as%20Input&obj_sort=Distance%20to%20search%20center';
     ***/
 
+      /***
     const url = 'https://ned.ipac.caltech.edu/cgi-bin/objsearch?search_type=Near+Position+Search&in_csys=Equatorial&in_equinox=J2000.0' +
 	  '&lon=' + raStr +
 	  '&lat=' + decStr +
 	  '&radius=' + rmax.toString() +
 	  '&hconst=73&omegam=0.27&omegav=0.73&corr_z=1&z_constraint=Unconstrained&z_value1=&z_value2=&z_unit=z&ot_include=ANY&nmp_op=ANY&out_csys=Equatorial&out_equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text&zv_breaker=30000.0&list_limit=5&img_stamp=YES';
+      ***/
+
+      const url = 'https://ned.ipac.caltech.edu/conesearch?search_type=Near%20Position%20Search&in_csys=Equatorial&in_equinox=J2000&' +
+	    'ra=' + raStr + '&dec=' + decStr +
+            '&radius=1' +
+	    '&Z_CONSTAINT=Unconstrained';
 
     trace(`url=${url}`);
     window.open(url);
