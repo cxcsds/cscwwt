@@ -122,7 +122,7 @@ const wwtprops = (function () {
   function addSIMBADNameLink(parent, name, active) {
     if (typeof active === 'undefined') { active = true; }
 
-    const url = 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident=' +
+    const url = 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=' +
 	  cleanQueryValue(name);
 
     const a = document.createElement('a');
@@ -143,9 +143,12 @@ const wwtprops = (function () {
   function addSIMBADCoordLink(parent, ra, dec, active) {
     if (typeof active === 'undefined') { active = true; }
 
-    const url = 'http://simbad.u-strasbg.fr/simbad/sim-coo?Coord=' +
-	  ra.toString() + '%20' + dec.toString() +
-	  '&CooFrame=FK5&CooEpoch=2000&CooEqui=2000&CooDefinedFrames=none&Radius=5&Radius.unit=arcsec&submit=submit%20query&CoordList=';
+    const url = 'https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=' +
+	  ra.toString() + '+' + dec.toString() +
+	  '&CooFrame=FK5&CooEpoch=2000' +
+	  '&CooEqui=2000&CooDefinedFrames=none' +
+	  '&Radius=5&Radius.unit=arcsec' +
+	  '&submit=submit+query&CoordList=';
 
     const a = document.createElement('a');
     if (active) {

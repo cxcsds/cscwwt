@@ -5469,9 +5469,13 @@ var wwt = (function () {
     const ra = 15.0 * wwt.getRA();
     const dec = wwt.getDec();
 
-    const url = "https://simbad.harvard.edu/simbad/sim-coo?Coord=" +
-          ra.toString() + "+" +
-          dec.toString() + "&CooFrame=FK5&CooEpoch=2000" +
+    // The simbad.harvard.edu service seems to no-longer work,
+    // so fallback to the CDS version.
+    //
+    // const url = "https://simbad.harvard.edu/simbad/sim-coo?Coord=" +
+    const url = "https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=" +
+          ra.toString() + "+" + dec.toString() +
+	  "&CooFrame=FK5&CooEpoch=2000" +
           "&CooEqui=2000&CooDefinedFrames=none" +
           "&Radius=" + rmax.toString() +
           "&Radius.unit=arcmin" +
