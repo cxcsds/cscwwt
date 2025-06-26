@@ -415,7 +415,7 @@ def srclist_update_store(store, row):
     fb = rowdata['flux_aper_b']
     fw = rowdata['flux_aper_w']
 
-    # Just cheking what the value is as dealing with different
+    # Just checking what the value is as dealing with different
     # versions of the table (text/tsv vs VOTABLE)
     #
     if fb is not None and fb.strip() == '':
@@ -427,9 +427,7 @@ def srclist_update_store(store, row):
         fw = None
 
     if fb is not None and fw is not None:
-        print("WARNING: {} has fb=[{}] fw=[{}]".format(name,
-                                                       fb,
-                                                       fw))
+        print(f"WARNING: {rowdata['name']} has fb=[{fb}] fw=[{fw}]")
 
     # extract flux values here, not in loop
     if fb is not None:
