@@ -661,36 +661,12 @@ const wwtprops = (function () {
     const descPara = document.createElement('p');
     descPara.setAttribute('class', 'description');
 
-    // Do we want to note the completed date?
+    // Drop the "is this being processed" logic that was based on
+    // the status flag. Assume everything has been processed
+    // and do not bother with the processing data as we don't
+    // track it in CSC 2.2.
     //
     var desc = stack.description;
-    if (stack.status === 1) {
-      // Do not need the exact time, just the day
-      var date = new Date(stack.lastmod * 1e3);
-      desc += ' The stack was processed on '
-           + dayName[date.getUTCDay()] + ', '
-           + date.getUTCDate().toString() + ' '
-           + monthName[date.getUTCMonth()] + ', '
-           + date.getUTCFullYear().toString()
-           + '.';
-
-	const nsrc = stack.nsource;
-      if (typeof nsrc !== 'undefined') {
-	    const num = wwt.intToStr(nsrc);
-	    let suffix = "s";
-	    if (nsrc === 1) { suffix = ""; }
-
-	    desc += ` The stack contains ${num} source${suffix}.`;
-      }
-
-    } else if (stack.status === 2) {
-      // Note: should not be releavant now
-      desc += ' The stack is being processed.';
-    } else {
-      // Note: should not be releavant now
-      desc += ' The stack has not been fully processed.';
-    }
-
     addText(descPara, desc);
 
     mainDiv.appendChild(descPara);
@@ -1006,7 +982,7 @@ const wwtprops = (function () {
     // finalised (the values don't seem to match up, so may
     // not be including the correct data).
     //
-    // THIS SHOULD NOT BE NEEDED AYMORE  
+    // THIS SHOULD NOT BE NEEDED AYMORE
     //if (src.nh_gal === null) {
     //  const noDataPara = document.createElement('p');
     //  addText(noDataPara,
@@ -1034,7 +1010,6 @@ const wwtprops = (function () {
       addPara(parent, stext);
     }
 
-    // Unfortunately do not have this info from cone search
     if (typeof src.var_flag !== 'undefined' && ((src.var_flag === 1) || (src.var_flag === 'TRUE'))) {
       addPara(parent,
 	      'Source is variable (within or between observations).');
@@ -1051,7 +1026,7 @@ const wwtprops = (function () {
 
     // Only include the angle if the ellipse is not circular.
     //
-    if (typeof src.err_ellipse_r1 !== 'undefined') {  
+    if (typeof src.err_ellipse_r1 !== 'undefined') {
       let errlbl = src.err_ellipse_r0.toString() + '" by ' +
   	  src.err_ellipse_r1.toString() + '"';
       if (src.err_ellipse_ang !== 0) {
@@ -1063,11 +1038,11 @@ const wwtprops = (function () {
 	         errlbl, active);
     } else {
       let errlbl = src.err_ellipse_r0.toString() + '"';
-	
+
       addLinkRow(tbody, 'columns/positions.html',
   	         '95% confidence position r0 error',
 	         errlbl, active);
-    }	
+    }
 
     // TODO: should we convert to the appropriate power of 10,
     //       or always leave as 10^20?
@@ -1710,7 +1685,7 @@ const wwtprops = (function () {
     pane.style.display = 'block';
   }
 
-  function addNearestSourceTable(indexes, neighbors) {
+  function addNearestSourceTable(neighbors) {
     const n = neighbors.length;
     if (n === 0) { return; }
 
@@ -1754,7 +1729,8 @@ const wwtprops = (function () {
     trow.appendChild(mkElem('th', 'Separation'));
     trow.appendChild(mkElem('th', 'Significance'));
 
-    trow.appendChild(mkElem('th', 'NACIS, NHRC'));
+    trow.appendChild(mkElem('th', 'NACIS'));
+    trow.appendChild(mkElem('th', 'NHRC'));
 
     trow.appendChild(mkElem('th', 'Variable'));
     trow.appendChild(mkElem('th', 'flux band'));
@@ -1764,17 +1740,8 @@ const wwtprops = (function () {
     const tbody = document.createElement('tbody');
     tbl.appendChild(tbody);
 
-    const nameIdx = indexes.name;
-    const sigIdx = indexes.significance;
-    const nacisIdx = indexes.nacis;
-    const nhrcIdx = indexes.nhrc;
-    const varIdx = indexes.variability;
-    const bandIdx = indexes.fluxband;
-    const fluxIdx = indexes.flux;
-    const nhIdx = indexes.nh;
-
     const mkSrcLink = (src, ra, dec, ann, origColor) => {
-      const name = src[nameIdx];
+      const name = src.name;
       const lnk = document.createElement('a');
       lnk.setAttribute('href', '#');
       addText(lnk, name);
@@ -1835,16 +1802,23 @@ const wwtprops = (function () {
 
       trow.appendChild(mkSrcLink(src, ra, dec, ann, origColor));
       trow.appendChild(mkElem('td', mkSep(sep)));
-      trow.appendChild(mkElem('td', src[sigIdx]));
+      trow.appendChild(mkElem('td', sprintf("%.2f", src.significance)));
 
-      trow.appendChild(mkElem('td',
-			      `${src[nacisIdx]},${src[nhrcIdx]}`));
+      trow.appendChild(mkElem('td', src.acis_num));
+      trow.appendChild(mkElem('td', src.hrc_num));
 
-      trow.appendChild(mkButton(src[varIdx]));
+      trow.appendChild(mkButton(src.var_flag));
 
-      trow.appendChild(mkElem('td', getFluxBand(src[bandIdx])));
-      trow.appendChild(mkElem('td', src[fluxIdx]));
-      trow.appendChild(mkElem('td', src[nhIdx]));
+      trow.appendChild(mkElem('td', getFluxBand(src.fluxband)));
+
+      // Special case a flux of 0
+      if (src.flux <= 0) {
+        trow.appendChild(mkElem('td', "0"));
+      } else {
+        trow.appendChild(mkElem('td', sprintf("%.2e", src.flux)));
+      }
+
+      trow.appendChild(mkElem('td', src.nh_gal));
     });
 
     pane.style.display = 'block';

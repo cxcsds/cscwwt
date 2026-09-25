@@ -1,0 +1,1767 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE page [
+
+<!ENTITY ver "2.2">
+<!ENTITY url "/csc2.2">
+
+ <!-- want to include nbsp entity -->
+<!ENTITY nbsp "&#160;">
+
+<!-- XMM catalogs are named XMM-DR<n> so have an entity for n -->
+<!ENTITY xmmdr "15">
+]>
+
+<page>
+  <info>
+
+    <title>
+      <short>Explore CSC &ver; using WWT</short>
+    </title>
+    <version>&ver;</version>
+
+    <metalist>
+      <meta name="keywords" content="chandra, axaf, x-ray, astronomy, astrophysics, catalog, csc, wwt, visualization, samp, ivoa, virtual observatory"/>
+      <meta name="description" content="Explore the Chandra X-ray Observatory Source Catalog (CSC version &ver;) using the World Wide Telescope (WWT), to see sky coverage and source properties."/>
+    </metalist>
+
+    <htmlscripts>
+
+      <!-- see https://github.com/WorldWideTelescope/wwt-web-client/issues/350 -->
+      <htmlscript src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.3/pako_inflate.min.js"/>
+      <htmlscript src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"/>
+
+      <htmlscript src="https://web.wwtassets.org/engine/7/wwtsdk.js"/>
+
+      <!-- should probably specify a version -->
+      <htmlscript src="https://cdn.plot.ly/plotly-latest.min.js"/>
+
+      <htmlscript src="wwt.js"/>
+      <htmlscript src="wwtdata/mw.js"/>
+
+      <htmlscript src="js/download.js"/>
+
+      <htmlscript src="js/jscolor.js"/>
+      <htmlscript src="js/samp.js"/>
+
+      <htmlscript src="js/lookup.js"/>
+      <htmlscript src="js/cone.js"/>
+
+      <htmlscript src="js/spinner.js"/>
+      <htmlscript src="js/draggable.js"/>
+
+      <htmlscript src="js/wwtsamp.js"/>
+      <htmlscript src="js/wwtplots.js"/>
+      <htmlscript src="js/wwtscreen.js"/>
+      <htmlscript src="js/wwtprops.js"/>
+    </htmlscripts>
+
+    <css src="wwt.css"/>
+    <css src="css/spinner.css"/>
+
+    <css>
+/* over-ride the rules for the .wrap element */
+main#content div.wrap {
+  padding: 0;
+}
+    </css>
+
+  </info>
+
+  <text onload="wwt.initialize('2.2',
+                               'wwtdata/wwt22_stacks.json',
+                               null,
+                               'wwtdata/wwt22_outlines.json',
+  {stkevt3: 'wwtdata/version22.stkevt3.json',
+   sensity: 'wwtdata/version22.sensity.json',
+   stkecorrimg: 'wwtdata/version22.stkecorrimg.json',
+   stkexpmap: 'wwtdata/version22.stkexpmap.json',
+   stkbkgimg: 'wwtdata/version22.stkbkgimg.json'}
+);"
+	onunload="wwt.unload();"
+	onresize="wwt.resize();">
+
+    <div id="WorldWideTelescopeControlHost">
+
+      <!-- seems to need in-line style -->
+      <div style="border-style: none; border-width: 0px; height: 750px; width: 750px;"
+           id="WWTCanvas">
+      </div>
+
+      <!-- making this draggable while supporting a slider is problematic
+           so force users to minimise if it is in the way instead of
+           dragging it
+      <div id="wwtusercontrol"
+           draggable="true"
+           ondragstart="wwt.dragStartPane(event);"
+	   >
+      -->
+      <div id="wwtusercontrol">
+
+	<div class="usercontrolpanel">
+          <div id="resizeusercontrol">
+            <img id="smallify" alt="Hide"
+		 class="usercontrol icon"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img id="bigify" alt="Show"
+		 class="usercontrol icon"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
+          </div>
+
+	  <div class="with-tooltip-static">
+            <img id="register-samp"
+		 class="usercontrol requires-samp icon"
+		 alt="Register with a SAMP Hub"
+		 onclick="wwtsamp.register()"
+		 src="wwtimg/fa/broadcast-tower.svg"/>
+	  </div>
+
+	  <!-- since floating right, order so that it reads
+	       zoom 0, zoom in, zoom out from left-to-right -->
+	  <div class="with-tooltip">
+            <img id="zoomout" alt="Zoom Out"
+		 class="usercontrol icon" src="wwtimg/fa/minus-circle.svg"/>
+	  </div>
+	  <div class="with-tooltip">
+            <img id="zoomin" alt="Zoom In"
+		 class="usercontrol icon" src="wwtimg/fa/plus-circle.svg"/>
+	  </div>
+	  <div class="with-tooltip">
+            <img id="zoomn" alt="Zoom fully in"
+		 class="usercontrol icon"
+		 src="wwtimg/fa/compress-arrows-alt.svg"/>
+	  </div>
+	  <div class="with-tooltip">
+            <img id="zoom0" alt="Zoom fully out"
+		 class="usercontrol icon"
+		 src="wwtimg/fa/expand-arrows-alt.svg"/>
+	  </div>
+	</div>
+
+	<div>
+	  <p class='title'>
+	    <cxclink href="&url;/">Chandra Source Catalog &ver;</cxclink>
+	  </p>
+
+	  <img src="imgs/csc_logo_navbar.gif" width="120" height="55"
+	       id="csclogo" alt="The CSC logo"/>
+
+	  <!-- move to grid layout for this section? -->
+          <div class="userinfo" id="location">
+            <p id="coordinate"><output class="pos"
+				       id="ra_h">&nbsp;</output><sup>h</sup><output class="pos"
+				       id="ra_m">&nbsp;</output><sup>m</sup><output class="pos"
+				       id="ra_s">&nbsp;</output><sup>s</sup><output class="pos"
+				       id="dec_d">&nbsp;</output>°<output class="pos"
+				       id="dec_m">&nbsp;</output>'<output class="pos"
+				       id="dec_s">&nbsp;</output>"
+	      <img src="wwtimg/fa/cut.svg" id="coordinate-clip"
+		   alt="Scissors (cut to clipboard)"
+		   class="icon end-of-line"/>
+	    </p>
+	    <p>
+	      FOV: <span id="fov"></span>
+	      <img src="wwtimg/fa/bookmark.svg" id="bookmark"
+		   alt="Bookmark this location (copy URL to clipboard)"
+		   class="icon end-of-line"/>
+	    </p>
+
+	    <div>
+              <button class="button"
+                      type="button" id="search-ned"
+                      onclick="wwt.searchNED()">NED</button>
+              <button class="button"
+                      type="button" id="search-simbad"
+                      onclick="wwt.searchSIMBAD()">Simbad</button>
+	    </div>
+
+	  </div>
+
+	</div>
+
+	<!-- the id name is not ideal here -->
+        <div id="wwtuserbuttons">
+
+          <div id="userSelection" class="with-tooltip-static centered">
+            <label for="targetName">
+	      <input type="text" id="targetName"
+                     class="do-not-process-keypresses"
+                     placeholder="Enter Name or Position..."/>
+	    </label>
+	    <button type="submit"
+                    id="targetFind"
+                    disabled="true">
+	      <img src="wwtimg/fa/search.svg"
+		   alt="Magnifying glass"
+		   class="icon"/>
+	    </button>
+          </div>
+
+	  <div class="centered">
+	    <select id="selectionmode" name="selectionmode" class="button"
+		    onchange="wwt.setSelectionMode(event.target.value);">
+	      <option value="point">Move to point</option>
+	      <option value="stack" selected="1">Select nearest stack</option>
+	      <option value="source" disabled="true">Select nearest source</option>
+	      <option value="polygon" disabled="true">Lasso sources</option>
+	      <option value="nothing">No selection</option>
+	    </select>
+	  </div>
+
+	  <div class="centered">
+            <select id="imagechoice" name="imagechoice" class="button"
+                    onchange="wwt.setImage(event.target.value);">
+              <option value="planck-cmb">CMB (Planck)</option>
+              <option value="planck-dust-gas">Dust and Gas (Planck)</option>
+              <option value="vlss">Radio (VLSS; δ≳-40°)</option>
+              <option value="wise">IR (WISE)</option>
+              <option value="2mass-image">IR (2MASS)</option>
+              <option value="dss" selected="1">Optical (DSS)</option>
+              <option value="halpha">Optical (Hα)</option>
+              <option value="rass">X-ray (RASS)</option>
+              <option value="fermi">Gamma (Fermi)</option>
+            </select>
+	  </div>
+
+	  <div>
+            <button class="button"
+                    type="button" id="togglepreselected"
+                    onclick="wwt.togglePreSelected(event);">
+              Show Popular Places
+            </button>
+	  </div>
+
+	  <div>
+            <button class="button"
+                    type="button" id="togglesettings"
+                    onclick="wwt.toggleSettings(event);">
+              Show Settings
+            </button>
+	  </div>
+
+	  <div>
+            <button class="button"
+                    type="button" id="togglestacks"
+                    onclick="wwt.toggleStacks()">
+              Hide Stack Outlines
+            </button>
+	  </div>
+
+	  <div id="sourcebar">
+            <button class="button"
+                    type="button" id="togglesources"
+		    onclick="wwt.toggleCSCSources()">
+              Show CSC&ver; Sources
+            </button>
+	    <button type="button" id="togglesourceprops"
+		    style="display: inline-block;"
+		    onclick="wwt.toggleSourceProps(event, 'sourceprops')">
+	      <img src="wwtimg/fa/cog.svg" class="icon"
+		   alt="Change Properties"
+		   />
+	    </button>
+	  </div>
+
+	  <div class="sourceprops" id="sourceprops">
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Color</label>
+	      <button class="jscolor" id="sourcecolor"
+		      data-jscolor="{onFineChange:'wwt.colorUpdate(this)',valueElement:null,closable:true,value:'00ffff'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="sourcesize">Size</label>
+              <!-- The onchange handler is set in wwt.js unlike other buttons -->
+	      <input type="range" id="sourcesize" min="1" max="30"
+		     value="5" class="sourcesize"
+		     />
+	    </div>
+
+	    <!-- why do we not set the onchange handler here, but we do
+		 for the other catalogs? -->
+	    <div class="sourceitem">
+	      <label for="sourceopacity">Opacity</label>
+	      <input type="range" id="sourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     />
+	    </div>
+
+	    <!--  opacity currently is not being reset properly
+                  is it because it gets mixed up with the color?
+	    <div class="sourceitem">
+	      <button type="reset" id="sourcereset"
+		      onclick="wwt.resetCatalog()">Reset</button>
+	    </div>
+	    -->
+
+	  </div>
+
+	  <!-- how to style CHS -->
+<!-- We don't have the CHS data for CSC 2.1
+	  <div id="chsbar">
+            <button class="button"
+                    type="button" id="togglechs"
+                    onclick="wwt.toggleCHS()">
+              Load CHS Sources
+            </button>
+	  </div>
+-->
+
+	  <div id="xmmsourcebar">
+	    <!-- note the difference between the JS names (sources) and the
+		 label text (detections) as I had not been clear that these
+		 are detections rather than sources.
+	    -->
+            <button class="button"
+                    type="button" id="toggleXMMsources"
+                    onclick="wwt.toggleXMMSources()">
+              Load XMM Detections
+            </button>
+	    <button type="button" id="togglexmmsourceprops"
+		    onclick="wwt.toggleSourceProps(event, 'xmmsourceprops')">
+	      <img src="wwtimg/fa/cog.svg" class="icon"
+		   alt="Change Properties"/>
+	    </button>
+	  </div>
+
+	  <div class="sourceprops" id="xmmsourceprops">
+	    <div class="sourceitem">
+	      <label for="xmmsourcecolor">Color</label>
+	      <button class="jscolor" id="xmmsourcecolor"
+		      data-jscolor="{onFineChange:'wwt.xmmColorUpdate(this)',valueElement:null,closable:true,value:'008000'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="xmmsourcesize">Size</label>
+	      <input type="range" id="xmmsourcesize" min="1" max="30"
+		     value="10" class="sourcesize"
+		     onchange="wwt.changeXMMSourceSize(this.valueAsNumber)"
+		     />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="xmmsourceopacity">Opacity</label>
+	      <input type="range" id="xmmsourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     onchange="wwt.changeXMMSourceOpacity(this.valueAsNumber / 100)"
+		     />
+	    </div>
+
+	    <!--  opacity currently is not being reset properly
+                  is it because it gets mixed up with the color?
+	    <div class="sourceitem">
+	      <button type="reset" id="xmmsourcereset"
+		      onclick="wwt.resetXMMCatalog()">Reset</button>
+	    </div>
+	    -->
+
+	  </div>
+
+	  <div id="eROSITAsourcebar">
+            <button class="button"
+                    type="button" id="toggleeROSITAsources"
+                    onclick="wwt.toggleeROSITASources()">
+              Load eROSITA Sources
+            </button>
+	    <button type="button" id="toggleeROSITAsourceprops"
+		    onclick="wwt.toggleSourceProps(event, 'eROSITAsourceprops')">
+	      <img src="wwtimg/fa/cog.svg" class="icon"
+		   alt="Change Properties"/>
+	    </button>
+	  </div>
+
+	  <div class="sourceprops" id="eROSITAsourceprops">
+	    <div class="sourceitem">
+	      <label for="sourcecolor">Color</label>
+	      <button class="jscolor" id="eROSITAsourcecolor"
+		      data-jscolor="{onFineChange:'wwt.eROSITAColorUpdate(this)',valueElement:null,closable:true,value:'C6C618'}"
+		      />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="eROSITAsourcecolor">Size</label>
+	      <input type="range" id="eROSITAsourcesize" min="10" max="60"
+		     value="30" class="sourcesize"
+		     onchange="wwt.changeeROSITASourceSize(this.valueAsNumber)"
+		     />
+	    </div>
+	    <div class="sourceitem">
+	      <label for="eROSITAsourceopacity">Opacity</label>
+	      <input type="range" id="eROSITAsourceopacity" min="0" max="100"
+		     value="25" class="sourceopacity"
+		     onchange="wwt.changeeROSITASourceOpacity(this.valueAsNumber / 100)"
+		     />
+	    </div>
+
+	    <!--  opacity currently is not being reset properly
+                  is it because it gets mixed up with the color?
+	    <div class="sourceitem">
+	      <button type="reset" id="eROSITAsourcereset"
+		      onclick="wwt.reseteROSITACatalog()">Reset</button>
+	    </div>
+	    -->
+
+	  </div>
+
+	  <div>
+            <button class="button"
+                    type="button" id="showabout"
+                    onclick="wwt.showBlockElement('about')">Help</button>
+            <button class="button"
+                    type="button" id="showcredits"
+                    onclick="wwt.showBlockElement('credits')">Credits</button>
+	  </div>
+	</div> <!-- id=wwtuserbuttons -->
+      </div> <!-- id=wwtusercontrol -->
+
+      <!-- tooltips -->
+      <div class="tooltip" id="smallify-tooltip">
+	Hide the control panel.
+      </div>
+      <div class="tooltip" id="bigify-tooltip">
+	Display the control panel.
+      </div>
+      <div class="tooltip" id="register-samp-tooltip">
+	Register the WWT display with a SAMP Hub.
+      </div>
+      <div class="tooltip" id="zoomout-tooltip">
+	Zoom out slightly.
+      </div>
+      <div class="tooltip" id="zoomin-tooltip">
+	Zoom in slightly.
+      </div>
+      <div class="tooltip" id="zoomn-tooltip">
+	Zoom the display to a level appropriate for
+	individual CSC sources.
+      </div>
+      <div class="tooltip" id="zoom0-tooltip">
+	Zoom the display out as far as it will go!
+      </div>
+      <div class="tooltip" id="coordinate-clip-tooltip">
+	Copy RA and Dec to the clipboard, as decimal degrees.
+      </div>
+      <div class="tooltip" id="bookmark-tooltip">
+	Create a URL for the current display (location,
+	zoom level, and selected wavelength for the background
+	data) and copy it to the clipboard.
+      </div>
+<!-- TODO: this needs re-working since the names will work
+     thanks to NED but we now have 2.0 vs 2.1 to worry about -->
+      <div class="tooltip" id="targetName-tooltip-no-nameserver">
+	Unfortunately we currently can not support using an
+	object name - such as <span class="term">M31</span> - so
+	the supported values are CSC &ver; names, which begin
+	<span class="term">2CXO J</span>, or a position
+	in Right Ascension and Declination.
+	In this latter case
+	a limited variety of coordinate formats are supported,
+	including
+	<span class="term">205.842, -14.8367</span>;
+	<span class="term">13 43 22, -14 50 12</span>;
+	<span class="term">13:43:22, -14:50:12</span>;
+	<span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	and
+	<span class="term">13h 43m 22s, -14d 50' 12"</span>.
+	Note that the values <em>must</em> be separated by a comma!
+      </div>
+      <div class="tooltip" id="targetName-tooltip">
+	A name can be given (e.g.
+	<span class="term">Orion cluster</span>
+	or
+	<span class="term">M31</span>), which is passed to an
+	Astronomical name server, or a location can be given using a comma
+	to separate the Right Ascension from the Declination.
+	In this latter case
+	a limited variety of coordinate formats are supported,
+	including
+	<span class="term">205.842, -14.8367</span>;
+	<span class="term">13 43 22, -14 50 12</span>;
+	<span class="term">13:43:22, -14:50:12</span>;
+	<span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	and
+	<span class="term">13h 43m 22s, -14d 50' 12"</span>.
+      </div>
+      <div class="tooltip" id="targetFind-tooltip">
+	Find and move to the given location.
+      </div>
+
+      <!-- Inform the user when the stack status has been updated -->
+      <div id="stackUpdateStatus"></div>
+
+      <!-- someplace to put messages (primarily from target identification) -->
+      <div id="targetSuccess"></div>
+      <div id="targetFailure"></div>
+
+      <!-- HACK for CHS work; depends on what we want to show -->
+      <div id="chs"></div>
+
+      <div id="welcome">
+	<div class="pane-header">
+	  <span class="closable" onclick="wwt.hideElement('welcome');">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+
+          <h2>Please explore Chandra Source Catalog &ver;</h2>
+	</div>
+
+	<div class="pane-body">
+
+	  <p style="display: none;
+                    text-align: center; font-size: larger;
+                    background-color: #99CC66;
+                    padding: 0.2em 0;
+                   " id="csc21-load-change">
+	    You no-longer need to "load" the CSC source locations
+	    before displaying them.
+	  </p>
+
+	  <p>
+	    This page uses the
+	    <extlink target="_blank"
+		     href="https://aas.org/publications/aas-worldwide-telescope">American
+	    Astronomical Society's World Wide Telescope</extlink>
+	    interface to let you explore the
+	    sky coverage and source properties of
+	    <cxclink target="_blank" href="&url;/">version &ver; of
+	    the Chandra Source Catalog</cxclink>.
+	  </p>
+	  <p>
+	    The "control panel" on the left of the screen
+	    provides information about the current view - the location
+	    and size of the area of sky being shown - and various
+	    options to control the appearance and behavior of the
+	    display.
+	    The display can be moved by dragging it, entering a
+	    location or place name in the search box, selecting one
+	    of the <span class="example-button">popular places</span>,
+	    or with a single click when the
+	    <span class="example-text">Move to point</span> option is selected.
+	    The background data covers a large range of wavelengths (from
+	    Microwave to Gamma ray), and defaults to the optical.
+	  </p>
+	  <p>
+	    Polygons indicate areas observed by Chandra that are
+	    included in CSC &ver; ("stacks"),
+	    with yellow indicating no difference to CSC 2.1, brown
+	    indicating a stack with one or more observations added to
+	    it compared to CSC 2.1, and white indicates a new stack
+	    in CSC 2.2.
+	    The default behavior -
+	    <span class="example-text">Select nearest stack</span> -
+	    is that selecting an area of sky will highlight the
+	    nearest polygon and provide information on the
+	    observations that form the stack.  The locations of
+	    sources in CSC &ver; can be displayed with the <span
+	    class="example-button">Show CSC&ver; Sources</span> button,
+	    which will show all sources close to the current location
+	    and create a window which can be used to display several
+	    plots and send their properties to <extlink
+	    target="_blank" href="https://www.ivoa.net/">Virtual
+	    Observatory</extlink> applications - such as <extlink
+	    target="_blank"
+	    href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
+	    or <extlink target="_blank"
+	    href="https://ds9.si.edu/">SAOImageDS9</extlink> - if a
+	    <extlink target="_blank"
+	    href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP
+	    hub</extlink> is running on the same machine as the web
+	    browser.  The positions of detections from recent
+	    <extlink target="_blank"
+	      href="http://xmm-catalog.irap.omp.eu/">XMM-Newton</extlink>
+	    and <extlink target="_blank"
+	    href="https://erosita.mpe.mpg.de/dr2/">eROSITA</extlink>
+	    catalogs can also be displayed, but - unlike the Chandta
+	    sources - they need to be
+	    loaded <em>before</em> they can then be displayed.
+	  </p>
+	  <p>
+	    More details can be found using the
+	    <span class="example-button">Help</span>
+	    and
+	    <span class="example-button">Credits</span>
+	    buttons. A number of settings can be changed with the
+	    <span class="example-button">Show Settings</span>
+	    button, including turning off this "Welcome banner"
+	    (this information is stored by your browser and not saved
+	    anywhere else).
+	    The <tt>k</tt> key will display the available keyboard
+	    actions, which mainly let you display this information
+	    and the "help" page.
+	  </p>
+	</div>
+      </div>
+
+      <div class="pane" id="about">
+	<div class="pane-header">
+	  <span class="closable" onclick="wwt.hideElement('about');">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+          <h2>About this page</h2>
+        </div>
+	<div class="pane-body">
+          <p>
+	    The
+            Chandra Source Catalog
+            (<abbr title="Chandra Source Catalog">CSC</abbr>)
+	    is intended to be the definitive catalog of X-ray
+            sources detected by the
+            <cxclink target="_blank" href="/">Chandra X-ray Observatory</cxclink>, and is
+            described in more detail on the
+            <cxclink target="_blank" href="about.html">About the CSC</cxclink>
+            page.
+          </p>
+
+          <p>
+            The 'Please explore the Chandra Source Catalog' page shows
+	    the Chandra observations
+	    (<dictionary id="stack">stacks</dictionary>)
+	    included in version &ver; of the
+	    CSC as polygons on the sky
+	    (yellow are stacks unchanged from CSC 2.1, brown are those
+	    with observations added in CSC 2.2, and white are new
+	    new stacks in CSC 2.2).
+	    The display - which is based on the
+	    <extlink target="_blank" href="https://aas.org/publications/aas-worldwide-telescope">American
+	    Astronomical Association's World Wide Telescope</extlink> -
+	    can be panned and zoomed into (or out of) to explore the
+	    whole sky, and the background data can also be changed,
+	    showing the sky in a range of wavelengths from
+	    the Cosmic Microwave Background to Gamma Rays.
+	    Positions of sources from the CSC (&ver;)
+	    and from recent
+	    XMM-Newton and eROSITA source catalogs
+	    can be displayed, and summary plots
+	    of the CSC &ver; source properties can be shown.
+	  </p>
+
+	  <p>
+	    A number of actions can be performed with the keyboard. Use the
+	    <tt>k</tt> key to view the options. This can be turned off
+	    in the settings area, if needed.
+	  </p>
+
+	  <!-- temporary paragraph -->
+	  <!--
+	  <p>
+	    The <cxclink target="_blank"
+	    href="processing21/status.html">Processing Status</cxclink>
+            page provides more information on the current status
+            of version &ver; of the Chandra Source Catalog.
+	  </p>
+	  -->
+
+	  <h3>What do all the icons mean?</h3>
+
+	  <p>
+	    There are a number of icons that can appear throughout
+	    the display (most of them at the top of the control panel,
+	    above the "Chandra Source Catalog &ver;" title):
+	  </p>
+
+	  <dl>
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon" alt="Hide"
+		     src="wwtimg/fa/chevron-circle-down.svg"/>
+		<img class="icon" alt="Show"
+		     src="wwtimg/fa/chevron-circle-up.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		These two icons control whether a "window" (a
+		panel of information) is hidden (minimised)
+		or displayed.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img alt="Zoom fully out" class="icon"
+		     src="wwtimg/fa/expand-arrows-alt.svg"/>
+		<img alt="Zoom In" class="icon"
+		     src="wwtimg/fa/plus-circle.svg"/>
+		<img alt="Zoom Out" class="icon"
+		     src="wwtimg/fa/minus-circle.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		The zoom level of the WWT display can be changed with these
+		three buttons. The three buttons allow you to zoom fully out
+		(or at least as far as the WWT allows), slightly in, or
+		slightly out.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon"
+		     alt="Scissors (cut to clipboard)"
+		     src="wwtimg/fa/cut.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		This icon will copy the location (the value to the left
+		of it) to the clipboard, so that it can then be pasted
+		into another application (such as
+		<extlink target="_blank"
+			 href="https://cda.cfa.harvard.edu/cscview/">CSCView</extlink>).
+		The default format is to use decimal degrees, but this
+		can be changed using the "Settings panel". The options
+		are (a space is always used to separate the Right
+		Ascension value from the Declination):
+		decimal degrees;
+		decimal degrees labelled with a trailing 'd' (as used
+		in
+		<extlink target="_blank"
+		     href="https://ned.ipac.caltech.edu/">NED</extlink>);
+		colons separating the sexagesimal components;
+		or hms/°'" separating the sexagesimal components.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon"
+		     alt="Bookmark this location (copy URL to clipboard)"
+		     src="wwtimg/fa/bookmark.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		Create a URL to describe the current WWT view, and copy
+		it to the clipboard. This URL can then be saved or sent
+		to a colleague. The URL for the current display is
+		<span id="example-url">(will be filled in
+		in a few seconds)</span>.
+	      </p>
+	      <p>
+		Note that the only things that are "saved" in the URL
+		are the location, zoom level, and choice of image.
+		Source displays or settings are not saved.
+	      </p>
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon"
+		     alt="Register with a SAMP Hub"
+		     src="wwtimg/fa/broadcast-tower.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		This icon will only appear if a SAMP hub (one
+		that supports the
+		<extlink target="_blank"
+			 href="https://www.ivoa.net/documents/SAMP/20120411/REC-SAMP-1.3-20120411.html#tth_sEc5">SAMP Web Profile</extlink>)
+		is running on the same machine as the web browser,
+		such as the
+		<extlink target="_blank"
+			 href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT
+		Virtual-Observatory table viewer</extlink>
+		and
+		<extlink target="_blank"
+			 href="https://ds9.si.edu/">SAOImageDS9</extlink>.
+		Selecting the icon will register the WWT/CSC&ver; display with
+		the SAMP hub: this is an <em>optional step</em>,
+		but selecting it will
+		mean that the WWT interface will <!-- both send and -->
+		respond to
+		<span class="term">coord.pointAt.sky</span> messages.
+	      </p>
+	      <!-- NOTE: is coord.pointAt.sky still supported (receive)
+		   as initial testing suggested it isn't; possibly a websamp
+		   issue? -->
+	    </dd>
+
+	    <dt>
+	      <div class="iconarea">
+		<img class="icon" alt="Change Properties"
+		     src="wwtimg/fa/cog.svg"/>
+	      </div>
+	    </dt>
+
+	    <dd>
+	      <p>
+		This icon will appear once the source information has
+		been loaded, and allows you to change the color, size,
+		and opacity of the circles used to mark the source locations.
+		Selecting the icon a second time will hide the
+		source-property controls:
+	      </p>
+	      <list>
+		<li>
+		  <p>
+		    Source color:
+		    <button class="jscolor"
+			    data-jscolor="{valueElement:null,closable:true,value:'00ffff'}"
+			    />
+		  </p>
+		</li>
+		<li>
+		  <p>
+		    Source size:
+		    <input type="range" class="sourcesize" min="1" max="30"
+			   value="5"/>
+		  </p>
+		</li>
+		<li>
+		  <p>
+		    Source opacity:
+		    <input type="range" class="sourceopacity" min="0" max="100"
+			   value="25"/>
+		  </p>
+		</li>
+	      </list>
+	    </dd>
+
+	  </dl>
+
+	  <h3>Settings</h3>
+
+	  <p>
+	    The <span class="example-button">Show Settings</span> button
+	    will display the settings panel, which is used to control the
+	    appearance and behavior of the World-Wide Telescope.
+	    The settings will be saved on your local machine - and so
+	    remembered next time you visit this site with the same
+	    browser and machine - but this option can be turned off.
+	    Note that this <strong>only</strong> saves information on
+	    your machine; it is <strong>not</strong> stored by the
+	    Chandra X-ray Center or any other web site.
+	  </p>
+
+	  <p>
+	    The settings which can be saved include:
+	  </p>
+
+	  <list>
+	    <li>Can keys be used to control parts of the display
+	    (default is yes, use the <tt>k</tt> key to view the options)?</li>
+	    <li>Is the Milky Way outline shown (default is no)?</li>
+	    <li>Is a cross-hair shown at the center of the field
+	    (default is yes)?</li>
+	    <li>Is a coordinate grid (Right Ascension and Declination)
+	    shown (default is yes)?</li>
+	    <li>Are the constellations shown (default is yes)?</li>
+	    <li>Is the boundary of the current constellation (that is,
+	    the constellation which covers the aim point) shown (default
+	    is no)?</li>
+	    <li>
+	      Should the page connect to Virtual Observatory applications
+	      such as TOPCAT and SAOImageDS9 using the
+	      SAMP standard (turning this on causes the page to poll for
+	      a SAMP hub every 5 seconds)?
+	    </li>
+	    <li>What format is used when copying a location to
+	    the clipboard (default is decimal degrees)?</li>
+	  </list>
+
+	  <p>
+	    There are two settings which are not saved:
+	  </p>
+
+	  <list>
+	    <li>Are the header and footer banners displayed (default is yes)?</li>
+	    <li>Should full-screen mode be used (default is no; this option
+	    is only displayed if the web-browser supports this option)?</li>
+	  </list>
+
+	  <h3>Searching for a name or position</h3>
+
+	  <!--
+	  <p>
+	    Unfortunately we are currently unable to search by name,
+	    such as <span class="term">M31</span>, as the service we used
+	    for this had to be closed down because it was being misused.
+	    We hope to bring this feature soon.
+          </p>
+	  -->
+
+	  <p>
+	    The <tt>Enter a Name or Position</tt> box lets you quickly move
+	    around the sky. Positions are in Right Ascension and Declination
+	    (ICRS) and <strong>must be separated by a comma</strong>.
+	    The support
+	    for positions is limited to the following formats:
+	    <span class="term">205.842, -14.8367</span>;
+	    <span class="term">13 43 22, -14 50 12</span>;
+	    <span class="term">13:43:22, -14:50:12</span>;
+	    <span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	    or
+	    <span class="term">13h 43m 22s, -14d 50' 12"</span>.
+	  </p>
+
+	  <p>
+	    An alternative is to use the name of a CSC &ver; source,
+	    which begins <span class="term">2CXO J</span>. If the
+	    CSC &ver; sources have been loaded then we search directly
+	    from this list, otherwise we use the name server to try and
+	    identify the location (which will be slower).
+          </p>
+
+	  <p>
+	    The <tt>Enter a Name or Position</tt> box lets you quickly move
+	    around the sky. Positions are in Right Ascension and Declination
+	    (ICRS) and <strong>must be separated by a comma</strong>, otherwise
+	    the text is sent to a name server
+	    to try and identify a location. The support
+	    for positions is limited to the following formats:
+	    <span class="term">205.842, -14.8367</span>;
+	    <span class="term">13 43 22, -14 50 12</span>;
+	    <span class="term">13:43:22, -14:50:12</span>;
+	    <span class="term">13h 43m 22s, -14d 50m 12s</span>;
+	    or
+	    <span class="term">13h 43m 22s, -14d 50' 12"</span>.
+	  </p>
+
+	  <h3>Selecting a stack</h3>
+
+	  <p>
+	    The default behavior is for the nearest stack to the selected
+	    position to be highlighted (the outline changes to cyan),
+	    and a window is displayed containing basic information
+	    about the stack: the target names used for the observations
+            that form the stacks, and links to observation details
+            at the <cxclink target="_blank"
+	    href="/cda/">Chandra Data Archive</cxclink>.
+	  </p>
+
+	  <div class="infocontainer">
+	    <div id="stackinfoexample" class="stackinfopane">
+	    </div>
+	  </div>
+
+	  <p>
+	    The <span class='example-button'>Export ...</span>
+	    button lets you send the stack event file or
+	    sensitivity image to a
+	    Virtual-Observatory application if a SAMP hub
+	    is running on your machine and SAOImageDS9 is
+	    connected to it (or any other client that responds
+	    to the SAMP <span class="term">image.load.fits</span> message type).
+	    If there is no SAMP hub then
+	    the URL of the stack event file can be copied to
+	    the clipboard.
+	  </p>
+
+	  <h3>Selecting a source</h3>
+
+	  <p>
+	    When the "Show CSC &ver; Sources" button has been selected, the
+	    selction mode - which is displayed in the second row of the
+	    menu bar on the left of the page - changes to
+	    "<span class="term">Select nearest source</span>" - and
+	    the nearest <em>displayed</em> source from CSC &ver; will be
+	    selected. A different window is created, this time containing
+	    summary details about the source.
+	  </p>
+
+	  <div class="infocontainer">
+	    <div id="sourceinfoexample" class="sourceinfopane">
+	    </div>
+	  </div>
+
+          <p>
+	    The exact set of properties shown depend on the source,
+	    but the basics are the positional error, the best estimate
+	    of the model-independent flux using an aperture
+	    correction, and hardness ratios.
+	  </p>
+
+	  <p>
+	    Above the properties are links to copy the search name to the
+	    clipboard, search in the
+	    <extlink target="_blank"
+		     href="https://ned.ipac.caltech.edu/">NASA/IPAC
+	    Extragalactic Database</extlink>
+	    or the
+	    <extlink target="_blank"
+		     href="https://simbad.u-strasbg.fr/simbad/">SIMBAD
+	    Astronomical Database</extlink>
+	    within 5 arcseconds of the source
+	    location, and to center-and-zoom the WWT display on the source.
+	  </p>
+
+	  <p>
+	    If a SAMP hub is running on your machine then you will be
+	    able to send
+	    <cxclink href="columns/master.html" target="_blank">all
+	    the master properties for the source</cxclink> to
+	    a table viewer by clicking on the
+	    <span class='example-button'>Export ...</span> button.
+	    If no SAMP hub is running then the URL of the query can be
+	    copied to the clipboard.
+	    More-detailed access to the CSC &ver; source and data properties -
+	    as well as to previous releases - is available
+            either via the
+            <extlink target="_blank"
+		     href="https://cda.cfa.harvard.edu/cscview/">CSCView
+            application</extlink> or with direct
+            <abbr title="Astronomical Data Query Language">ADQL</abbr>
+            queries, as described on the
+            <cxclink target="_blank"
+		     href="download.html">How to access the Chandra Source
+            Catalog</cxclink>
+            page.
+          </p>
+
+	  <h3>Chandra, XMM, and eROSITA sources</h3>
+
+	  <p>
+	    The Chandra sources are found using the
+	    <extlink href="https://cda.cfa.harvard.edu/csc21scs/">
+	      CSC Simple Cone Search
+	      </extlink> service.
+	      An orange circle is drawn to show the
+	      maximum radius used for sources (only for the CSC &ver; sources).
+	  </p>
+
+	  <p>
+	    To display the XMM or eROSITA catalogs, the data must
+	    first be loaded, using the
+	    "<span class="term">Load XMM Sources</span>",
+	    or
+	    "<span class="term">Load eROSITA Sources</span>"
+	    buttons. Once the data
+	    has loaded the button will change its label.
+	    Selecting the
+	    "<span class="term">Show 5XMM-DR&xmmdr; Sources</span>"
+	    or
+	    "<span class="term">Show eROSITA DR2 Sources</span>",
+	    button will add circles, indicating the sources, close
+	    to the location on the screen (the full catalogs are
+	    <em>not</em> drawn as this would result in the display
+	    being unusable!).
+	  </p>
+
+	  <p>
+	    By default, the CSC &ver; sources are drawn as cyan circles
+	    with a radius of 5 arcseconds, the XMM sources are green
+	    circles with a radius of 10 arcseconds, and the eROSITA
+	    sources are yellow circles with a radius of 30 arcseconds.
+	    These radii are generally <em>significantly larger</em>
+	    than the positional error on the location, as they were
+	    chosen to make sure that the sources are visible!  The XMM
+	    and eROSITA locations are derived from their respective
+	    catalogs as
+	    described on the <cxclink href="#"
+	    onclick="wwt.showBlockElement('credits')" >credits
+	    page</cxclink>.
+	  </p>
+
+	  <p>
+	    When the CSC &ver; sources are displayed, a panel will appear
+	    which lets you
+	    display summary plots of the displayed
+	    sources or send the source properties for the selected
+	    sources to
+	    <extlink target="_blank"
+		     href="https://www.ivoa.net/">Virtual Observatory</extlink>
+	    applications - such as
+	    <extlink target="_blank"
+		     href="http://www.star.bristol.ac.uk/~mbt/topcat/">TOPCAT</extlink>
+	    or
+	    <extlink target="_blank"
+		     href="https://ds9.si.edu/">SAOImageDS9</extlink>
+	    - if a
+	    <extlink target="_blank"
+		     href="https://www.ivoa.net/Documents/latest/SAMP.html">SAMP hub</extlink>
+	    is running on the same machine as the web browser.
+	  </p>
+
+	  <div class="infocontainer">
+	    <div id="sourceselectionexample" class="sourceselectionpane">
+	    </div>
+	  </div>
+
+	  <h3>Using the World Wide Telescope</h3>
+
+          <p>
+            The display - provided by the
+            <extlink target="_blank"
+		     href="https://www.worldwidetelescope.org/webclient/">WorldWide
+	    Telescope</extlink> - can be panned, zoomed into (or
+            out of), and the background image changed to show
+	    one of a range of wavelengths (from Gamma Ray to Microwave)
+	    using the selection in the "control panel".
+	  </p>
+
+	  <h3>Thanks</h3>
+	  <p>
+	    Many thanks to the software and data providers mentioned
+	    on the <cxclink href="#"
+	    onclick="wwt.showBlockElement('credits')"
+            >credits page</cxclink>.
+	    Without them, this interface to the CSC would not be possible!
+	  </p>
+	</div>
+      </div>
+
+      <div id="keypresses" class="settingspane">
+	<div class="controlElements controlElementsShown">
+          <span class="title">Key presses:</span>
+	  <span class="closable" onclick="wwt.hideKeypresses();">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+	  <span class="switchable hideable">
+            <img alt="Hide" class="icon"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img alt="Show" class="icon" style="display: none;"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
+	  </span>
+	</div>
+
+	<div class="main">
+	  <table class="standard-table">
+	    <caption>What do the various keys do?</caption>
+	    <thead>
+	      <tr>
+		<th>Key</th><th>Action</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      <tr>
+		<th colspan="2">Interact with WWT</th>
+	      </tr>
+	      <tr>
+		<td>d</td><td>Show or hide CSC &ver; sources</td>
+	      </tr>
+	      <tr>
+		<td>o</td><td>toggle the CSC outlines</td>
+	      </tr>
+	      <tr>
+		<td>z</td><td>Zoom in</td>
+	      </tr>
+	      <tr>
+		<td>Z</td><td>Zoom out</td>
+	      </tr>
+	      <tr>
+		<td>Arrow keys</td><td>Shifts the center of the field</td>
+	      </tr>
+	    </tbody>
+	    <tbody>
+	      <tr>
+		<th colspan="2">General help</th>
+	      </tr>
+	      <tr>
+		<td>a</td><td>toggle the welcome information</td>
+	      </tr>
+	      <tr>
+		<td>c</td><td>toggle the credits information</td>
+	      </tr>
+	      <tr>
+		<td>f</td><td>toggle fullscreen (if supported)</td>
+	      </tr>
+	      <tr>
+		<td>h</td><td>toggle the about information</td>
+	      </tr>
+	      <tr>
+		<td>k</td><td>toggle this page (keypresses)</td>
+	      </tr>
+	      <tr>
+		<td>s</td><td>toggle the settings</td>
+	      </tr>
+	    </tbody>
+	  </table>
+	</div>
+      </div> <!-- id=keypresses -->
+
+      <div id="settings" class="settingspane pane-pos-left pane-pos-top">
+	<div class="controlElements controlElementsShown">
+          <span class="title">Settings:</span>
+	  <span class="closable" onclick="wwt.hideSettings();">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+	  <span class="switchable hideable">
+            <img alt="Hide" class="icon"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img alt="Show" class="icon" style="display: none;"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
+	  </span>
+	</div>
+
+	<div class="main">
+          <button class="button"
+                  type="button" id="resetdefaults">
+            Restore default settings
+          </button>
+
+	  <div class="flowable">
+	    <p>
+	      These settings control the appearance and
+	      behavior of the World Wide Telescope interface to the
+	      Chandra Source Catalog.
+	    </p>
+
+	    <p>
+	      If the "Remember position and settings" checkbox is set
+	      below, then these settings will be used when you next view
+	      this page with the same browser (this information is
+	      <strong>only</strong> saved on your machine and is not
+	      sent to any website).
+	    </p>
+	  </div>
+
+	  <div class="options">
+	    <div class="checkbox">
+	      <input id="togglesavestate" name="togglesavestate"
+		     type="checkbox" checked="true"/>
+	      <label for="togglesavestate">Remember position and settings?</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglekeypress" name="togglekeypress"
+		     type="checkbox" checked="true"/>
+	      <label for="togglekeypress">Respond to keypresses (like k)?</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglemoveflag" name="togglemoveflag"
+		     type="checkbox"/>
+	      <label for="togglemoveflag">
+		Go directly to new locations (no animated move).
+	      </label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglemw" name="togglemw"
+		     type="checkbox"/>
+	      <label for="togglemw">Show Milky Way outline</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglecrosshair" name="togglecrosshair"
+		     type="checkbox" checked="true"/>
+	      <label for="togglecrosshair">Show crosshair</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglegrid" name="togglegrid"
+		     type="checkbox" checked="true"/>
+	      <label for="togglegrid">Show coordinate grid</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="toggleconstellations" name="toggleconstellations"
+		     type="checkbox" checked="true"/>
+	      <label for="toggleconstellations">Show constellations</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="toggleboundaries" name="toggleboundaries"
+		     type="checkbox"/>
+	      <label for="toggleboundaries">Show the boundary of the current constellation</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglewelcome" name="togglewelcome"
+		     type="checkbox" checked="true"/>
+	      <label for="togglewelcome">
+		Display the welcome banner on page load?
+	      </label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglesamp" name="togglesamp"
+		     type="checkbox" checked="true"/>
+	      <label for="togglesamp">
+		Connect to Virtual Observatory applications?
+	      </label>
+	    </div>
+
+	    <div>
+	      <!-- do not style this as a "button" -->
+	      <select id="clipboardformat" name="clipboardformat">
+		<option value="degrees" selected="1">degrees</option>
+		<option value="degrees-d">degrees+d (NED)</option>
+		<option value="colons">colon separated</option>
+		<option value="letters">hms °'"</option>
+	      </select>
+	      <label for="clipboardformat">
+		Coordinate format (clipboard)
+	      </label>
+	    </div>
+
+	  </div> <!-- .options -->
+
+	  <p>
+	    The following settings are not saved:
+	  </p>
+
+	  <!-- the banners behave differently (do not save this setting)
+	       so ideally want to style them differently -->
+	  <div class="options">
+	    <div class="checkbox">
+	      <input id="togglebanners" name="togglebanners"
+		     type="checkbox" checked="true"/>
+	      <label for="togglebanners">Show banners</label>
+	    </div>
+
+	    <div class="checkbox" id="fullscreenoption">
+	      <input id="togglefullscreen" name="togglefullscreen"
+		     type="checkbox"/>
+	      <label for="togglefullscreen">Full screen mode</label>
+	    </div>
+	  </div> <!-- .options -->
+
+	</div> <!-- .main -->
+      </div> <!-- #settings -->
+
+      <div id="preselected" class="preselectedpane pane-pos-left pane-pos-top">
+
+	<div class="controlElements controlElementsShown">
+          <span class="title">Move to:</span>
+	  <span class="closable" onclick="wwt.hidePreSelected();">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+	  <!-- at the moment, hide/show loses the width of this pane,
+	       and I don't want to spend time tracking down why
+	  <span class="switchable hideable">
+            <img alt="Hide" class="icon"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img alt="Show" class="icon" style="display: none;"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
+	  </span>
+	  -->
+	</div>
+
+        <div class="main gridable">
+          <input type="button" id="andromeda" value="Andromeda (M31)"
+	         onclick="wwt.setPosition(10.68458, 41.26917, 'Andromeda (M31)')"/>
+          <input type="button" id="antennae" value="The Antennae"
+                 onclick="wwt.setPosition(180.47083, -18.86944, 'The Antennae', 1)"/>
+          <input type="button" id="casa" value="Cassiopeia A"
+	         onclick="wwt.setPosition(350.8583, 58.8, 'Cassiopeia A', 1)"/>
+          <input type="button" id="cdfs" value="CDF South"
+	         onclick="wwt.setPosition(53.11667, -27.80833, 'CDF South', 1)"/>
+          <input type="button" id="cena" value="Centaurus A"
+	         onclick="wwt.setPosition(201.365, -43.01917, 'Centaurus A', 2)"/>
+          <input type="button" id="cirx1" value="Circinus X-1"
+	         onclick="wwt.setPosition(230.17021, -57.17336, 'Circinus X-1', 1)"/>
+          <input type="button" id="coma" value="Coma Cluster"
+                 onclick="wwt.setPosition(194.95292, 27.98056, 'Coma Cluster', 2)"/>
+          <input type="button" id="cosmos" value="COSMOS"
+	         onclick="wwt.setPosition(150.11916667, 2.20583333, 'COSMOS', 2)"/>
+          <input type="button" id="crab" value="Crab"
+                 onclick="wwt.setPosition(83.6333, 22.0144, 'Crab', 1)"/>
+          <input type="button" id="cygnusloop" value="Cygnus Loop"
+                 onclick="wwt.setPosition(312.74225, 30.65367, 'Cygnus Loop', 5)"/>
+          <input type="button" id="cygob2" value="Cygnus OB2"
+	         onclick="wwt.setPosition(308.17066, 41.24147, 'Cygnus OB2', 2)"/>
+          <input type="button" id="e0102" value="E0102-72.2"
+	         onclick="wwt.setPosition(16.00625, -72.03214, 'E0102-72.2', 5)"/>
+          <input type="button" id="m16" value="Eagle Nebula"
+	         onclick="wwt.setPosition(274.7, -13.8167, 'Eagle Nebula', 1)"/>
+          <input type="button" id="etacar" value="Eta Carina"
+	         onclick="wwt.setPosition(161.25154, -59.69778, 'Eta Carina', 2)"/>
+          <input type="button" id="hdfn" value="HDF North"
+	         onclick="wwt.setPosition(189.23129, 62.23721, 'HDF North', 1)"/>
+          <input type="button" id="lmc" value="LMC"
+	         onclick="wwt.setPosition(80.89417, -69.7561,
+                          'Large Magellanic Cloud', 5)"/>
+          <input type="button" id="m87" value="M87"
+	         onclick="wwt.setPosition(187.70592, 12.39112, 'M87', 2)"/>
+          <input type="button" id="m101" value="M101"
+	         onclick="wwt.setPosition(210.80227, 54.34895, 'M101', 1)"/>
+          <input type="button" id="sgra" value="Sgr A*"
+	         onclick="wwt.setPosition(266.41684, -29.00781, 'Sgr A*', 10)"/>
+          <input type="button" id="smc" value="SMC"
+	         onclick="wwt.setPosition(13.18667, -72.82861,
+                          'Small Magellanic Cloud', 5)"/>
+          <input type="button" id="sn1987a" value="SN 1987a"
+	         onclick="wwt.setPosition(83.90846, -69.26994, 'SN 1987a', 1)"/>
+          <input type="button" id="vega" value="Vega"
+	         onclick="wwt.setPosition(279.23473, 38.78369, 'Vega', 1)"/>
+          <input type="button" id="velapulsar" value="Vela Pulsar"
+	         onclick="wwt.setPosition(128.83454, -45.17858,
+                          'Vela Pulsar', 7)"/>
+          <input type="button" id="bootes" value="X-Boötes"
+	         onclick="wwt.setPosition(218.02375, 34.27986, 'X-Boötes', 5)"/>
+        </div>
+      </div>
+
+      <div class="pane" id="credits">
+	<div class="pane-header">
+	  <span class="closable" onclick="wwt.hideElement('credits');">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+
+          <h2>Credits</h2>
+	</div>
+	<div class="pane-body">
+          <p>
+            The display is provided by the
+            <extlink target="_blank"
+		     href="https://www.worldwidetelescope.org/webclient/">WorldWide
+	    Telescope</extlink>, which is funded by the
+            <extlink target="_blank"
+		     href="https://www.worldwidetelescope.org/About/">American
+	    Astronomical Society</extlink>.
+            The target search used to use the
+            <extlink target="_blank"
+		     href="https://www.strudel.org.uk/lookUP/">lookUP
+            service</extlink>,
+            operated by
+            <extlink target="_blank"
+		     href="https://www.strudel.org.uk/">Stuart R. Lowe</extlink>,
+	    but unfortunately it had to be closed down due to
+	    misuse by the community, so an alternative solution has been
+	    created, but it does not provide all the features that lookUP did.
+            The Milky Way outline is from the
+            <extlink target="_blank"
+		     href="https://github.com/ofrohn/d3-celestial">d3-celestial
+            project</extlink> - which converted the original
+            <extlink target="_blank"
+		     href="http://www.skymap.com/milkyway_cat.htm">Milky Way
+            Outline Catalogs data</extlink> (link appears to be dead)
+            by Jose R. Vieira.
+	    The configuration, broadcast, close, resize,
+	    scissors, search, and zoom icons are from the
+	    <extlink target="_blank"
+		     href="https://fontawesome.com/support#fa-opensource">free
+	    version of Font Awesome</extlink> (released under the
+	    <extlink target="_blank"
+		     href="https://creativecommons.org/licenses/by/4.0/">CC
+	    BY 4.0 License</extlink>).
+	    The animated "spinner" - seen when loading the source catalogs or
+            looking up a name - is taken from the
+	    <extlink target="_blank"
+		     href="https://tobiasahlin.com/spinkit/">SpinKit package</extlink>
+	    by Tobias Ahlin, which is released under the
+	    <extlink target="_blank"
+		     href="https://github.com/tobiasahlin/SpinKit/blob/master/LICENSE">MIT
+	    License</extlink>.
+	    The color picker widget is provided by
+	    <extlink target="_blank"
+		     href="https://jscolor.com/">jscolor.js</extlink>,
+	    plotting by
+	    <extlink target="_blank"
+		     href="https://plot.ly/javascript/">plotly.js</extlink>,
+	    and the Web-SAMP functionality by
+	    <extlink target="_blank"
+		     href="https://astrojs.github.io/sampjs/">sampjs</extlink>.
+	  </p>
+	  <p>
+	    The display code is based on work originally done for the
+	    <extlink target="_blank"
+		     href="https://chandraobservatory.herokuapp.com/">Chandra
+	    Observation Viewer</extlink> and was enhanced based on
+	    the code used to create the
+	    <extlink target="_blank"
+		     href="http://www.adsass.org/">NASA ADS
+	    All Sky Survey</extlink>. The interface is also based on
+	    the excellent work done by the
+	    <extlink target="_blank"
+		     href="http://sky.esa.int/">ESA Sky</extlink> team.
+	  </p>
+	  <h3>Source catalogs</h3>
+	  <p>
+	    The CSC &ver; catalog properties are retrieved from the
+	    <cxclink href="download/vo.html">Virtual
+	    Observatory</cxclink> TAP interface to the CSC.
+	  </p>
+	  <p>
+	    The <span class="term">5XMM-DR&xmmdr;</span>
+	    locations are taken from the
+	    <span class="term">RA</span>
+	    and
+	    <span class="term">DEC</span>
+	    columns of the
+	    <span class="filename">5XMM_DR&xmmdr;cat_v1.0.fits.gz</span>
+	    file downloaded from the
+	    <extlink target="_blank"
+		     href="http://xmmssc.irap.omp.eu/Catalogue/5XMM-DR&xmmdr;/5XMM_DR&xmmdr;.html">5XMM-DR&xmmdr;</extlink>
+	    catalog page, after applying the following filter:
+	    <span class="term">STACK_DET_ML &gt; 10</span> and
+	    <span class="term">SUM_FLAG &lt; 2</span>.
+	  </p>
+	  <p>
+	    The <span class="term">eROSITA DR2</span>
+	    locations are taken from the
+	    <span class="term">RA</span>
+	    and
+	    <span class="term">DEC</span>
+	    columns of the
+	    <span class="filename">eRASS3_Main_v1.3.fits.gz</span>
+	    file downloaded from the
+	    <extlink target="_blank"
+		     href="https://erosita.mpe.mpg.de/dr2/AllSkySurveyData_dr2/Catalogues_dr2/">eROSITA-DE: Data Release 2</extlink>
+	    catalog page.
+	  </p>
+	  <h3>Background images</h3>
+	  <p>
+	    The background imagery is provided by the following
+	    organisations:
+	  </p>
+          <!-- taken from csc2.wtml -->
+          <dl>
+            <dt><extlink target="_blank" href="https://www.nasa.gov/mission_pages/planck/index.html">Planck</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="Planck logo"
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=planck"/>
+              <p>
+		Planck is a European Space Agency mission, with significant
+		participation from NASA. NASAs Planck Project Office is based at
+		JPL. JPL contributed mission-enabling technology for both of
+		Plancks science instruments. European, Canadian and U.S. Planck
+		scientists work together to analyze the Planck data.
+              </p>
+            </dd>
+
+	    <!-- link appears to be dead
+            <dt><extlink target="_blank" href="http://lwa.nrl.navy.mil/VLSS/">VLA Low-frequency Sky
+            Survey (VLSS)</extlink></dt>
+	    -->
+            <dt>VLA Low-frequency Sky Survey (VLSS)</dt>
+            <dd>
+              <img class="thumbnail" alt="VLA logo"
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=VLA"/>
+              <p>
+		VLSS Cohen, A. S.; Lane, W. M.; Cotton, W. D.; Kassim, N. E.; Lazio, T. J. W.; Perley, R. A.; Condon, J. J.; Erickson, W. C.; Served From NASA Skyview
+              </p>
+            </dd>
+
+            <dt><extlink target="_blank" href="http://wise.ssl.berkeley.edu/">WISE</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="WISE logo"
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=wise"/>
+              <p>
+		NASA/JPL-Caltech/UCLA
+              </p>
+            </dd>
+
+            <dt><extlink target="_blank" href="https://www.ipac.caltech.edu/2mass/">2MASS</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="2MASS logo"
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=2mass"/>
+              <p>
+		This publication makes use of data products from the Two Micron
+		All Sky Survey, which is a joint project of the University of
+		Massachusetts and the Infrared Processing and Analysis
+		Center/California Institute of Technology, funded by the National
+		Aeronautics and Space Administration and the National Science
+		Foundation.
+              </p>
+            </dd>
+
+            <dt><extlink target="_blank" href="https://gsss.stsci.edu/Acknowledgements/DataCopyrights.htm">DSS</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="DSS logo"
+                   src="https://www.worldwidetelescope.org/thumbnails/DSS.png"/>
+              <p>
+		Copyright DSS Consortium
+              </p>
+            </dd>
+
+            <!-- link appears to be dead
+            <dt><extlink target="_blank" href="https://www.astro.princeton.edu/~dfink/halpha/processing.html">Hα</extlink></dt>
+	    -->
+            <dt>Hα</dt>
+            <dd>
+              <img class="thumbnail" alt="Halpha survey logo"
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=halpha"/>
+              <p>
+		Image Courtesy Douglas Finkbeiner. The full-sky H-alpha map (6'
+		FWHM resolution) is a composite of the Virginia Tech Spectral
+		line Survey (VTSS) in the north and the Southern H-Alpha Sky
+		Survey Atlas (SHASSA) in the south. The Wisconsin H-Alpha Mapper
+		(WHAM) survey provides a stable zero-point over 3/4 of the sky on
+		a one degree scale.
+              </p>
+            </dd>
+
+            <dt><extlink target="_blank" href="http://www.xray.mpe.mpg.de/cgi-bin/rosat/rosat-survey">RASS</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="RASS logo"
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=rosatcolor"/>
+              <p>
+		This is a composite of three RASS3 surveys from the ROSAT Data
+		Archive of the Max-Planck-Institut fur extraterrestrische Physik
+		(MPE) at Garching, Germany. TOAST-formatted data was obtained
+		from NASA's SkyView Virtual Telescope. Red is soft band
+		(RASS3sb), Green is broad band (RASS3bb), Blue is hard band
+		(RASS3hb)
+              </p>
+            </dd>
+
+            <dt><extlink target="_blank" href="https://www.nasa.gov/mission_pages/GLAST/main/index.html">Fermi</extlink></dt>
+            <dd>
+              <img class="thumbnail" alt="Fermi logo"
+                   src="https://www.worldwidetelescope.org/wwtweb/thumbnail.aspx?name=FermiYearThree"/>
+              <p>
+		NASA and the FERMI-LAT Team.
+              </p>
+            </dd>
+
+          </dl>
+	</div>
+      </div>
+
+      <!-- plot areas -->
+      <div id="plot" class="plotpane pane-pos-left pane-pos-top">
+	<div class="controlElements controlElementsShown">
+          <span class="title">Overview of the selected CSC &ver; sources</span>
+	  <span class="closable" onclick="wwt.hideElement('plot');">
+            <img alt="Close icon (circle with times symbol in it)"
+		 class="icon" src="wwtimg/fa/times-circle.svg"/>
+	  </span>
+	  <span class="switchable hideable">
+            <img alt="Hide" class="icon"
+		 src="wwtimg/fa/chevron-circle-down.svg"/>
+            <img alt="Show" class="icon" style="display: none;"
+		 src="wwtimg/fa/chevron-circle-up.svg"/>
+	  </span>
+	</div>
+
+	<div class="main">
+	  <p>
+	    Note that no error ranges are included in these visualizations.
+	    For a more-detailed analysis try sending
+	    the data to TOPCAT, SAOImageDS9, or other Virtual
+	    Observatory application,
+	    since this provides more columns from the catalog, or use
+	    <cxclink target="_blank"
+		     href="&url;/gui/intro.html">CSCView</cxclink> to
+	    search the CSC &ver; database.
+	  </p>
+
+	  <!-- this used to set autocomplete=off to stop firefox from
+               remembering the state but the validator complains about
+	       this, since autocomplete is not valid for radio buttons,
+	       and the link I had noted is no-longer relevant:
+	       https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-checked
+	       -->
+	  <div id="plotchoice">
+	    Select plot type:
+	    <input type="radio" id="plot1sel" name="plotchoice" checked="true"
+		   onclick='wwt.showBlockElement("plot1area"); wwt.hideElement("plot2area"); wwt.hideElement("plot3area"); wwt.hideElement("plot4area");'
+		   class="plotchoice"
+		   />
+            <label class="plotchoice" id="plot1lbl" for="plot1sel">Flux vs Significance</label>
+
+	    <input type="radio" id="plot2sel" name="plotchoice"
+		   onclick='wwt.showBlockElement("plot2area"); wwt.hideElement("plot1area"); wwt.hideElement("plot3area"); wwt.hideElement("plot4area");'
+		   class="plotchoice"
+		   />
+            <label class="plotchoice" id="plot2lbl" for="plot2sel">Positional errors</label>
+
+	    <input type="radio" id="plot3sel" name="plotchoice"
+		   onclick='wwt.showBlockElement("plot3area"); wwt.hideElement("plot1area"); wwt.hideElement("plot2area"); wwt.hideElement("plot4area");'
+		   class="plotchoice"
+		   />
+            <label class="plotchoice" id="plot3lbl" for="plot3sel">Hardness Ratios</label>
+
+	    <input type="radio" id="plot4sel" name="plotchoice"
+		   onclick='wwt.showBlockElement("plot4area"); wwt.hideElement("plot1area"); wwt.hideElement("plot2area"); wwt.hideElement("plot3area");'
+		   class="plotchoice"
+		   />
+            <label class="plotchoice" id="plot4lbl" for="plot4sel">Number of observations</label>
+	  </div>
+
+	  <div id="plot1area">
+	    <div class="overview">
+	      <p>
+		This plot shows the aperture-corrected fluxes for the sources
+		as a function of source significance.
+		The fluxes are model independent - that is they do not assume
+		a specfic input spectrum - and are for either the broad
+		or wide bands. The fluxes are taken from the "longest block" of
+		data using a flux-ordered Bayesian Block analysis, and the
+		significance is the highest value measured across all the
+		observations and source bands used in the catalog.
+	      </p>
+	      <p>
+		The plots use the following
+		<cxclink target="_blank" href="&url;/columns/master.html">master-source
+		columns</cxclink>:
+		<span class="term">significance</span>,
+		<span class="term">flux_aper_b</span>,
+		and <span class="term">flux_aper_w</span>.
+	      </p>
+	    </div>
+	    <div id="plot1"></div>
+	  </div>
+	  <div id="plot2area">
+	    <div class="overview">
+	      <p>
+		This plot shows the semi-major axis and eccentricity
+		of the 95% error ellipse on the source location (the
+		eccentricity is calculated from the tabulated semi-major
+		and semi-minor axis values).
+	      </p>
+	      <p>
+		The plots use the following
+		<cxclink target="_blank" href="&url;/columns/master.html">master-source
+		columns</cxclink>:
+		<span class="term">err_ellipse_r0</span> and
+		<span class="term">err_ellipse_r1</span>
+		(<span class="term">err_ellipse_ang</span> is available, but
+		not used here).
+	      </p>
+	    </div>
+	    <div id="plot2"></div>
+	  </div>
+	  <div id="plot3area">
+	    <div class="overview">
+	      <p>
+		The hardness ratio can be estimated for sources which are
+		observed by ACIS. The Hard-Medium and Medium-Soft values
+		are used here, although it excludes sources
+		with a hardness-ratio close to ±1 as they tend to
+		dominate the plot,
+		obscuring the detail for those sources with lie towards the
+		center of the plot.
+	      </p>
+	      <p>
+		The plots use the following
+		<cxclink target="_blank" href="&url;/columns/master.html">master-source
+		columns</cxclink>:
+		<span class="term">hard_hm</span> and
+		<span class="term">hard_ms</span>.
+	      </p>
+	    </div>
+	    <div id="plot3"></div>
+	  </div>
+	  <div id="plot4area">
+	    <div class="overview">
+	      <p>
+		Some areas of the sky are observed multiple times, which
+		provides the opportunity for measuring faint sources
+		and to look for long-term (inter-observation) variability
+		(not just short-term, intra-observation variability).
+		The histogram shows the number of ACIS and HRC observations
+		for each selected source.
+	      </p>
+	      <p>
+		The plots use the following
+		<cxclink target="_blank" href="&url;/columns/master.html">master-source
+		columns</cxclink>:
+		<span class="term">acis_num</span> and
+		<span class="term">hrc_num</span>.
+	      </p>
+	    </div>
+	    <div id="plot4"></div>
+	  </div>
+	</div>
+
+      </div>
+    </div>
+
+  </text>
+</page>

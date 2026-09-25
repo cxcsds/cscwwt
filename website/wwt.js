@@ -489,71 +489,6 @@ var wwt = (function () {
   // var sourceOpacity = 0.1;
   var sourceOpacity = 0.25;
 
-  // The CSC2 data is returned as an array of values
-  // which we used to convert to a Javascript object (ie
-  // one per row) since it makes it easier to handle.
-  // However, it bloats memory usage, so we now retain
-  // the array data and use the getCSCObject
-  // accessor functions.
-  //
-  // I hard code the expected row order for documentation
-  // (and because it is slightly simpler), but this could
-  // be set from the input data.
-  //
-  const catalogDataCols = [
-    'name',
-    'ra',
-    'dec',
-    'err_ellipse_r0',
-    'err_ellipse_r1',
-    'err_ellipse_ang',
-    'conf_flag',
-    'sat_src_flag',
-    'acis_num',
-    'hrc_num',
-    'var_flag',
-    'significance',
-    'fluxband',
-    'flux',
-    'flux_lolim',
-    'flux_hilim',
-    'nh_gal',
-    'hard_hm',
-    'hard_hm_lolim',
-    'hard_hm_hilim',
-    'hard_ms',
-    'hard_ms_lolim',
-    'hard_ms_hilim'
-  ];
-
-  // Given a row of catalogData, return the given column value,
-  // where column must be a member of catalogDataCols.
-  //
-  // row should catalogData[i] not i (does array access take much
-  // time in JS?)
-  //
-  function getCSCColIdx(column) {
-    const colidx = catalogDataCols.indexOf(column);
-    if (colidx < 0) {
-      etrace(`unknown CSC column "${column}"`);
-      return null;
-    }
-    return colidx;
-  }
-
-  // Convert a row to an object, to make data access easier.
-  //
-  function getCSCObject(row) {
-    const out = Object.create({});
-    zip([catalogDataCols, row]).forEach(el => { out[el[0]] = el[1] });
-    return out
-
-  }
-
-  // Indexes into the CSC 2 data array
-  const raIdx = getCSCColIdx('ra');
-  const decIdx = getCSCColIdx('dec');
-
   // Create an annotation "object" representing a source.
   // Really should make the add/remove code only call the WWT code once
   // (ie it can know if it is shown or not).
@@ -647,25 +582,23 @@ var wwt = (function () {
   //    makeShape is a function that takes color, size, data item
   //      and returns a WWT annotation.
   //
-  // The sourcetype field is only needed for the XMM catalog, but is
-  // included for all of them. It indicates whether we are looking at
-  // sources or detections.
-  //
-  // This used to be nice, when I had csc20, csc11, xmm, but now
-  // we also have csc21 we need to add in a "current CSC" view
-  // of csc to complicate things. It is required that only
-  // one of csc21 or csc20 is valid for this process.
+  // Each catalog used to be handled the same way - that is, the user
+  // had to load the data and then this would be used by the interface to
+  // find the sources of interest. With the CSC 2.2 release the CSC
+  // catalog is now queried via the TAP service, which means some of the
+  // fields are no longer relevant for it.
   //
   const catalogProps = {
-      csc21: { label: 'CSC2.1', button: '#togglesources',
+      csc22: { label: 'CSC2.2', button: '#togglesources',
 	       keys: {size: keyCatalogSize,
 		      color: keyCatalogColor,
 		      opacity: keyCatalogOpacity},
                sourcetype: 'Sources',
                changeWidget: '#sourceprops',
                color: 'cyan', size: 5.0 / 3600.0, opacity: 0.25,
-	       loaded: false, data: null,
-	       getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	       loaded: false, data: null,  // always going to be unset
+	       // getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	       getPos: (d) => { etrace("why do we need getPos?"); },
 	       makeShape: makeSource,
                annotations: null },
 
@@ -673,7 +606,7 @@ var wwt = (function () {
 	     keys: {size: keyXMMCatalogSize,
 		    color: keyXMMCatalogColor,
 		    opacity: keyXMMCatalogOpacity},
-             sourcetype: 'Detections',
+             sourcetype: 'Sources',
              changeWidget: 'xmmsourceprops',
              color: 'green', size: 10.0 / 3600.0, opacity: 0.25,
 	     loaded: false, data: null,
@@ -938,6 +871,11 @@ var wwt = (function () {
 	    return;
 	}
 
+	if (event.key === 'd') {
+	    toggleCSCSources();
+	    return;
+	}
+
 	if (event.key === 'o') {
 	    toggleStacks();
 	    return;
@@ -953,10 +891,91 @@ var wwt = (function () {
 	    return;
 	}
 
+	if (event.key === 'ArrowUp') {
+	    shiftLocationUp();
+	    return;
+	}
+
+	if (event.key === 'ArrowDown') {
+	    shiftLocationDown();
+	    return;
+	}
+
+	if (event.key === 'ArrowLeft') {
+	    shiftLocationLeft();
+	    return;
+	}
+
+	if (event.key === 'ArrowRight') {
+	    shiftLocationRight();
+	    return;
+	}
+
 	// console.log(`pressed=${event.key}`);
 
     });
     trace('.. keyboard support');
+  }
+
+  // Move the location by a fraction of the FOV. All the shifts are
+  // done with the "moveFlag" set to to avoid annoying animations (in
+  // most case it's not a problem but near the poles the E/W shifts
+  // have led to zoom in/out behavior so just turn it off).
+  //
+  const shiftMoveFlag = true;
+
+  function shiftLocationUp() {
+    let ra = 15.0 * wwt.getRA();
+    let dec = wwt.getDec();
+    let fov = wwt.get_fov();
+
+    var move = fov / 2;
+    let newdec = dec + move;
+    if (newdec >= 90.0) {
+      itrace("skipping shift: too close to the pole");
+      return;
+    }
+    wwt.gotoRaDecZoom(ra, newdec, fov, shiftMoveFlag);
+  }
+
+  function shiftLocationDown() {
+    let ra = 15.0 * wwt.getRA();
+    let dec = wwt.getDec();
+    let fov = wwt.get_fov();
+
+    var move = fov / 2;
+    let newdec = dec - move;
+    if (newdec <= -90.0) {
+      itrace("skipping shift: too close to the pole");
+      return;
+    }
+    wwt.gotoRaDecZoom(ra, newdec, fov, shiftMoveFlag);
+  }
+
+  function shiftLocationLeft() {
+    let ra = 15.0 * wwt.getRA();
+    let dec = wwt.getDec();
+    let fov = wwt.get_fov();
+
+    var move = fov / 2 / Math.cos(dec * Math.PI / 180);
+    let newra = ra + move;
+    if (newra >= 360.0) {
+      newra -= 360.0;
+    }
+    wwt.gotoRaDecZoom(newra, dec, fov, shiftMoveFlag);
+  }
+
+  function shiftLocationRight() {
+    let ra = 15.0 * wwt.getRA();
+    let dec = wwt.getDec();
+    let fov = wwt.get_fov();
+
+    var move = fov / 2 / Math.cos(dec * Math.PI / 180);
+    let newra = ra - move;
+    if (newra < 0.0) {
+      newra += 360.0;
+    }
+    wwt.gotoRaDecZoom(newra, dec, fov, shiftMoveFlag);
   }
 
   // Change the zoom level if it is not too small or large
@@ -1274,43 +1293,24 @@ var wwt = (function () {
     }
   }
 
-  // This updates the stackAnnotations dict
+  // Create the WWT annotations for a set of polygons (e.g. stack
+  // or ensemble).
   //
-  // All we care about from stack are
-  //    stack.status
-  //    stack.stackid
+  // It would be nice to set fillflag: true in the options
+  // but this really slows down WWT (it also requres having the
+  // polygon vertices in counter-clockwise order).
   //
-  function addStackFOV(stack, polygons) {
-
-    let edgeColor;
-    let fillColor = 'white';
-    let lineWidth = 1;
-    const opacity = 0.6;
-    const fillFlag = false;
-
-    // We now have the odd system of
-    //    status = 0  - unprocessed
-    //             1  - finished
-    //             2  - being processed
-    //
-    if (stack.status === 1) {
-      edgeColor = COLOR_FINISHED;
-      lineWidth = 2;
-    } else if (stack.status === 2) {
-      edgeColor = COLOR_PROCESSING;
-    } else {
-      edgeColor = COLOR_NOTDONE;
-    };
+  function makePolygonAnnotations(polygons, options) {
 
     const annotations = [];
-    // var ctr = 1;
     for (var i = 0; i < polygons.length; i++) {
 
       // First is inclusive, the rest are exclusive
+      // (is this still true?)
       const shapes = polygons[i];
 
       for (var j = 0; j < shapes.length; j++) {
-        const fov = wwt.createPolygon(fillFlag);
+        const fov = wwt.createPolygon(options.fillFlag);
 
         /*
          * Belinda sees odd behavior when zooming in; it
@@ -1325,11 +1325,11 @@ var wwt = (function () {
          fov.set_showHoverLabel(true);
         */
 
-        fov.set_lineColor(edgeColor);
-        fov.set_lineWidth(lineWidth);
+        fov.set_lineColor(options.edgeColor);
+        fov.set_lineWidth(options.lineWidth);
 
-        fov.set_fillColor(fillColor);
-        fov.set_opacity(opacity);
+        fov.set_fillColor(options.fillColor);
+        fov.set_opacity(options.opacity);
 
         const polygon = shapes[j];
         for (var p in polygon) {
@@ -1338,11 +1338,53 @@ var wwt = (function () {
 
         wwt.addAnnotation(fov);
         annotations.push(fov);
-
-        // ctr += 1;
       }
     }
 
+    return annotations;
+  }
+
+  // This updates the stackAnnotations dict
+  //
+  // All we care about from stack are
+  //    stack.stacktype
+  //    stack.stackid
+  //
+  function addStackFOV(stack, polygons) {
+
+    let edgeColor = COLOR_FINISHED;
+    let fillColor = 'white';
+    let lineWidth = 2;
+    const opacity = 0.6;
+    const fillFlag = false;
+
+    // Temporarily pick the color based on the stack type:
+    //    unchanged
+    //    updated
+    //    new
+    //
+    // The color names are labelled by the values used when
+    // the pipelines were still being run, so some stacks may not have
+    // been processed.
+    //
+    if (stack.stacktype === "unchanged") {
+	edgeColor = COLOR_FINISHED;
+	lineWidth = 2;
+    } else if (stack.stacktype === "updated") {
+	edgeColor = COLOR_PROCESSING;
+	lineWidth = 1;
+    } else {
+	// This is stacktype === "new"
+	edgeColor = COLOR_NOTDONE;
+	lineWidth = 1;
+    };
+
+    const annotations = makePolygonAnnotations(polygons,
+					       {fillFlag: fillFlag,
+						edgeColor: edgeColor,
+						lineWidth: lineWidth,
+						fillColor: fillColor,
+						opacity: opacity});
     stackAnnotations[stack.stackid] = annotations;
   }
 
@@ -1372,7 +1414,7 @@ var wwt = (function () {
     for (let stackid in inputStackData.stacks) {
       const polygons = stackpolygons[stackid];
       if (typeof polygons === 'undefined') {
-        trace(`Unable to find polygons for [${stack.stackid}]`);
+        trace(`Unable to find polygons for [${stackid}]`);
       } else {
         addStackFOV(inputStackData.stacks[stackid], polygons);
       }
@@ -1636,41 +1678,15 @@ var wwt = (function () {
     };
   }
 
-  // TODO: make this version agnostic.
-  //
-  // This requires that the input status data has been processed
-  function downloadCatalog21Data() {
-
-    // Safety check
-    if ((typeof inputStackData === "undefined") ||
-	(typeof inputStackData.nchunks === "undefined")) {
-      alert("Internal error: the stack status has not been loaded!");
-      return;
-    }
-
-    // number of chunks for the source properties
-    const NCHUNK = inputStackData.nchunks;
-    const chunks = new Array(NCHUNK).fill(false);
-
-    // Have to be careful about scoping rules, so make a function
-    // that returns a function to process the chunk
-    //
-    const processChunk = (x) => (d) => { processCatalogData(chunks, x, d); };
-
-    for (var ctr = 1; ctr <= NCHUNK; ctr++) {
-      const url = `wwtdata/wwt21_srcprop.${ctr}.json.gz` + cacheBuster();
-      const func = makeDownloadData(url, '#togglesources',
-				    'CSC2.1 catalog',
-				    processChunk(ctr));
-      func();
-    }
-  }
-
   // VERY experimental: load in the ensemble data for CXC testing
   //
-  const downloadEnsData = makeDownloadData('wwtdata/ens21.json.gz',
+  const downloadEnsData = makeDownloadData('wwtdata/ens22.json.gz',
 					   null, null,
 					   processEnsData);
+
+  const downloadEnsOutlineData = makeDownloadData('wwtdata/ens22.outlines.json.gz',
+						  null, null,
+						  processEnsOutlineData);
 
   // VERY experimental
   // stick in a cache-busting identifier to help
@@ -1846,7 +1862,7 @@ var wwt = (function () {
     };
   }
 
-  // Do we use these?
+  // Do we use these? We do for XMM at least
   var toggleSources = null;
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
                                              downloadXMMData);
@@ -2105,116 +2121,8 @@ var wwt = (function () {
     }
   }
 
-  // Note: this *can* be called before the sources are loaded
-  //       (primarily when zooming to a new location)
-  //
-  function hideSources() {
-    _hideSources();
-
-    const props = catalogProps.csc;
-
-    // could cache these
-    if (props.loaded) {
-      // assume that the label can only have been changed
-      // if the sources have been loaded
-      document.querySelector('#togglesources').innerHTML =
-        `Show ${props.label} Sources`;
-    }
-
-    ['sourceprops', 'plot'].forEach(hideElement);
-
-    // Not 100% convinced whether we want this
-    // wwtprops.clearSourceInfo();
-    clearNearestSource();
-
-    // What is the best option to switch to here:
-    // stack or nothing?
-    //
-    const switchTo = stacksShown ? 'stack' : 'nothing';
-
-    const sel = document.querySelector('#selectionmode');
-    for (var idx = 0; idx < sel.options.length; idx++) {
-      const opt = sel.options[idx];
-      if ((opt.value === 'source') || (opt.value === 'polygon')) {
-	opt.disabled = true;
-      } else if (opt.value === switchTo) {
-	opt.selected = true;
-      }
-    }
-
-    try {
-      sel.dispatchEvent(new CustomEvent('change'));
-    }
-    catch (e) {
-      itrace(`unable to change selection mode: ${e}`);
-    }
-
-    // Hide the source window. Note that this can be called when
-    // explicitly calling the window (that is, it may already be
-    // closed).
-    //
-    wwtprops.clearSourceSelection();
-  }
-
-  function _hideSources() {
-
-    const props = catalogProps.csc;
-    if (props.annotations !== null) {
-      props.annotations.forEach(ann => ann.remove());
-      props.annotations = null;
-    }
-
-    if (typeof sourceCircle !== 'undefined') {
-      wwt.removeAnnotation(sourceCircle);
-      sourceCircle = undefined;
-    }
-
-    sourceRA = undefined;
-    sourceDec = undefined;
-    sourceFOV = undefined;
-  }
-
-  function showSources() {
-    const flag = _showSources();
-    const props = catalogProps.csc;
-    if (!flag) {
-      reportUpdateMessage(`No ${props.label} sources found in this area of the sky.`);
-      return;
-    }
-
-    // could cache these
-    document.querySelector('#togglesources').innerHTML =
-      `Hide ${props.label} Sources`;
-
-    const sel = document.querySelector('#selectionmode');
-    for (var idx = 0; idx < sel.options.length; idx++) {
-      const opt = sel.options[idx];
-      if (opt.value === 'source') {
-	opt.disabled = false;
-	opt.selected = true;
-      } else if (opt.value === 'polygon') {
-	opt.disabled = false;
-      }
-    }
-
-    try {
-      sel.dispatchEvent(new CustomEvent('change'));
-    }
-    catch (e) {
-      itrace(`unable to change selection mode: ${e}`);
-    }
-
-    // Show the 'source window'.
-    //
-    wwtprops.addSourceSelection(sourceRA, sourceDec, sourceFOV, props);
-
-  }
-
   var sourceCircle = null;
-  var sourceRA = undefined;  // TODO: remove
-  var sourceDec = undefined;
-  var sourceFOV = undefined;
-    
+
   // Display a circle to represent the approximate search used
   // (it's not great near the poles).
   //
@@ -2245,57 +2153,8 @@ var wwt = (function () {
     sourceCircle = null;
   }
 
-  // Display the sources
-  //
-  function _showSources() {
-    const ra0 = 15.0 * wwt.getRA(); // convert from hours
-    const dec0 = wwt.getDec();
-    const fov = wwt.get_fov();
-
-    _hideSources();
-
-    // Assume the FOV is the box size in degrees. Could
-    // filter to fov / 2.0, but leave as fov just so that
-    // if the user pans around a bit then the sources are
-    // still shown. It also helps at the corners.
-    //
-    //
-    const props = catalogProps.csc;
-    props.annotations = null;
-
-    const toStore = (row, pos) => {
-      // could access the elements without creating an object
-      // but I don't want to change existing code too much
-      const src = getCSCObject(row);
-      const shp = props.makeShape(props.color, props.size, src);
-      const ann = makeAnnotation(row, pos, shp);
-      ann.add();
-      return ann;
-    };
-
-    const selected = findNearestTo(ra0, dec0, fov, props.data,
-				   props.getPos, toStore);
-
-    // can bail out now if there are no sources
-    //
-    if (selected.length === 0) { return; }
-
-    // remove separation and store the results
-    //
-    props.annotations = selected.map(d => d[1]);
-
-    // Only draw on the circle if there are any sources
-    //
-    addSourceCircle(ra0, dec0, fov);  
-
-    sourceRA = ra0;  // TODO: remove
-    sourceDec = dec0;
-    sourceFOV = fov;
-
-    return true;
-  }
-
   // This is assumed to only be used for "processing" data.
+  // This is unsused in CSC 2.2.
   //
   function updateCompletionInfo(status) {
 
@@ -2346,7 +2205,7 @@ var wwt = (function () {
     if (el !== null) { el.innerHTML = status.lastupdate_db; }
 
     // How about the CSC 2.1 version (experimental)
-    //
+      // TODO: what is the status of this in 2.2?
     const el21 = document.querySelector('#csc21-warning-span');
     if (el21 !== null) {
       // Drop the HH:MM section
@@ -2570,7 +2429,7 @@ var wwt = (function () {
     if (mode === 'stack') {
       clickMode = processStackSelection;
     } else if (mode === 'source') {
-      clickMode = processSourceSelection
+      clickMode = processSourceSelection;
     } else if (mode === 'polygon') {
       clickMode = processRegionSelection;
       wwtprops.addPolygonPane();
@@ -2913,7 +2772,7 @@ var wwt = (function () {
 
     const props = catalogProps.csc;
     if ((props.annotations === null) || (props.annotations.length === 0)) {
-      itrace('processSouece selection called ' +
+      itrace('processSource selection called ' +
 	     `with annotations=${props.annotations}`);
       return;
     }
@@ -2939,7 +2798,6 @@ var wwt = (function () {
     // Let the user know what was selected.
     //
     selectSource(ann0.ann);
-    // wwtprops.addSourceInfo(getCSCObject(src0));  OLD
     wwtprops.addSourceInfo(src0);
 
     if (!displayNearestSources) { return; }
@@ -2961,19 +2819,7 @@ var wwt = (function () {
     //
     const neighbors = neighborsAll.slice(1, 11);
 
-      // TODO: we do not have most of these fields ....
-    const indexes = {
-      name: getCSCColIdx('name'),
-      significance: getCSCColIdx('significance'),
-      variability: getCSCColIdx('var_flag'),
-      fluxband: getCSCColIdx('fluxband'),
-      flux: getCSCColIdx('flux'),
-      nacis: getCSCColIdx('acis_num'),
-      nhrc: getCSCColIdx('hrc_num'),
-      nh: getCSCColIdx('nh_gal')
-    };
-
-    wwtprops.addNearestSourceTable(indexes, neighbors);
+    wwtprops.addNearestSourceTable(neighbors);
   }
 
   // It is not clear if the handlers stack, or overwrite, when
@@ -3335,7 +3181,7 @@ var wwt = (function () {
     const ras = decode(coords.slice(0, 7));
     const decs = decode(coords.slice(8));
 
-    // the third ra coponent is multiplied by 10 to avoid
+    // the third ra component is multiplied by 10 to avoid
     // a decimal point, so need to correct that here
     const ra = 15.0 * (ras[0] + (ras[1] + (ras[2] / 600.0)) / 60.0);
     let dec = decs[0] + (decs[1] + (decs[2] / 60.0)) / 60.0;
@@ -3573,12 +3419,13 @@ var wwt = (function () {
    */
   const stackExample =
     { stackid: 'acisfJ0618409m705956_001',
-      stacktype: "unchanged", /* CSC 2.1 */
+      stacktype: "unchanged", /* CSC 2.2 */
       nobs: 4,
+      nsource: 129,
       obis: ["13794_000","13795_000","14469_000","15541_000"],
       names: ["GRB 120711A"],
       pos: decodeStackName('acisfJ0618409m705956_001'),
-      description: 'The stack contains 4 ACIS observations.',
+      description: 'The stack has not changed from CSC 2.1 and contains 4 ACIS observations. It contains 129 sources.',
       status: 1,
       lastmod: 1653359578 /* CSC 2.1 */
   };
@@ -3589,11 +3436,20 @@ var wwt = (function () {
 	 ra: 94.74868,
 	 dec: -70.97541,
 	 err_ellipse_r0: 0.93,
+	 err_ellipse_r1: 0.61,
+	 err_ellipse_ang: 25.5,
 	 significance: 2.78,
 	 fluxband: 0,
 	 flux: 8.111e-16,
 	 flux_lolim: 4.442e-16,
 	 flux_hilim: 1.159e-15,
+	 nh_gal: 8.76,
+	 acis_num: 3,
+	 hrc_num: 0,
+	 conf_flag: false,
+	 extent_flag: false,
+	 sat_src_flag: false,
+	 var_flag: true,
 	 hard_hm: -0.2561,
 	 hard_hm_lolim: -0.634,
 	 hard_hm_hilim: 0.1418,
@@ -3857,21 +3713,11 @@ var wwt = (function () {
     return num;
   }
 
-  // Process the wwt<n>_stacks.json file. Note that the fields
-  // differ depending on the versionString.
+  // Process the wwt<n>_stacks.json file.
   //
   function createStackData(json) {
 
     inputStackData = {stacks: {}};
-
-    // Version 2.0 did not set this in the status file, but
-    // as we don't have a 2.0 status file we can hard-code it
-    // here.
-    //
-    if (isVersion20()) {
-        inputStackData.nsources = 315868;
-        inputStackData.nchunks = 8;
-    }
 
     for (let stackid in json) {
       var inst;
@@ -3894,41 +3740,35 @@ var wwt = (function () {
         obis: obis,
         names: stackData.names,
         nobs: nobi,
+	nsource: stackData.nsource
       };
 
-      var desc = `The stack contains ${num} ${inst} observation${suffix}.`;
+      store.stacktype = stackData.stacktype;
+      store.new_obis = stackData.new_obsids;
 
-      if (isVersion21()) {
-        store.stacktype = stackData.stacktype;
-        store.new_obis = stackData.new_obsids;
+      var desc;
+      if (store.stacktype === "new") {
+        desc = `The stack is new in CSC 2.2 and contains ${num} ${inst} observation${suffix}.`;
+      } else if (store.stacktype === "unchanged") {
+          desc = `The stack has not changed from CSC 2.1 and contains ${num} ${inst} observation${suffix}.`;
+      } else {
+        const nold = store.obis.length - store.new_obis.length;
+	desc = `The stack contains ${num} ${inst} observation${suffix} `;
+          desc += ` (in CSC 2.1 it contained ${intToStr(nold)}).`;
+      }
 
-	if (stackData.stacktype === "new") {
-          desc = `The stack is new in CSC 2.1 and contains ${num} ${inst} observation${suffix}.`;
-        } else if (stackData.stacktype === "unchanged") {
-          desc = `The stack has not changed from CSC 2.0 and contains ${num} ${inst} observation${suffix}.`;
+	const nsrc = store.nsource;
+	if (typeof nsrc === 'undefined') {
+	    etrace(`No source count for stack: ${stackid}`);
+	} else if (nsrc === 0) {
+	    desc += " It contains no sources.";
+	} else if (nsrc === 1) {
+	    desc += " It contains 1 source.";
 	} else {
-          const nold = store.obis.length - store.new_obis.length;
-          var osuffix = "s";
-          if (nold === 1) {
-	    osuffix = "";
-          }
-	  const ostr = intToStr(nold);
-          desc += ` In CSC 2.0 it contained ${ostr} observation${osuffix}.`;
-        }
-      }
-
-      if (isVersion20()) {
-        // The status used to be false or true but it's now
-        //    0 - unprocessed / pending
-        //    1 - finished
-        //    2 - benig processed
-        // which is a bit of an odd system.
-        //
-        store.status = 1;
-      }
+	    desc += ` It contains ${intToStr(nsrc)} sources.`;
+	}
 
       store.description = desc;
-
       inputStackData.stacks[stackid] = store;
     }
 
@@ -3936,13 +3776,6 @@ var wwt = (function () {
   }
 
   var versionString = undefined;
-
-  function isVersion(ver) {
-    return versionString === ver;
-  }
-
-  function isVersion20() { return isVersion("2.0"); }
-  function isVersion21() { return isVersion("2.1"); }
 
   // See https://github.com/WorldWideTelescope/wwt-webgl-engine/issues/199
   //
@@ -4168,7 +4001,7 @@ var wwt = (function () {
     //
     // The downloadCatalogxxData routine could be made generic.
     //
-    catalogProps.csc = catalogProps.csc21;
+    catalogProps.csc = catalogProps.csc22;
 
     const nprops = restoreCatalogSourceProperties(catalogProps.csc);
     const xmmnprops = restoreCatalogSourceProperties(catalogProps.xmm);
@@ -4240,7 +4073,7 @@ var wwt = (function () {
     // Do we want to let the user know about the change in CSC 2.1
     // source loading?
     // This is a temporary change.
-    //  
+    //
     const schema = getSchema();
     if ((schema !== null) && (schema === "1")) {
 	const el = document.querySelector("#csc21-load-change");
@@ -4274,6 +4107,7 @@ var wwt = (function () {
 
     // TODO: need to be version specific
     downloadEnsData();
+    downloadEnsOutlineData();
 
     // We don't care about the return value here.
     //
@@ -4545,7 +4379,7 @@ var wwt = (function () {
     //
     setTargetName(label);
 
-    hideSources();
+    hideCSCSources();
     clearNearestStack();
 
     wwt.gotoRaDecZoom(ra, dec, fov, moveFlag);
@@ -4905,27 +4739,40 @@ var wwt = (function () {
     trace(' <- removed spinner');
   }
 
+  // This used to find the target from the database, but now
+  // it just decodes the name (which means we can not identify an
+  // invalid name). We could change to run a TAP query but that seems
+  // excessive and is it a problem if a name is mis-typed?
+  //
   function find2CXO(target) {
-    const props = catalogProps.csc;
-    if (!props.loaded) {
-      reportLookupFailure(`<p>The ${props.label} sources must be loaded ` +
-                          'before they can be used in a search.</p>');
-      return true; // TODO: should probably return false here
-    }
 
-    const nameIdx = getCSCColIdx('name');
-    const matches = props.data.filter(d => d[nameIdx] === target);
-
-    // Take the first match if any (shouldn't be multiple matches)
+    // target is assumed to start with '2CXO J', and do not worry
+    // about trailing values (or if it doesn't match the expected
+    // formatting). The string formatting is different to how stack
+    // names are encoded (relevant for the RA term).
     //
-    if (matches.length > 0) {
-      const pos = props.getPos(matches[0]);
-      setPosition(pos.ra, pos.dec, target);
+    const coords = target.slice(6, 21);
+
+    try {
+      const rastr = coords.slice(0, 8);
+      const rah = parseInt(rastr.slice(0, 2));
+      const ram = parseInt(rastr.slice(2, 4));
+      const ras = parseFloat(rastr.slice(4));
+      const ra = 15 * (rah + (ram + (ras / 60.0)) / 60.0);
+
+      const decs = decode(coords.slice(9));
+      let dec = decs[0] + (decs[1] + (decs[2] / 60.0)) / 60.0;
+      if (coords[8] === '-') { dec *= -1; }
+
+      setPosition(ra, dec, target);
       reportLookupSuccess(`Moving to ${target}`);
       return true;
+
+    } catch (e) {
+      itrace(`unable to decode source name: ${target}`);
+      return false;
     }
 
-    return false;
   }
 
   // Supported formats:
@@ -5048,12 +4895,11 @@ var wwt = (function () {
       return;
     }
 
-    // Maybe it's a 2CXO name?
-    // We have support for this if the catalog data has been loaded,
-    // but we can also now rely on NED for when the data has not been
-    // loaded.
+    // Maybe it's a 2CXO name? As of CSC 2.2 w no longer load the
+    // source names, so we always just try to deccode the name
+    // (without checking if such a name is valid).
     //
-    if (target.startsWith('2CXO J') && catalogProps.csc.loaded) {
+    if (target.startsWith('2CXO J')) {
       find2CXO(target);
       return;
     }
@@ -5254,7 +5100,7 @@ var wwt = (function () {
     // Clear out any existing sources (the assumption is that they
     // exist, but allow for them not too).
     //
-    if (props.annotations !== null) { 
+    if (props.annotations !== null) {
       props.annotations.forEach(ann => ann.remove());
       props.annotations = null;
     } else {
@@ -5295,8 +5141,9 @@ var wwt = (function () {
     catch (e) {
       itrace(`unable to change selection mode: ${e}`);
     }
-      
+
   }
+
 
   // Based on
   // https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
@@ -5343,82 +5190,6 @@ var wwt = (function () {
     saveState(keyForeground, name);
   }
 
-  // Extract the data from this chunk and, if all chunks have
-  // been read in, finalize things.
-  //
-  function processCatalogData(chunks, ctr, json) {
-    if (json === null) {
-      wtrace(`unable to download catalog data ${ctr}`);
-      return;
-    }
-
-    trace(`Finalizing chunk ${ctr}`);
-
-    // Validate the "schema"
-    //
-    const ncols = catalogDataCols.length;
-    if (ncols !== json.cols.length) {
-      console.log('ERROR: The catalog data is not correctly formatted!');
-      return;
-    }
-
-    const diff = zip([catalogDataCols, json.cols]).reduce(
-      (oflag, xs) => oflag || (xs[0] !== xs[1]),
-      false);
-    if (diff) {
-      console.log('ERROR: invalid CSC schema!');
-      console.log(' expected: ' + catalogDataCols);
-      console.log(' received: ' + json.cols);
-      return;
-    }
-
-    const props = catalogProps.csc;
-    if (props.data === null) {
-      props.data = new Array(json.ntotal);
-    }
-
-    // What is the best way to fill in a slice of values of an array?
-    //
-    let i;
-    for (i = 0; i < json.rows.length; i++) {
-      props.data[json.start + i] = json.rows[i];
-    }
-
-    chunks[ctr - 1] = true;
-    const haveCatalogData = chunks.reduce((a, v) => a && v, true);
-    if (!haveCatalogData) { return; }
-
-    props.loaded = true;
-
-    const nsrcs = props.data.length;
-    if (nsrcs !== json.ntotal) {
-      wtrace(`${props.label} count expected ${json.ntotal} got ${nsrcs}`);
-    }
-
-    trace(`== ${props.label} contains ${nsrcs} sources`);
-
-    // Report any missing sources
-    //
-    let nmiss = props.data.reduce((a, v) => {
-      return a + typeof v === 'undefined' ? 1 : 0;
-    }, 0);
-    if (nmiss !== 0) {
-      wtrace(`there are ${nmiss} missing sources in ${props.label}!`);
-    }
-
-    // Let the user know they can "show sources"
-    //
-    const el = document.querySelector('#togglesources');
-    el.innerHTML = `Show ${props.label} Sources`;
-    el.disabled = false;
-
-    showBlockElement('sourcecolor');
-    document.querySelector('#togglesourceprops')
-      .style.display = 'inline-block';
-
-    trace(`Loaded ${props.label} data`);
-  }
-
   var ensData = null;
   function processEnsData(json) {
     if (json === null) {
@@ -5426,6 +5197,34 @@ var wwt = (function () {
       return;
     }
     ensData = json;
+  }
+
+  var ensOutlineData = null;
+  function processEnsOutlineData(json) {
+    if (json === null) {
+      console.log('ERROR: unable to download ensemble outline data');
+      return;
+    }
+    ensOutlineData = json;
+  }
+
+  var ensembleAnnotations = {};
+  function addEnsembleOutlineFOV() {
+    if(ensOutlineData === null) {
+      etrace('no ensenble outline data loaded!');
+      return;
+    }
+
+    for (const ensemble in ensOutlineData) {
+      const polygons = ensOutlineData[ensemble];
+      const annotations = makePolygonAnnotations(polygons,
+						 {fillFlag: false,
+						  edgeColor: "gray",
+						  lineWidth: 1,
+						  fillColor: "orange",
+						  opacity: 0.2});
+      ensembleAnnotations[ensemble] = annotations;
+    }
   }
 
   // The CHS stuff is for testing, so do not try to optimise it just
@@ -5668,10 +5467,8 @@ var wwt = (function () {
     //
     getWWTControl: () => { return wwt; },
 
-    // NOte: we have two concepts of getVersion here
+    // Note: we have two concepts of getVersion here
     getVersion: () => { return versionString; },
-
-    getCSCObject: getCSCObject,
 
     setPosition: setPosition,
     moveTo: moveTo,
@@ -5753,7 +5550,11 @@ var wwt = (function () {
     outlines21_annotations: () => { return outlines21_annotations; },
 
     downloadEFEDSData: () => { return downloadEFEDSData; },
-    displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); }
+    displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); },
+
+    addEnsembles: addEnsembleOutlineFOV,
+    getEnsembles: () => { return ensembleAnnotations; },
+    makePolygonAnnotations: makePolygonAnnotations,
 
   };
 
