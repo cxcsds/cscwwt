@@ -699,12 +699,14 @@ main#content div.wrap {
 	      the addition of observations (brown). The gold outline indicates
 	      stacks that are unchanged from CSC 2.1.
 	      The highlighted stack is now partially opaque by default, and
-	      can be changed via the stack properties window.
+	      this can be changed via the stack properties window.
 	    </li>
 	    <li>
 	      The stack details panel will now indicate if there are any
 	      overlapping stacks and the names of the nearest 5 of these
-	      stacks.
+	      stacks, and the ability to highlight all the overlapping
+	      stacks (<span class="example-button">Show overlapping
+	      stacks</span>).
 	    </li>
 	    <li>
 	      The location can be shifted by using the arrow keys

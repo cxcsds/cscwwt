@@ -655,7 +655,15 @@ var wwt = (function () {
   var stackAnnotations = {};
   var nearestFovs = [];
 
-  var stacksShown = false;
+  // This used to be a boolean but with the ability to highlight a
+  // single ensemble then it now becomes an enumaration.
+  // Although, at the moment, we only support "none" and "all" so it
+  // could have been left as a boolean.
+  //
+  const NO_STACK_SHOWN = "none";
+  const SOME_STACK_SHOWN = "some";
+  const ALL_STACK_SHOWN = "all";
+  var stacksShown = NO_STACK_SHOWN;
 
   // add this to a URL and, hey presto, as long as you don't call it
   // too often, we stop the cache.
@@ -1444,7 +1452,7 @@ var wwt = (function () {
         addStackFOV(inputStackData.stacks[stackid], polygons);
       }
     }
-    stacksShown = true;
+    stacksShown = ALL_STACK_SHOWN;
 
     trace('Added FOV');
 
@@ -2102,16 +2110,20 @@ var wwt = (function () {
   //
   function toggleStacks() {
     let func, label, selMode;
-    if (stacksShown) {
-      func = wwt.removeAnnotation;
-      label = 'Show Stack Outlines';
-      stacksShown = false;
-      selMode = 'nothing'; /* pick nothing as the best choice here */
-    } else {
+    if (stacksShown === NO_STACK_SHOWN) {
       func = wwt.addAnnotation;
       label = 'Hide Stack Outlines';
-      stacksShown = true;
+      stacksShown = ALL_STACK_SHOWN;
       selMode = 'stack';
+    } else if (stacksShown === ALL_STACK_SHOWN) {
+      func = wwt.removeAnnotation;
+      label = 'Show Stack Outlines';
+      stacksShown = NO_STACK_SHOWN;
+      selMode = 'nothing'; /* pick nothing as the best choice here */
+    } else {
+	// FOR NOW DO NOTHING IF WE HAVE PARTIAL STACKS SHOWN
+	itrace("Skipping stack display change (partial)");
+	return;
     }
 
     for (var stack in stackAnnotations) {
@@ -2131,7 +2143,7 @@ var wwt = (function () {
     for (var idx = 0; idx < sel.options.length; idx++) {
       const opt = sel.options[idx];
       if (opt.value === 'stack') {
-	opt.disabled = !stacksShown;
+	opt.disabled = stacksShown === NO_STACK_SHOWN;
       }
       if (opt.value === selMode) {
 	opt.selected = true;
@@ -3253,6 +3265,13 @@ var wwt = (function () {
   function clearNearestStack() {
     nearestFovs.forEach(fov => fov.reset());
     nearestFovs = [];
+
+    // Also clear any "ensemble" display
+    for (const key in ensembleAnnotations) {
+	ensembleAnnotations[key].forEach(fov => wwt.removeAnnotation(fov));
+    }
+    ensembleAnnotations = {};
+
     wwtprops.clearStackInfo();
     wwtprops.clearNearestStackTable();
   }
@@ -4886,6 +4905,47 @@ var wwt = (function () {
     return true;
   }
 
+  // Show only the stacks in the selected ensemble.
+  // Actually, for now just draw the ensemble outline.
+  //
+  // Returns true if the annotations were turned on and false if
+  // turned off.
+  function toggleEnsemble(stackid) {
+      if (ensData === null) {
+	  etrace(`Unable to identify ensemble ${ensId} as no data!`);
+	  return;
+      }
+
+      const ensId = stkToEns[stackid];
+      if (typeof ensId === 'undefined') {
+	  etrace(`No ensemble info for stack: ${stackid}`);
+	  return;
+      }
+
+      const polygons = ensOutlineData[ensId];
+      if (typeof polygons === 'undefined') {
+	  etrace(`Unknown ensemble: ${ensId}`);
+	  return;
+      }
+
+      // Do the annotations already exist?
+      if (ensId in ensembleAnnotations) {
+	  ensembleAnnotations[ensId].forEach(fov => wwt.removeAnnotation(fov));
+	  delete ensembleAnnotations[ensId];
+	  return false;
+      }
+
+      const annotations = makePolygonAnnotations(polygons,
+						 {fillFlag: true,
+						  edgeColor: "gray",
+						  lineWidth: 1,
+						  fillColor: "orange",
+						  opacity: 0.8
+						 });
+      ensembleAnnotations[ensId] = annotations;
+      return true;
+  }
+
   // Is it a stack-like name that may be
   // - missing the version
   // - mis-typed
@@ -5184,7 +5244,7 @@ var wwt = (function () {
     // What is the best option to switch to here:
     // stack, nothing, or leave as is if not source-related?
     //
-    const switchTo = stacksShown ? 'stack' : 'nothing';
+    const switchTo = stacksShown === ALL_STACK_SHOWN ? 'stack' : 'nothing';
 
     const sel = document.querySelector('#selectionmode');
     for (var idx = 0; idx < sel.options.length; idx++) {
@@ -5252,7 +5312,7 @@ var wwt = (function () {
   }
 
   var ensData = null;
-  var stkToEns = null;
+  var stkToEns = null; // This shouldbe added to inputData.stacks instead
   function processEnsData(json) {
     if (json === null) {
       console.log('ERROR: unable to download ensemble data');
@@ -5624,11 +5684,14 @@ var wwt = (function () {
     downloadEFEDSData: () => { return downloadEFEDSData; },
     displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); },
 
+    toggleEnsemble: toggleEnsemble,
+
     addEnsembles: addEnsembleOutlineFOV,
     getEnsembles: () => { return ensembleAnnotations; },
     makePolygonAnnotations: makePolygonAnnotations,
     getNearestFOVs: () => { return nearestFovs; },
     getEnsData: () => { return ensData; },
+    getEnsOutlineData: () => { return ensOutlineData; },
     getStkToEns: () => { return stkToEns; },
 
   };

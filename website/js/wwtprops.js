@@ -787,7 +787,6 @@ const wwtprops = (function () {
 	// the action we want, so try processSelectionyName
         addSpanLink(ensDiv, 'zoomto', overlapStack,
 		    active ? () => wwt.processStackSelectionByName(overlapStack) : null
-		    // active ? () => wwt.zoomToStack(overlapStack) : null
 		   );
 
       }
@@ -797,6 +796,25 @@ const wwtprops = (function () {
       }
 
       addText(ensDiv, '.');
+
+      const highlightBtn = document.createElement('button');
+      highlightBtn.id = `highlight-{stack.stackid}`;
+
+      highlightBtn.setAttribute('class', 'button');
+      highlightBtn.setAttribute('type', 'button');
+
+      highlightBtn.addEventListener('click', (event) => {
+          wwt.trace(`Highlighting ensemble for stack: ${stack.stackid}`);
+          const added = wwt.toggleEnsemble(stack.stackid);
+	  if (added) {
+              highlightBtn.innerText = 'Hide overlapping stacks';
+	  } else {
+              highlightBtn.innerText = 'Show overlapping stacks';
+	  }
+      });
+
+      addText(highlightBtn, 'Show overlapping stacks');
+      mainDiv.appendChild(highlightBtn);
     }
 
     // SAMP: send stack event file
