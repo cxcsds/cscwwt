@@ -65,6 +65,7 @@ var wwt = (function () {
   const keyLocation = 'wwt-location';
   const keyFOV = 'wwt-fov';
   const keyForeground = 'wwt-foreground';
+  const keyStackFill = 'www-stackfill';
   const keyCoordinateGrid = 'wwt-grid';
   const keyCrosshairs = 'wwt-crosshairs';
   const keyConstellations = 'wwt-constellations';
@@ -684,6 +685,12 @@ var wwt = (function () {
     saveState(keyCoordinateGrid, flag);
   }
 
+  var stackFillSetting = true;
+  function setStackFill(flag) {
+    stackFillSetting = flag;
+    saveState(keyStackFill, flag);
+  }
+
   function setCrosshairs(flag) {
     wwt.settings.set_showCrosshairs(flag);
     saveState(keyCrosshairs, flag);
@@ -749,6 +756,8 @@ var wwt = (function () {
      change: setClipboardFormat, defval: 'degrees'},
     {key: keyCoordinateGrid, sel: '#togglegrid',
      change: setCoordinateGrid, defval: true},
+    {key: keyStackFill, sel: '#togglestackfill',
+     change: setStackFill, defval: true},
     {key: keyCrosshairs, sel: '#togglecrosshair',
      change: setCrosshairs, defval: true},
     {key: keyConstellations, sel: '#toggleconstellations',
@@ -1355,7 +1364,7 @@ var wwt = (function () {
     let edgeColor = COLOR_FINISHED;
     let fillColor = 'white';
     let lineWidth = 2;
-    const opacity = 0.6;
+    const opacity = 0.5;
     const fillFlag = false;
 
     // Temporarily pick the color based on the stack type:
@@ -2518,18 +2527,21 @@ var wwt = (function () {
   // selected indicates that this is the "selected" stack
   // rather than a "nearby" one.
   //
-  function changeFov(fov, selected, lineColor, lineWidth) {
+  function changeFov(fov, selected, lineColor, lineWidth, fill) {
     const oldColor = fov.get_lineColor();
     const oldWidth = fov.get_lineWidth();
+    const oldFill = fov.get_fill();
 
     const old = {fov: fov, selected: selected,
 		 reset: () => {
 		   fov.set_lineColor(oldColor);
 		   fov.set_lineWidth(oldWidth);
+		   fov.set_fill(oldFill);
 		 }};
 
     fov.set_lineColor(lineColor);
     fov.set_lineWidth(lineWidth);
+    fov.set_fill(fill);
     return old;
   }
 
@@ -2592,7 +2604,7 @@ var wwt = (function () {
     const getPos = stack => { return {ra: stack.pos[0], dec: stack.pos[1]}; };
     const toStore = (stack, p) => stack;
 
-    // We used to have a list ot stacks but now we have it stored
+    // We used to have a list of stacks but now we have it stored
     // as a dictionary, so for now just create a temporary list.
     //
     var stacklist = [];
@@ -2634,7 +2646,7 @@ var wwt = (function () {
     nearest.forEach(d => {
       const stack = d[1];
       stackAnnotations[stack.stackid].forEach(fov => {
-	nearestFovs.push(changeFov(fov, false, 'cyan', 2));
+	  nearestFovs.push(changeFov(fov, false, 'cyan', 2, false));
       });
     });
 
@@ -2650,8 +2662,13 @@ var wwt = (function () {
 
     clearNearestStack();
 
+    // We could identify if we have any "holes" here and perhaps
+    // decide to display them differently.
+    //
     const fovs = stackAnnotations[stack.stackid];
-    fovs.forEach(fov => nearestFovs.push(changeFov(fov, true, 'cyan', 4)));
+    fovs.forEach(fov =>
+	nearestFovs.push(changeFov(fov, true, 'cyan', 4,
+				   stackFillSetting)));
 
     // What version info do we have (aka can we export the data products
     // via SAMP) for this stack?
@@ -2661,7 +2678,35 @@ var wwt = (function () {
       if (stackVersionTable[n] === null) { return; }
       versionInfo[n] = getVersion(stackVersionTable[n], stack);
     });
-    wwtprops.addStackInfo(stack, versionInfo);
+
+    // What stacks are in this ensemble?
+    const ensId = stkToEns[stack.stackid];
+    const ensInfo = ensData[ensId];
+    var otherStacks = [];
+    if (ensInfo.nstacks > 1) {
+	otherStacks = ensInfo.stacks.filter((s) => s !== stack.stackid);
+    }
+
+    // Order this list by distance to this stack (maybe overlap or
+    // some other metric would be better).
+    // We do not want to drop any stacks, so just pick a big
+    // maxSep. For now do not carry the separation through to
+    // addStackInfo.
+    //
+    const sortedStacks = findNearestTo(stack.pos[0], stack.pos[1],
+				       80, otherStacks,
+				       d => {
+					   const pos = inputStackData.stacks[d].pos;
+					   return {ra: pos[0], dec: pos[1]}
+				       },
+				       (d, p) => d
+				      ).map((elem) => elem[1]);
+
+    if (otherStacks.length !== sortedStacks.length) {
+      etrace("Stacks have been lost!");
+    }
+
+    wwtprops.addStackInfo(stack, versionInfo, sortedStacks);
   }
 
   // Can we lasso a region?
@@ -3418,7 +3463,7 @@ var wwt = (function () {
    * hand-built versions.
    */
   const stackExample =
-    { stackid: 'acisfJ0618409m705956_001',
+    { stackid: 'acisfJ0618409m705956_001',  /* a single-stack ensemble */
       stacktype: "unchanged", /* CSC 2.2 */
       nobs: 4,
       nsource: 129,
@@ -5191,12 +5236,20 @@ var wwt = (function () {
   }
 
   var ensData = null;
+  var stkToEns = null;
   function processEnsData(json) {
     if (json === null) {
       console.log('ERROR: unable to download ensemble data');
       return;
     }
     ensData = json;
+
+    stkToEns = {};
+    for (const [ens, info] of Object.entries(ensData)) {
+      for (const stk of info.stacks) {
+        stkToEns[stk] = ens;
+      }
+    }
   }
 
   var ensOutlineData = null;
@@ -5555,6 +5608,9 @@ var wwt = (function () {
     addEnsembles: addEnsembleOutlineFOV,
     getEnsembles: () => { return ensembleAnnotations; },
     makePolygonAnnotations: makePolygonAnnotations,
+    getNearestFOVs: () => { return nearestFovs; },
+    getEnsData: () => { return ensData; },
+    getStkToEns: () => { return stkToEns; },
 
   };
 

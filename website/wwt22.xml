@@ -615,7 +615,7 @@ main#content div.wrap {
           </p>
 
           <p>
-            The 'Please explore the Chandra Source Catalog' page shows
+            The 'Please explore Chandra Source Catalog &ver;' page shows
 	    the Chandra observations
 	    (<dictionary id="stack">stacks</dictionary>)
 	    included in version &ver; of the
@@ -652,6 +652,39 @@ main#content div.wrap {
             of version &ver; of the Chandra Source Catalog.
 	  </p>
 	  -->
+
+	  <h3>Notable changes in CSC 2.2</h3>
+
+	  <list>
+	    <li>
+	      The display of CSC source properties, via the
+	      <span class="example-button">Show CSC 2.2 Sources</span>
+	      button or (new to CSC 2.2) by pressing the d key,
+	      no longer needs an initial "load" step, as the CSC
+	      VO capabilities are now used (XMM and eROSITA data still
+	      need the "load" step).
+	    </li>
+	    <li>
+	      The stack outlines are now colored to indicate those that
+	      are new to CSC 2.2 (white) or that have been changed due to
+	      the addition of observations (brown). The gold outline indicates
+	      stacks that are unchanged from CSC 2.1.
+	    </li>
+	    <li>
+	      The stack details panel will now indicate if there are any
+	      overlapping stacks and the names of the nearest 5 of these
+	      stacks.
+	    </li>
+	    <li>
+	      The highlighted stack is now partially opaque (unless the
+	      "Fill the selected stack?" option is unselected).
+	    </li>
+	    <li>
+	      The location can be shifted by using the arrow keys
+	      (when the option for keys to control parts of the
+	      display is selected).
+	    </li>
+	  </list>
 
 	  <h3>What do all the icons mean?</h3>
 
@@ -849,6 +882,8 @@ main#content div.wrap {
 	  <list>
 	    <li>Can keys be used to control parts of the display
 	    (default is yes, use the <tt>k</tt> key to view the options)?</li>
+	    <li>Should the selected stack be filled in or not (new to
+	    CSC 2.2)</li>
 	    <li>Is the Milky Way outline shown (default is no)?</li>
 	    <li>Is a cross-hair shown at the center of the field
 	    (default is yes)?</li>
@@ -880,15 +915,6 @@ main#content div.wrap {
 
 	  <h3>Searching for a name or position</h3>
 
-	  <!--
-	  <p>
-	    Unfortunately we are currently unable to search by name,
-	    such as <span class="term">M31</span>, as the service we used
-	    for this had to be closed down because it was being misused.
-	    We hope to bring this feature soon.
-          </p>
-	  -->
-
 	  <p>
 	    The <tt>Enter a Name or Position</tt> box lets you quickly move
 	    around the sky. Positions are in Right Ascension and Declination
@@ -905,10 +931,8 @@ main#content div.wrap {
 
 	  <p>
 	    An alternative is to use the name of a CSC &ver; source,
-	    which begins <span class="term">2CXO J</span>. If the
-	    CSC &ver; sources have been loaded then we search directly
-	    from this list, otherwise we use the name server to try and
-	    identify the location (which will be slower).
+	    which begins <span class="term">2CXO J</span>. The name
+	    is used to identify the positon on the sky.
           </p>
 
 	  <p>
@@ -930,7 +954,8 @@ main#content div.wrap {
 
 	  <p>
 	    The default behavior is for the nearest stack to the selected
-	    position to be highlighted (the outline changes to cyan),
+	    position to be highlighted (the outline changes to cyan and,
+	    if the setting is selected, the region will be filled),
 	    and a window is displayed containing basic information
 	    about the stack: the target names used for the observations
             that form the stacks, and links to observation details
@@ -1241,6 +1266,12 @@ main#content div.wrap {
 	      <input id="togglemw" name="togglemw"
 		     type="checkbox"/>
 	      <label for="togglemw">Show Milky Way outline</label>
+	    </div>
+
+	    <div class="checkbox">
+	      <input id="togglestackfill" name="togglestackfill"
+		     type="checkbox" checked="true"/>
+	      <label for="togglestackfill">Fill the selected stack?</label>
 	    </div>
 
 	    <div class="checkbox">

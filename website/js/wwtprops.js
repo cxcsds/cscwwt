@@ -222,6 +222,12 @@ const wwtprops = (function () {
     return div;
   }
 
+  function mkP(className) {
+    const elem = document.createElement('p');
+    elem.setAttribute('class', className);
+    return elem;
+  }
+
   // width and height can be null
   // className can contain spaces (i.e. multiple classes)
   function mkImg(alt, src, width, height, className) {
@@ -604,7 +610,8 @@ const wwtprops = (function () {
   //
   // The text depends on the available data.
   //
-  function addStackInfoContents(parent, stack, versionTable, active) {
+  function addStackInfoContents(parent, stack, versionTable, active,
+                                overlappingStacks) {
 
     parent.setAttribute('data-stackid', stack.stackid);
     const mainDiv = addControlElements(parent,
@@ -695,7 +702,7 @@ const wwtprops = (function () {
     }
 
     const nseen = Object.keys(seen).length;
-    const seenDiv = mkDiv('stack-obsids');
+    const seenDiv = mkP('stack-obsids');
     mainDiv.appendChild(seenDiv);
 
     addText(seenDiv, 'Stack observation');
@@ -705,7 +712,7 @@ const wwtprops = (function () {
 
     addText(seenDiv, ': ');
 
-    // Do we have CSC 2.1 "new obsids" data?
+    // Do we have CSC 2.2 "new obsids" data?
     //
     let new_obis = [];
     if (typeof stack.new_obis !== "undefined") {
@@ -737,7 +744,7 @@ const wwtprops = (function () {
 	addText(a, obsid.toString());
 	seenDiv.appendChild(a);
 
-        // If this is new in 2.1 note this
+        // If this is new in 2.2 note this
         //
         if (new_obis.indexOf(obis[i]) !== -1) {
            addText(seenDiv, " [new]");
@@ -745,6 +752,51 @@ const wwtprops = (function () {
 
 	seen2[obsidstr] = 1;
       }
+    }
+
+    // Are there are any other stacks in this ensemble?
+    // This is limited to N_OVERLAP_STACK to avoid getting a
+    // stupid display. The assumption is that the stack list has
+    // been sorted so that they are close to the selected stack, but
+    // that is an input issue.
+    const N_OVERLAP_STACK = 5;
+    const noverlap = overlappingStacks.length;
+    if (noverlap > 0) {
+      const ensDiv = mkP('stack-overlapping');
+      mainDiv.appendChild(ensDiv);
+
+      addText(ensDiv, 'Overlapping stack');
+      if (noverlap > 1) {
+          addText(ensDiv, 's (' + noverlap.toString() + ')');
+      }
+      addText(ensDiv, ': ');
+
+      let firstEns = true;
+      const maxCtr = Math.min(noverlap, N_OVERLAP_STACK);
+
+      for (i = 0; i < maxCtr; i++) {
+	const overlapStack = overlappingStacks[i];
+
+	if (firstEns) {
+	  firstEns = false;
+	} else {
+	  addText(ensDiv, ', ');
+	}
+
+	// Make this an "active" link, but I do not think "zoom" is
+	// the action we want, so try processSelectionyName
+        addSpanLink(ensDiv, 'zoomto', overlapStack,
+		    active ? () => wwt.processStackSelectionByName(overlapStack) : null
+		    // active ? () => wwt.zoomToStack(overlapStack) : null
+		   );
+
+      }
+
+      if (maxCtr !== noverlap) {
+        addText(ensDiv, ', …');  // U+2026
+      }
+
+      addText(ensDiv, '.');
     }
 
     // SAMP: send stack event file
@@ -842,17 +894,20 @@ const wwtprops = (function () {
 
   // Add the info for this stack to the main screen. versionTable is
   // expected to have fields that give the version number for the given
-  // filetype (or null if it is missing)
+  // filetype (or null if it is missing), overlappingStacks gives the
+  // other stacks in the same ensemble (may be the empty list)
   //
-  function addStackInfo(stack, versionTable) {
+  function addStackInfo(stack, versionTable, overlappingStacks) {
     const parent = findStackInfo();
     if (parent === null) { return; }
-    addStackInfoContents(parent, stack, versionTable, true);
+    addStackInfoContents(parent, stack, versionTable, true,
+			 overlappingStacks);
   }
 
   // Add the info for this stack to the help pane; this is an
   // inactive pane.
   //
+  // Assume this is a single-stack ensemble.
   function addStackInfoHelp(stack) {
     const parent = document.querySelector('#stackinfoexample');
     if (parent === null) {
@@ -863,7 +918,7 @@ const wwtprops = (function () {
     // Need version values for the SAMP button to appear, but doesn't
     // really matter what it is.
     const versionTable = {stkevt3: 20, sensity: 22};
-    addStackInfoContents(parent, stack, versionTable, false);
+    addStackInfoContents(parent, stack, versionTable, false, []);
   }
 
   // Hide the element, remove its children, and return it.
