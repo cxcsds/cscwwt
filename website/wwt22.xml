@@ -238,12 +238,41 @@ main#content div.wrap {
             </button>
 	  </div>
 
-	  <div>
+	  <div id="stackbar">
             <button class="button"
                     type="button" id="togglestacks"
                     onclick="wwt.toggleStacks()">
               Hide Stack Outlines
             </button>
+	    <button type="button" id="togglestackprops"
+		    style="display: inline-block;"
+		    onclick="wwt.toggleSourceProps(event, 'stackprops')">
+	      <img src="wwtimg/fa/cog.svg" class="icon"
+		   alt="Change Properties"
+		   />
+	    </button>
+	  </div>
+
+	  <div class="sourceprops" id="stackprops">
+
+	    <div class="sourceitem">
+	      <label for="stackfill">Fill?</label>
+	      <!-- switch="1"  not accepted at present for input -->
+	      <input type="checkbox" id="stackfill"
+		     class="sourceeopacity"
+		     checked="1"
+		     onchange="wwt.setStackFill(this.checked)"
+		     />
+	    </div>
+
+	    <div class="sourceitem">
+	      <label for="stackopacity">Opacity</label>
+	      <input type="range" id="stackopacity" min="0" max="100"
+		     value="25" class="sourceeopacity"
+		     onchange="wwt.changeStackOpacity(this.valueAsNumber / 100)"
+		     />
+	    </div>
+
 	  </div>
 
 	  <div id="sourcebar">
@@ -669,15 +698,13 @@ main#content div.wrap {
 	      are new to CSC 2.2 (white) or that have been changed due to
 	      the addition of observations (brown). The gold outline indicates
 	      stacks that are unchanged from CSC 2.1.
+	      The highlighted stack is now partially opaque by default, and
+	      can be changed via the stack properties window.
 	    </li>
 	    <li>
 	      The stack details panel will now indicate if there are any
 	      overlapping stacks and the names of the nearest 5 of these
 	      stacks.
-	    </li>
-	    <li>
-	      The highlighted stack is now partially opaque (unless the
-	      "Fill the selected stack?" option is unselected).
 	    </li>
 	    <li>
 	      The location can be shifted by using the arrow keys
@@ -882,8 +909,6 @@ main#content div.wrap {
 	  <list>
 	    <li>Can keys be used to control parts of the display
 	    (default is yes, use the <tt>k</tt> key to view the options)?</li>
-	    <li>Should the selected stack be filled in or not (new to
-	    CSC 2.2)</li>
 	    <li>Is the Milky Way outline shown (default is no)?</li>
 	    <li>Is a cross-hair shown at the center of the field
 	    (default is yes)?</li>
@@ -1266,12 +1291,6 @@ main#content div.wrap {
 	      <input id="togglemw" name="togglemw"
 		     type="checkbox"/>
 	      <label for="togglemw">Show Milky Way outline</label>
-	    </div>
-
-	    <div class="checkbox">
-	      <input id="togglestackfill" name="togglestackfill"
-		     type="checkbox" checked="true"/>
-	      <label for="togglestackfill">Fill the selected stack?</label>
 	    </div>
 
 	    <div class="checkbox">

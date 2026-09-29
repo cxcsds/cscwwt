@@ -65,7 +65,6 @@ var wwt = (function () {
   const keyLocation = 'wwt-location';
   const keyFOV = 'wwt-fov';
   const keyForeground = 'wwt-foreground';
-  const keyStackFill = 'www-stackfill';
   const keyCoordinateGrid = 'wwt-grid';
   const keyCrosshairs = 'wwt-crosshairs';
   const keyConstellations = 'wwt-constellations';
@@ -76,6 +75,9 @@ var wwt = (function () {
   const keyClipboardFormat = 'wwt-clipboardformat';
   const keyKeypressFlag = "wwt-keypressflag";
   const keyMoveFlag = 'wwt-moveflag';
+
+  const keyStackFill = 'www-stackfill';
+  const keyStackOpacity = 'www-stackopacity';
 
   const keyCatalogColor = 'wwt-catalog-color';
   const keyCatalogOpacity = 'wwt-catalog-opacity';
@@ -97,6 +99,7 @@ var wwt = (function () {
 		  keySAMP, keyWelcome,
 		  keyMilkyWay, keyClipboardFormat,
 		  keyMoveFlag, keyKeypressFlag,
+		  keyStackFill, keyStackOpacity,
 		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize,
 		  keyXMMCatalogColor, keyXMMCatalogOpacity, keyXMMCatalogSize,
 		  keyeROSITACatalogColor, keyeROSITACatalogOpacity, keyeROSITACatalogSize
@@ -756,8 +759,8 @@ var wwt = (function () {
      change: setClipboardFormat, defval: 'degrees'},
     {key: keyCoordinateGrid, sel: '#togglegrid',
      change: setCoordinateGrid, defval: true},
-    {key: keyStackFill, sel: '#togglestackfill',
-     change: setStackFill, defval: true},
+    //{key: keyStackFill, sel: '#togglestackfill',
+    // change: setStackFill, defval: true},
     {key: keyCrosshairs, sel: '#togglecrosshair',
      change: setCrosshairs, defval: true},
     {key: keyConstellations, sel: '#toggleconstellations',
@@ -1106,7 +1109,7 @@ var wwt = (function () {
     // https://github.com/WorldWideTelescope/wwt-webgl-engine/pull/238
     //
     function makeOpacityUpdate(props) {
-	return (newOpacity) => {
+        return (newOpacity) => {
 	    if ((newOpacity < 0) || (newOpacity > 1)) {
 		etrace(`Invalid source opacity: [${newOpacity}]`);
 		return;
@@ -1153,6 +1156,19 @@ var wwt = (function () {
 	    //});
 
 	};
+    }
+
+    function changeStackOpacity(newOpacity) {
+
+	if ((newOpacity < 0) || (newOpacity > 1)) {
+	    etrace(`Invalid stack opacity: [${newOpacity}]`);
+	    return;
+	}
+
+	saveState(keyStackOpacity, newOpacity);
+	for (const [stack, fovs] of Object.entries(stackAnnotations)) {
+	    fovs.forEach(fov => fov.set_opacity(newOpacity));
+	}
     }
 
   // Unfortunately we can't make changeSourceSize a const as
@@ -5570,6 +5586,9 @@ var wwt = (function () {
     changeXMMSourceOpacity: changeXMMSourceOpacity,
     changeeROSITASourceSize: changeeROSITASourceSize,
     changeeROSITASourceOpacity: changeeROSITASourceOpacity,
+
+    changeStackOpacity: changeStackOpacity,
+    setStackFill: setStackFill,
 
     strToRA: strToRA, strToDec: strToDec,
 
