@@ -76,6 +76,7 @@ var wwt = (function () {
   const keyKeypressFlag = "wwt-keypressflag";
   const keyMoveFlag = 'wwt-moveflag';
 
+  const keyStackName = 'www-stackname';
   const keyStackFill = 'www-stackfill';
   const keyStackOpacity = 'www-stackopacity';
 
@@ -99,7 +100,7 @@ var wwt = (function () {
 		  keySAMP, keyWelcome,
 		  keyMilkyWay, keyClipboardFormat,
 		  keyMoveFlag, keyKeypressFlag,
-		  keyStackFill, keyStackOpacity,
+		  keyStackName, keyStackFill, keyStackOpacity,
 		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize,
 		  keyXMMCatalogColor, keyXMMCatalogOpacity, keyXMMCatalogSize,
 		  keyeROSITACatalogColor, keyeROSITACatalogOpacity, keyeROSITACatalogSize
@@ -1478,7 +1479,17 @@ var wwt = (function () {
     trace('Added FOV');
 
     // If we are highlighting a stack then we can now do it.
+    // Over-ride any stored state with a value from the URL.
     //
+    if (userStackId === null) {
+	userStackId = getState(keyStackName);
+	if (userStackId !== null) {
+	    trace(`Restoring stack from internal state: ${userStackId}`);
+	}
+    } else {
+	trace(`User sent in stack: ${userStackId}`);
+    }
+
     if (userStackId !== null) {
       const stack = inputStackData.stacks[userStackId];
       if (typeof stack !== "undefined") {
@@ -2768,6 +2779,9 @@ var wwt = (function () {
     }
 
     wwtprops.addStackInfo(stack, versionInfo, sortedStacks);
+
+    // Record this as the selected stack
+    saveState(keyStackName, stack.stackid);
   }
 
   // Can we lasso a region?
@@ -3307,6 +3321,8 @@ var wwt = (function () {
 
     wwtprops.clearStackInfo();
     wwtprops.clearNearestStackTable();
+
+    window.localStorage.removeItem(keyStackName);
   }
 
   function clearNearestSource() {

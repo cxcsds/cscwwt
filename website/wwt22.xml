@@ -709,6 +709,10 @@ main#content div.wrap {
 	      stacks</span>).
 	    </li>
 	    <li>
+	      The stack details panel is now restored when the interface
+	      is re-started (only on the same browser).
+	    </li>
+	    <li>
 	      The location can be shifted by using the arrow keys
 	      (when the option for keys to control parts of the
 	      display is selected).
