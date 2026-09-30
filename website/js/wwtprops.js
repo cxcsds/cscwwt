@@ -792,7 +792,10 @@ const wwtprops = (function () {
       }
 
       if (maxCtr !== noverlap) {
-        addText(ensDiv, ', …');  // U+2026
+        // addText(ensDiv, ', …');  // U+2026
+        addSpanLink(ensDiv, 'zoomto', ', …',
+		    active ? () => addOverlappingTable(stack.stackid) : null
+		   );
       }
 
       addText(ensDiv, '.');
@@ -1955,7 +1958,55 @@ const wwtprops = (function () {
     catch (e) {
       wwt.itrace(`unable to change selection mode: ${e}`);
     }
+  }
 
+  // Display all the stacks in the ensemble
+  //
+    // Should this do nothing for a single-stack ensemble?
+    // TODO: number the stacks (so use a table not a list)
+    //       how do we restrict the height of this window?
+    //
+  function addOverlappingTable(stack) {
+
+    wwt.trace(`In addOverlappingTable: [${stack}]`);
+    const stacks = wwt.findOverlappingStacks(stack);
+    if (stacks === null) {
+	wwt.etrace(`No overlapping stacks found for [${stack}]`);
+	return;
+    }
+
+    const paneid = 'overlappingstacksinfo';
+    const pane = findPane(paneid, {left: '0.5em', bottom: '0.5em'}, true);
+    if (pane === null) { return; }
+
+    const n = stacks.length;
+    const close = () => clearElement(`#${paneid}`);
+    const mainDiv = addControlElements(pane,
+				       'Overlapping stack' + (n > 1 ? 's' : ''),
+				       close,
+				       true);
+
+    const list = document.createElement('list');
+    mainDiv.appendChild(list);
+    stacks.forEach((stack) => {
+      const li = document.createElement('li');
+
+      const lnk = document.createElement('a');
+      lnk.setAttribute('href', '#');
+      addText(lnk, stack);
+
+      // The mouseleave event will not fire if a user clicks on a link,
+      // so ensure we clean up.
+      //
+      lnk.addEventListener('click', () => {
+	  wwt.processStackSelectionByName(stack);
+      }, false);
+
+      li.appendChild(lnk);
+      list.appendChild(li);
+    });
+
+    pane.style.display = 'block';
   }
 
   return { addStackInfo: addStackInfo,
@@ -1977,6 +2028,8 @@ const wwtprops = (function () {
 
 	   addPolygonPane: addPolygonPane,
 	   closePolygonPane: closePolygonPane,
+
+	   addOverlappingTable: addOverlappingTable,
 
 	   refreshSAMPClientList: refreshSAMPClientList,
 

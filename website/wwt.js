@@ -5418,6 +5418,16 @@ var wwt = (function () {
     }
   }
 
+  // Return all the stacks that overlap stackid, including stackid.
+  function findOverlappingStacks(stackid) {
+      const ensId = stkToEns[stackid];
+      if (typeof ensId === "undefined") {
+	  etrace(`Error: unknown stack '${stackid}'`);
+	  return null;
+      }
+      return ensData[ensId].stacks;
+  }
+
   var ensOutlineData = null;
   function processEnsOutlineData(json) {
     if (json === null) {
@@ -5775,6 +5785,8 @@ var wwt = (function () {
     displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); },
 
     toggleEnsemble: toggleEnsemble,
+
+    findOverlappingStacks: findOverlappingStacks,
 
     addEnsembles: addEnsembleOutlineFOV,
     getEnsembles: () => { return ensembleAnnotations; },

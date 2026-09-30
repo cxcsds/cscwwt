@@ -200,13 +200,13 @@ output#dec_s { width: 2.5em; }
  */
 div.stackinfopane , div.sourceinfopane , div.sourceselectionpane,
 div.neareststackinfopane , div.nearestsourceinfopane ,
-div.polygoninfopane {
+div.polygoninfopane, div.overlappingstacksinfopane {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid white;
   padding: 0;
 }
 
-div#stackinfo , div#sourceinfo , div#sourceselection {
+div#stackinfo , div#sourceinfo , div#sourceselection, div#overlappingstacksinfo {
   cursor: move;
   display: none;
   overflow: auto;  /* scroll bar looks ugly when shown */
