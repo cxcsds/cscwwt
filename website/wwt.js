@@ -690,6 +690,7 @@ var wwt = (function () {
     });
   }
 
+  // Assume arguments are in band.
   function setCoordinateGrid(flag) {
     wwt.settings.set_showGrid(flag);
     wwt.settings.set_showEquatorialGridText(flag);
@@ -697,10 +698,29 @@ var wwt = (function () {
   }
 
   var stackFillSetting = true;
+  var stackOpacitySetting = 0.5;
+
+  // Assume that any element of nearestFovs should have the fill status
+  // changed. Should we rewrite the "changed" call?
+  //
+  // Note that nearestFovs doesn't have quite the meaning I am using
+  // here, but it's close (as we don't take advantage of the
+  // array much, at least at present).
+  //
   function setStackFill(flag) {
+
     stackFillSetting = flag;
     saveState(keyStackFill, flag);
+
+    nearestFovs.forEach(fov => fov.fov.set_fill(flag));
   }
+
+    /*** Currently unused; see changeStackOpacity
+  function setStackOpacity(opacity) {
+    stackOpacitySetting = opacity;
+    saveState(keyStackOpacity, opacity);
+  }
+  ***/
 
   function setCrosshairs(flag) {
     wwt.settings.set_showCrosshairs(flag);
@@ -1174,6 +1194,7 @@ var wwt = (function () {
 	}
 
 	saveState(keyStackOpacity, newOpacity);
+	stackOpacitySetting = newOpacity;
 	for (const [stack, fovs] of Object.entries(stackAnnotations)) {
 	    fovs.forEach(fov => fov.set_opacity(newOpacity));
 	}
@@ -1388,7 +1409,6 @@ var wwt = (function () {
     let edgeColor = COLOR_FINISHED;
     let fillColor = 'white';
     let lineWidth = 2;
-    const opacity = 0.5;
     const fillFlag = false;
 
     // Temporarily pick the color based on the stack type:
@@ -1417,7 +1437,8 @@ var wwt = (function () {
 						edgeColor: edgeColor,
 						lineWidth: lineWidth,
 						fillColor: fillColor,
-						opacity: opacity});
+						opacity: stackOpacitySetting
+					       });
     stackAnnotations[stack.stackid] = annotations;
   }
 
@@ -2555,21 +2576,24 @@ var wwt = (function () {
   // selected indicates that this is the "selected" stack
   // rather than a "nearby" one.
   //
-  function changeFov(fov, selected, lineColor, lineWidth, fill) {
+  function changeFov(fov, selected, options) {
     const oldColor = fov.get_lineColor();
     const oldWidth = fov.get_lineWidth();
     const oldFill = fov.get_fill();
+    const oldOpacity = fov.get_opacity();
 
     const old = {fov: fov, selected: selected,
 		 reset: () => {
 		   fov.set_lineColor(oldColor);
 		   fov.set_lineWidth(oldWidth);
 		   fov.set_fill(oldFill);
+		   fov.set_opacity(oldOpacity);
 		 }};
 
-    fov.set_lineColor(lineColor);
-    fov.set_lineWidth(lineWidth);
-    fov.set_fill(fill);
+    fov.set_lineColor(options.lineColor);
+    fov.set_lineWidth(options.lineWidth);
+    fov.set_fill(options.fill);
+    fov.set_opacity(options.opacity);
     return old;
   }
 
@@ -2674,7 +2698,12 @@ var wwt = (function () {
     nearest.forEach(d => {
       const stack = d[1];
       stackAnnotations[stack.stackid].forEach(fov => {
-	  nearestFovs.push(changeFov(fov, false, 'cyan', 2, false));
+	  nearestFovs.push(changeFov(fov, false,
+				     {lineColor: 'cyan',
+				      lineWidth: 2,
+				      fill: false,
+				      opacity: stackOpacitySetting
+				     }));
       });
     });
 
@@ -2695,8 +2724,12 @@ var wwt = (function () {
     //
     const fovs = stackAnnotations[stack.stackid];
     fovs.forEach(fov =>
-	nearestFovs.push(changeFov(fov, true, 'cyan', 4,
-				   stackFillSetting)));
+	nearestFovs.push(changeFov(fov, true,
+				   {lineColor: 'cyan',
+				    lineWidth: 4,
+				    fill: stackFillSetting,
+				    opacity: stackOpacitySetting
+				   })));
 
     // What version info do we have (aka can we export the data products
     // via SAMP) for this stack?
@@ -3882,6 +3915,60 @@ var wwt = (function () {
 
     // Are there user-saved values we need to support?
     //
+    function restoreStackProperties() {
+
+	trace('restoring stack properties');
+	trace(`  old fill    = ${stackFillSetting}`);
+	trace(`  old opacity = ${stackOpacitySetting}`);
+
+	// If we have saved values then use them (and update the elements)
+	// otherwise pick up the values from the elements.
+	//
+	const el_fill = document.querySelector("#stackfill");
+	if (el_fill === null) {
+	    etrace('unable to find #stackfill; that is worrying');
+	} else {
+	    trace(`#stackfill.checked = ${el_fill.checked}`);
+	}
+
+	const el_opacity = document.querySelector("#stackopacity");
+	if (el_opacity === null) {
+	    etrace('unable to find #stackopacity; that is worrying');
+	} else {
+	    trace(`#stackopacity.valueAsNumber = ${el_opacity.valueAsNumber}`);
+	}
+
+	const fill = getState(keyStackFill);
+	const opacity = toNumber(getState(keyStackOpacity));
+
+	if (fill !== null) {
+	    const fillflag = fill === "true";
+	    trace(`restoring stack fill to ${fillflag} [${typeof fillflag}]`);
+	    stackFillSetting = fillflag;
+	    if (el_fill !== null) {
+		el_fill.checked = fillflag;
+	    }
+	} else if (el_fill !== null) {
+	    stackFillSetting = el_fill.checked;
+	}
+
+	if (opacity !== null) {
+	    trace(`restoring stack opacity to ${opacity} [${typeof opacity}]`);
+	    stackOpacitySetting = opacity;
+	    if (el_opacity !== null) {
+		el_opacity.valueAsNumber = opacity * 100;
+	    }
+	} else if (el_opacity !== null) {
+	    stackOpacitySetting = el_opacity.valueAsNumber;
+	}
+
+	trace(`  new fill    = ${stackFillSetting}`);
+	trace(`  new opacity = ${stackOpacitySetting}`);
+	trace(`#stackfill.checked = ${el_fill.checked}`);
+	trace(`#stackopacity.valueAsNumber = ${el_opacity.valueAsNumber}`);
+    }
+
+
     function restoreCatalogSourceProperties(cat) {
 	const label = cat.label;
 	const keys = cat.keys;
@@ -4086,6 +4173,8 @@ var wwt = (function () {
     const nprops = restoreCatalogSourceProperties(catalogProps.csc);
     const xmmnprops = restoreCatalogSourceProperties(catalogProps.xmm);
     const eROSITAnprops = restoreCatalogSourceProperties(catalogProps.eROSITA);
+
+    restoreStackProperties();
 
     // These used to be const variables.
     //
