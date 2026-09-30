@@ -1662,26 +1662,14 @@ const wwtprops = (function () {
     }
   }
 
-  function addNearestStackTable(stackAnnotations, stack0, neighbors,
-				nearestFovs) {
+  function addNearestStackTable(stackAnnotations, stack0, neighbors) {
     const n = neighbors.length;
     if (n === 0) { return; }
 
     const pane = findNearestStackInfo();
     if (pane === null) { return; }
 
-    const close = () => {
-      clearNearestStackTable();
-
-      // clear out the "nearest" stack outline; the easiest way is
-      // to just change them but do not change the nearestFovs array,
-      // since this will get done in a later call
-      nearestFovs.forEach(fov => {
-	if (fov.selected) { return; }
-	fov.reset();
-      });
-
-    };
+    const close = () => clearNearestStackTable();
     const mainDiv = addControlElements(pane,
 				       'Nearest stack' + (n > 1 ? 's' : ''),
 				       close,
@@ -1765,18 +1753,7 @@ const wwtprops = (function () {
     const pane = findNearestSourceInfo();
     if (pane === null) { return; }
 
-    const close = () => {
-      clearNearestSourceTable()
-
-      // Are we going to be highlighting the nearby sources in any way?
-      //
-      /***
-      nearestFovs.forEach(fov => {
-	if (fov.selected) { return; }
-	fov.reset();
-      });
-      ***/
-    };
+    const close = () => clearNearestSourceTable();
     const mainDiv = addControlElements(pane,
 				       'Nearest source' + (n > 1 ? 's' : ''),
 				       close,

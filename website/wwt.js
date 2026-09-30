@@ -713,7 +713,9 @@ var wwt = (function () {
     stackFillSetting = flag;
     saveState(keyStackFill, flag);
 
-    nearestFovs.forEach(fov => fov.fov.set_fill(flag));
+    // We currently only care about the "selected" stacks, which are
+    // stored in nearestFovs.
+    nearestFovs.forEach(fov => fov.set_fill(flag));
   }
 
     /*** Currently unused; see changeStackOpacity
@@ -1196,9 +1198,14 @@ var wwt = (function () {
 
 	saveState(keyStackOpacity, newOpacity);
 	stackOpacitySetting = newOpacity;
+
+	// Change the stack outlines and any "selected" outlines.
+	//
 	for (const [stack, fovs] of Object.entries(stackAnnotations)) {
 	    fovs.forEach(fov => fov.set_opacity(newOpacity));
 	}
+	nearestFovs.forEach(fov => fov.set_opacity(newOpacity));
+
     }
 
   // Unfortunately we can't make changeSourceSize a const as
@@ -1360,8 +1367,8 @@ var wwt = (function () {
     const annotations = [];
     for (var i = 0; i < polygons.length; i++) {
 
-      // First is inclusive, the rest are exclusive
-      // (is this still true?)
+      // We have now way to identify whether this is an include or
+      // exclude polygon.
       const shapes = polygons[i];
 
       for (var j = 0; j < shapes.length; j++) {
@@ -1464,8 +1471,10 @@ var wwt = (function () {
   }
 
   // Let's see how the WWT does with all the stacks
+  var stackOutlineData = null;
   function addFOV(stackpolygons) {
 
+    stackOutlineData = stackpolygons;
     for (let stackid in inputStackData.stacks) {
       const polygons = stackpolygons[stackid];
       if (typeof polygons === 'undefined') {
@@ -2581,33 +2590,6 @@ var wwt = (function () {
     return store;
   }
 
-  // For use when changing a stack annotation; returns an item
-  // that can be used to restore the fov.
-  //
-  // selected indicates that this is the "selected" stack
-  // rather than a "nearby" one.
-  //
-  function changeFov(fov, selected, options) {
-    const oldColor = fov.get_lineColor();
-    const oldWidth = fov.get_lineWidth();
-    const oldFill = fov.get_fill();
-    const oldOpacity = fov.get_opacity();
-
-    const old = {fov: fov, selected: selected,
-		 reset: () => {
-		   fov.set_lineColor(oldColor);
-		   fov.set_lineWidth(oldWidth);
-		   fov.set_fill(oldFill);
-		   fov.set_opacity(oldOpacity);
-		 }};
-
-    fov.set_lineColor(options.lineColor);
-    fov.set_lineWidth(options.lineWidth);
-    fov.set_fill(options.fill);
-    fov.set_opacity(options.opacity);
-    return old;
-  }
-
   // Show this stack using the "nearest stack" logic. The assumption is
   // that by using the stack location we will select this stack. The only
   // reason this wouldn't hold would be numerical errors, and the way the
@@ -2707,19 +2689,20 @@ var wwt = (function () {
     // Update the closest ensembles by drawing them in a different color.
     //
     nearest.forEach(d => {
-      const stack = d[1];
-      stackAnnotations[stack.stackid].forEach(fov => {
-	  nearestFovs.push(changeFov(fov, false,
-				     {lineColor: 'cyan',
-				      lineWidth: 2,
-				      fill: false,
-				      opacity: stackOpacitySetting
-				     }));
-      });
+	const stack = d[1];
+
+	const polygons = stackOutlineData[stack.stackid];
+	const annotations = makePolygonAnnotations(polygons,
+						   {fillFlag: false,
+						    edgeColor: 'cyan',
+						    lineWidth: 2,
+						    fillColor: fillColor,
+						    opacity: stackOpacitySetting
+						   });
+	annotations.forEach(fov => nearestFovs.push(fov));
     });
 
-    wwtprops.addNearestStackTable(stackAnnotations, stack0, nearest,
-				  nearestFovs);
+    wwtprops.addNearestStackTable(stackAnnotations, stack0, nearest);
 
     console.log("DBG-START: nearest"); console.log(nearest); console.log("DBG-END:   nearest");
   }
@@ -2733,14 +2716,16 @@ var wwt = (function () {
     // We could identify if we have any "holes" here and perhaps
     // decide to display them differently.
     //
-    const fovs = stackAnnotations[stack.stackid];
-    fovs.forEach(fov =>
-	nearestFovs.push(changeFov(fov, true,
-				   {lineColor: 'cyan',
-				    lineWidth: 4,
-				    fill: stackFillSetting,
-				    opacity: stackOpacitySetting
-				   })));
+    const polygons = stackOutlineData[stack.stackid];
+    const annotations = makePolygonAnnotations(polygons,
+					       {fillFlag: stackFillSetting,
+						edgeColor: 'cyan',
+						lineWidth: 4,
+						fillColor: 'white',
+						opacity: stackOpacitySetting
+					       });
+    annotations.forEach(fov => nearestFovs.push(fov));
+    trace(`Added ${annotations.length} FOVs for the stack`);
 
     // What version info do we have (aka can we export the data products
     // via SAMP) for this stack?
@@ -3310,7 +3295,7 @@ var wwt = (function () {
   }
 
   function clearNearestStack() {
-    nearestFovs.forEach(fov => fov.reset());
+    nearestFovs.forEach(fov => wwt.removeAnnotation(fov));
     nearestFovs = [];
 
     // Also clear any "ensemble" display
