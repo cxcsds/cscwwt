@@ -880,6 +880,7 @@ const wwtprops = (function () {
 
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
+    // CURRENTLY UNUSED
     //
     let bcol;
     switch (stack.status) {
@@ -1723,6 +1724,7 @@ const wwtprops = (function () {
     }
   }
 
+  // CURRENTLY UNUSED
   function addNearestStackTable(stackAnnotations, stack0, neighbors) {
     const n = neighbors.length;
     if (n === 0) { return; }
@@ -2040,12 +2042,17 @@ const wwtprops = (function () {
 			    'wwtimg/fa/circle-chevron-left-solid-full.svg',
 			    null, null,
 			    'icon');
-	  img.addEventListener('click', () => {
+	  left.appendChild(img);
+	  addText(left, ` ${leftIdx / nelem + 1}`);
+
+	  // replicate img.icon styling
+	  left.style.cursor = 'pointer';
+	  left.style.height = '1em';
+	  left.style.width = '1em';
+	  left.addEventListener('click', () => {
 	      makeOverlapSubset(tbody, arrayInfo, overlaps, leftIdx)
 	  }, false);
 
-	  left.appendChild(img);
-	  addText(left, `${leftIdx / nelem + 1}`);
 	  arrayInfo.appendChild(left);
       }
 
@@ -2069,16 +2076,21 @@ const wwtprops = (function () {
 			    'wwtimg/fa/circle-chevron-right-solid-full.svg',
 			    null, null,
 			    'icon');
-	  img.addEventListener('click', () => {
-	      makeOverlapSubset(tbody, arrayInfo, overlaps, rightIdx)
-	  }, false);
-
 	  // UGH:
 	  right.style.position = 'sticky';
 	  right.style.left = '100%';
 
-	  addText(right, `${rightIdx / nelem + 1}`);
+	  addText(right, `${rightIdx / nelem + 1} `);
 	  right.appendChild(img);
+
+	  // replicate img.icon styling
+	  right.style.cursor = 'pointer';
+	  right.style.height = '1em';
+	  right.style.width = '1em';
+	  right.addEventListener('click', () => {
+	      makeOverlapSubset(tbody, arrayInfo, overlaps, rightIdx)
+	  }, false);
+
 	  arrayInfo.appendChild(right);
       }
   }
@@ -2104,6 +2116,18 @@ const wwtprops = (function () {
 
     function add_row(dist, name) {
 	const tr = document.createElement('tr');
+
+	// Add mouseenter/leave handlers for the row
+	//
+	tr.addEventListener('mouseenter', () => {
+	  tr.classList.add('selected');  // TODO is this what we want?
+	  wwt.toggleStackOutline(name, true);
+	}, false);
+
+	tr.addEventListener('mouseleave', () => {
+	  tr.classList.remove('selected');  // TODO is this what we want?
+	  wwt.toggleStackOutline(name, false);
+	}, false);
 
 	const td1 = document.createElement('td');
 	const td2 = document.createElement('td');

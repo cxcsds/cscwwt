@@ -5036,6 +5036,58 @@ var wwt = (function () {
       return true;
   }
 
+  // highlight (or remove) the stack outline.
+  // We assume there's only one outline shown at a time.
+  //
+  // We only draw anything if the ensemble outline is not being
+  // shown (this check is only made when selected is true).
+  //
+  var stackOutlineAnnotations = [];
+  function toggleStackOutline(stackid, selected) {
+
+      if (selected === false) {
+	  if (stackOutlineAnnotations.length === 0) {
+	      trace(`no stack outline for [${stackid}]`);
+	  } else {
+	      stackOutlineAnnotations.forEach(wwt.removeAnnotation);
+	      stackOutlineAnnotations = [];
+	  }
+	  return;
+      }
+
+      if (stackOutlineAnnotations.length !== 0) {
+	  trace(`found stack outlines to remove`);
+	  stackOutlineAnnotations.forEach(wwt.removeAnnotation);
+	  stackOutlineAnnotations = [];
+      }
+
+      // If the ensemble outline for this stack is shown then do
+      // nothing.
+      //
+      const ensId = stkToEns[stackid];
+      if (typeof ensId === 'undefined') {
+	  etrace(`No ensemble info for stack: ${stackid}`);
+	  return;
+      }
+      if (ensId in ensembleAnnotations) {
+	  trace(`Note that ensemble ${ensId} for stack ${stackid} is being shown; skipping stack outline`);
+	  return;
+      }
+
+      const polygons = stackOutlineData[stackid];
+      if (typeof polygons === 'undefined') {
+	  etrace(`Unknown stack: ${stackid}`);
+	  return;
+      }
+      stackOutlineAnnotations = makePolygonAnnotations(polygons,
+						       {fillFlag: true,
+							edgeColor: "gray",
+							lineWidth: 1,
+							fillColor: "orange",
+							opacity: 0.8
+						       });
+  }
+
   // Is it a stack-like name that may be
   // - missing the version
   // - mis-typed
@@ -5785,6 +5837,7 @@ var wwt = (function () {
     displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); },
 
     toggleEnsemble: toggleEnsemble,
+    toggleStackOutline: toggleStackOutline,
 
     findOverlappingStacks: findOverlappingStacks,
 
