@@ -891,20 +891,21 @@ const wwtprops = (function () {
 
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
-    // CURRENTLY UNUSED
+    // ACTUALLY, for CSC 2.2 we now follow the stack status (new,
+    // changed, unchanged).
     //
     let bcol;
-    switch (stack.status) {
-      case 1:
+    switch (stack.stacktype) {
+      case "unchanged":
         bcol = wwt.COLOR_FINISHED;
         break;
 
-      case 2:
+      case "updated":
         bcol = wwt.COLOR_PROCESSING;
         break;
 
       default:
-        bcol = wwt.COLOR_NOTDONE;
+        bcol = wwt.COLOR_NOTDONE;  // "new"
     }
 
     parent.style.borderColor = bcol;
