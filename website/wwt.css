@@ -281,14 +281,14 @@ div.not-semantic-name {
   flex-direction: row;
 }
 
-div.button-bar2-horizontal {
+div.button-bar-horizontal {
   display: flex;
   flex-direction: row;
 }
 
 div.button-bar-horizontal button {
-  margin-left: 1em;
-  /* margin-right: 1em; */
+  /* margin-left: 1em; */
+  margin-right: 1em;
   width: auto;
 }
 

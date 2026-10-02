@@ -653,6 +653,17 @@ const wwtprops = (function () {
     addSpanLink(binfoDiv, 'clipboard',
 		'Copy stack name to clipboard',
 		active ? (event) => wwt.copyToClipboard(event, stack.stackid) : null);
+
+    // Only add this if we have overlapping stacks
+    if (overlappingStacks.length > 0) {
+      const allStackNames = [stack.stackid].
+          concat(overlappingStacks.map((elem) => elem[1]));
+      const allStackName = allStackNames.join(",");
+      addSpanLink(binfoDiv, 'clipboard',
+                  'Copy all stack names to clipboard',
+                  active ? (event) => wwt.copyToClipboard(event, allStackName) : null);
+    }
+
     addSpanLink(binfoDiv, 'zoomto', 'Zoom to stack',
 		active ? () => wwt.zoomToStack(stack.stackid) : null);
 
