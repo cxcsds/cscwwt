@@ -2757,13 +2757,13 @@ var wwt = (function () {
 					   return {ra: pos[0], dec: pos[1]}
 				       },
 				       (d, p) => d
-				      ).map((elem) => elem[1]);
+				      );
 
     if (otherStacks.length !== sortedStacks.length) {
       etrace("Stacks have been lost!");
     }
 
-    wwtprops.addStackInfo(stack, versionInfo, sortedStacks);
+    wwtprops.addStackInfo(stack, versionInfo, sortedStacks, ensId);
 
     // Record this as the selected stack
     saveState(keyStackName, stack.stackid);
