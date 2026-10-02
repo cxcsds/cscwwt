@@ -640,7 +640,7 @@ const wwtprops = (function () {
 
     const close = () => {
 	wwt.clearNearestStack();
-	clearOverlappingStacksInfo();  // TODO: is this what we want?
+	clearOverlappingTable();  // TODO: is this what we want?
     }
     const mainDiv = addControlElements(parent,
 				       `Stack: ${stack.stackid}`,
@@ -1025,10 +1025,6 @@ const wwtprops = (function () {
 
   function clearStackInfo() {
     clearElement('#stackinfo');
-  }
-
-  function clearOverlappingStacksInfo() {
-    clearElement('#overlappingstacksinfo');
   }
 
   // How to display the given "measured" or "calculated"
@@ -2190,7 +2186,7 @@ const wwtprops = (function () {
     const title = `Overlaps of ${stack}`;
     const mainDiv = addControlElements(pane,
 				       title,
-				       clearOverlappingStacksInfo,
+				       clearOverlappingTable,
 				       true);
 
     const table = document.createElement('table');
@@ -2230,6 +2226,10 @@ const wwtprops = (function () {
     pane.style.display = 'block';
   }
 
+  function clearOverlappingTable() {
+    clearElement('#overlappingstacksinfo');
+  }
+
   return { addStackInfo: addStackInfo,
 	   addStackInfoHelp: addStackInfoHelp,
 	   clearStackInfo: clearStackInfo,
@@ -2251,6 +2251,7 @@ const wwtprops = (function () {
 	   closePolygonPane: closePolygonPane,
 
 	   addOverlappingTable: addOverlappingTable,
+	   clearOverlappingTable: clearOverlappingTable,
 
 	   refreshSAMPClientList: refreshSAMPClientList,
 

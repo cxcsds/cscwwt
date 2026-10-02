@@ -2161,6 +2161,8 @@ var wwt = (function () {
       label = 'Show Stack Outlines';
       stacksShown = NO_STACK_SHOWN;
       selMode = 'nothing'; /* pick nothing as the best choice here */
+
+      wwtprops.clearOverlappingTable();
     } else {
 	// FOR NOW DO NOTHING IF WE HAVE PARTIAL STACKS SHOWN
 	itrace("Skipping stack display change (partial)");
