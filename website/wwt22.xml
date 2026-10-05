@@ -1095,11 +1095,15 @@ main#content div.wrap {
 
 	  <p>
 	    The Chandra sources are found using the
-	    <extlink href="https://cda.cfa.harvard.edu/csc21scs/">
+	    <extlink href="https://cda.cfa.harvard.edu/csc22tap/">
+	      CSC Table Access Protocol
+	    </extlink> service (note that the
+	    <extlink href="https://cda.cfa.harvard.edu/csc22scs/">
 	      CSC Simple Cone Search
-	      </extlink> service.
-	      An orange circle is drawn to show the
-	      maximum radius used for sources (only for the CSC &ver; sources).
+	    </extlink> service can also be used).
+	    An orange circle is drawn to show the
+	    maximum radius used for sources (this is only
+	    drawn for the CSC &ver; sources).
 	  </p>
 
 	  <p>
