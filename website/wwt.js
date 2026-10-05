@@ -3546,6 +3546,23 @@ var wwt = (function () {
       lastmod: 1653359578 /* CSC 2.1 */
   };
 
+  // A stack with overlaps
+  const stackExample2 =
+    { stackid: 'acisfJ1138037p031503_002',
+      stacktype: "updated", /* CSC 2.2 */
+      nobs: 5,
+      nsource: 71,
+      obis: ["07759_000", "14962_000", "23803_001", "24461_000", "24983_001"],
+      new_obis: ["23803_001", "24461_000", "24983_001"],
+      names: ["SDSS 1138+0314", "SDSS J1138+0314", "SDSS1138+0314"],
+      pos: decodeStackName('acisfJ1138037p031503_002'),
+      description: 'The stack contains five observations (in CSC 2.1 it contained two). It contains 71 sources.',
+      status: 1,
+      lastmod: 1653359578 /* CSC 2.1 */
+  };
+
+  const overlappingStacksExample2 = [[27.4 / 60, 'acisfJ1139121p033629_001']];
+
   // '2CXO J061859.6-705831'
   const sourceExample =
 	{name: '2CXO J061859.6-705831',
@@ -4305,6 +4322,7 @@ var wwt = (function () {
     wwtprops.addSourceSelectionHelp(raExample, decExample, rExample,
 				    makeSourceSelectionExample());
     wwtprops.addStackInfoHelp(stackExample);
+    wwtprops.addStackInfo2Help(stackExample2, overlappingStacksExample2);
     wwtprops.addSourceInfoHelp(sourceExample);
 
     // TODO: should this check that the name is not blank/empty?

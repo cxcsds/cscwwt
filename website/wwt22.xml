@@ -694,6 +694,11 @@ main#content div.wrap {
 	      need the "load" step).
 	    </li>
 	    <li>
+	      The location can be changed by using the arrow keys
+	      (when the option for keys to control parts of the
+	      display is selected).
+	    </li>
+	    <li>
 	      The stack outlines are now colored to indicate those that
 	      are new to CSC 2.2 (white) or that have been changed due to
 	      the addition of observations (brown). The gold outline indicates
@@ -703,19 +708,16 @@ main#content div.wrap {
 	    </li>
 	    <li>
 	      The stack details panel will now indicate if there are any
-	      overlapping stacks and the names of the nearest 5 of these
-	      stacks, and the ability to highlight all the overlapping
-	      stacks (<span class="example-button">Show overlapping
-	      stacks</span>).
+	      overlapping stacks, the ability to copy all the stack names
+	      to the clipboard, along with interacting with the overlapping
+	      stacks: as a table in a separate window with
+	      <span class="example-button">List overlapping stacks</span>
+	      or by highlighting them all as filled polygons with
+	      <span class="example-button">Draw overlapping stacks</span>.
 	    </li>
 	    <li>
 	      The stack details panel is now restored when the interface
 	      is re-started (only on the same browser).
-	    </li>
-	    <li>
-	      The location can be shifted by using the arrow keys
-	      (when the option for keys to control parts of the
-	      display is selected).
 	    </li>
 	  </list>
 
@@ -963,7 +965,7 @@ main#content div.wrap {
 	  <p>
 	    An alternative is to use the name of a CSC &ver; source,
 	    which begins <span class="term">2CXO J</span>. The name
-	    is used to identify the positon on the sky.
+	    is used to identify the position on the sky.
           </p>
 
 	  <p>
@@ -1011,6 +1013,22 @@ main#content div.wrap {
 	    the URL of the stack event file can be copied to
 	    the clipboard.
 	  </p>
+
+	  <p>
+	    If the stack overlaps another stack then the window will
+	    contain extra information, including copying all the
+	    stack names to the clipboard, a list of the stacks, and
+	    the ability to visualize the stacks (as a table in a
+	    new window with
+	    <span class="example-button">List overlapping stacks</span>
+	    or by drawing them as filled polygons with
+	    <span class="example-button">Draw overlapping stacks</span>):
+	  </p>
+
+	  <div class="infocontainer">
+	    <div id="stackinfo2example" class="stackinfopane">
+	    </div>
+	  </div>
 
 	  <h3>Selecting a source</h3>
 

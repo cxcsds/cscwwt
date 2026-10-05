@@ -853,11 +853,11 @@ const wwtprops = (function () {
               wwt.trace(`Hide overlapping stacks for stack: ${stack.stackid}`);
 	      pane_el.style.display = 'none';
 	      removeChildren(pane_el);
-              highlightBtn1.innerText = 'Show overlapping stacks';
+              highlightBtn1.innerText = 'List overlapping stacks';
 	  }
       });
 
-      addText(highlightBtn1, 'Show overlapping stacks');
+      addText(highlightBtn1, 'List overlapping stacks');
 
       const highlightBtn2 = document.createElement('button');
       highlightBtn2.id = `highlight-${stack.stackid}`;
@@ -1006,7 +1006,22 @@ const wwtprops = (function () {
     // Need version values for the SAMP button to appear, but doesn't
     // really matter what it is.
     const versionTable = {stkevt3: 20, sensity: 22};
-      addStackInfoContents(parent, stack, versionTable, false, [], '0');
+    addStackInfoContents(parent, stack, versionTable, false, [], '0');
+  }
+
+  // This is more complex example
+  function addStackInfo2Help(stack, overlappingStacks) {
+    const parent = document.querySelector('#stackinfo2example');
+    if (parent === null) {
+      wwt.itrace('no #stackinfo found');
+      return;
+    }
+
+    // Need version values for the SAMP button to appear, but doesn't
+    // really matter what it is.
+    const versionTable = {stkevt3: 20, sensity: 22};
+    addStackInfoContents(parent, stack, versionTable, false,
+			 overlappingStacks, '0');
   }
 
   // Hide the element, remove its children, and return it.
@@ -2233,6 +2248,7 @@ const wwtprops = (function () {
 
   return { addStackInfo: addStackInfo,
 	   addStackInfoHelp: addStackInfoHelp,
+	   addStackInfo2Help: addStackInfo2Help,
 	   clearStackInfo: clearStackInfo,
 
 	   addSourceInfo: addSourceInfo,
