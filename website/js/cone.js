@@ -21,9 +21,11 @@ const cone = (function () {
     // This is a version-specific end point. It is assumed to create
     // tables that follow version 1.2 of the VOTable specification.
     //
-    // const TAP = "https://cda.cfa.harvard.edu/csc21tap/sync";
-    // const TAP = "https://cda.cfa.harvard.edu/csc22tap/sync";
-    const TAP = "https://cda.cfa.harvard.edu/csc_snapshot_tap/sync";
+    const TAP_BASENAME = "csc22";
+    const TAP = "https://cda.cfa.harvard.edu/csc22tap/sync";
+
+    // const TAP_BASENAME = "csc_snapshot";
+    // const TAP = "https://cda.cfa.harvard.edu/csc_snapshot_tap/sync";
 
     // Unfortunately this does not support CORS
     const XMMTAP = "https://heasarc.gsfc.nasa.gov/xamin/vo/tap/sync";
@@ -293,9 +295,7 @@ const cone = (function () {
 		     ];
 	const colnames = cols.toString();
 	const sfilt = mkspatial(ra, dec, maxrad);
-	// const basename = "csc21";
-	const basename = "csc_snapshot";
-	return `SELECT ${colnames} FROM ${basename}.master_source m WHERE (${sfilt})`;
+	return `SELECT ${colnames} FROM ${TAP_BASENAME}.master_source m WHERE (${sfilt})`;
     }
 
     // Use the TAP service to return the same columns as for CSC 2.1
