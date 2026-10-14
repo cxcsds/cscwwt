@@ -4,7 +4,7 @@
 
 Usage:
 
-  ./cat2json.py cat
+  ./cat2json.py infile outfile
 
 Aim:
 
@@ -33,12 +33,13 @@ def roundy(v, n):
 
 def convert(infile):
 
-    fname = f"{infile}[CATALOG][cols ra,dec]"
+    # fname = f"{infile}[CATALOG][cols ra,dec]"
+    fname = f"{infile}[cols ra,dec]"
 
     cr = pycrates.read_file(fname)
 
     # cat = cr.name
-    cat = "eROSITA DR1"
+    cat = "eROSITA DR2"
 
     srcs = []
     for ra,dec in zip(cr.RA.values,
@@ -62,9 +63,16 @@ def convert(infile):
 if __name__ == "__main__":
 
     import sys
-    if len(sys.argv) != 2:
-        sys.stderr.write("Usage: {} cat\n".format(sys.argv[0]))
+    if len(sys.argv) != 3:
+        sys.stderr.write(f"Usage: {sys.argv[0]} infile outfile\n")
         sys.exit(1)
 
-    out = convert(sys.argv[1])
-    print(json.dumps(out))
+    infile = sys.argv[1]
+    outfile = sys.argv[2]
+    print(f"Reading from: {infile}")
+    out = convert(infile)
+
+    with open(outfile, mode="wt") as ofh:
+         ofh.write(json.dumps(out))
+
+    print(f"Created: {outfile}")

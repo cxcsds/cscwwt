@@ -1,2 +1,38 @@
 The positions of the eRosita DR1 sources with NO filtering.
 
+Aha. There is now DR2.
+
+The following is with CIAO 4.18 hence the long-long concerns.
+
+% time python ./cat2json.py eRASS3_Main_v1.3.fits.gz erositadr2.json
+Reading from: eRASS3_Main_v1.3.fits.gz
+[CXCDM 306] WARNING: Column 'FLAG_NO_EXT_ERR' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID_Hard' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID_DR1' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID_2RXS' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'FLAG_CSC' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID_5XMM' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'FLAG_NO_EXT_ERR' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID_Hard' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID_DR1' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID_2RXS' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'FLAG_CSC' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID_5XMM' is of (U)LONGLONG datatype which is not supported by this tool.
+
+[CXCDM 306] WARNING: Column 'UID' is of (U)LONGLONG datatype which is not supported by this tool.
+
+Created: erositadr2.json
+27.120u 2.025s 0:34.11 85.4%	0+0k 337128+85144io 110pf+0w
