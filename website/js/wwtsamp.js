@@ -12,7 +12,7 @@ const wwtsamp = (function () {
 
   // Only try to register with a SAMP hub when we are called.
   //
-  const catName = 'CSC 2.1';
+  const catName = 'CSC 2.2';
   const sampName = `${catName} + WWT`;
   const sampMeta = {
     'samp.name': sampName,
@@ -23,8 +23,9 @@ const wwtsamp = (function () {
   };
 
   // what version option are we using?
-  // const queryVersion = "version=cur";
-  const queryVersion = "version=rel2.1";
+  const queryVersion = "version=cur";
+  // const queryVersion = "version=rel2.1";
+  // const queryVersion = "version=rel2.2";
 
   var sampConnection = null;
   var sampClientTracker = null;
@@ -274,7 +275,7 @@ const wwtsamp = (function () {
   // CSCView does, but I haven't checked how it handles near the poles.
   //
   function masterQueryNear(ra, dec, rmax, cols) {
-    return `http://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&${queryVersion}&query=select%20distinct%20${cols.join(',')}%20from%20master_source%20where%20dbo.cone_distance%28ra,dec,${ra},${dec}%29%3C%3D${rmax}%20order%20by%20flux_aper_b%20desc,%20flux_aper_w%20desc`;
+    return `https://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&${queryVersion}&query=select%20distinct%20${cols.join(',')}%20from%20master_source%20where%20dbo.cone_distance%28ra,dec,${ra},${dec}%29%3C%3D${rmax}%20order%20by%20flux_aper_b%20desc,%20flux_aper_w%20desc`;
   }
 
   // Master Source: Basic Summary
@@ -362,7 +363,7 @@ const wwtsamp = (function () {
   // all the master-source table does
   //
   function masterSourcePropertiesByName(name) {
-    return 'http://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&${queryVersion}&query=select%20*%20from%20master_source%20where%20name%20%3D%20%27' +
+    return `https://cda.cfa.harvard.edu/csccli/getProperties?outputFormat=votable&${queryVersion}&query=select%20*%20from%20master_source%20where%20name%20%3D%20%27` +
       encodeURIComponent(name) +
       '%27';
   }
@@ -601,8 +602,9 @@ const wwtsamp = (function () {
     else if (stackver < 100) { verstr = '0' + stackver.toString(); }
     else                     { verstr = stackver.toString(); }
 
-    const url = 'http://cda.harvard.edu/csccli/retrieveFile?' +
-      `${queryVersion}&filetype=${filetype}&filename=${stack}N${verstr}_${suffix}.fits`;
+    const url = 'https://cda.harvard.edu/csccli/retrieveFile?' +
+	  `${queryVersion}&filetype=${filetype}&` +
+	  `filename=${stack}N${verstr}_${suffix}.fits`;
 
     console.log(`--> sending image.load.fits for ${url}`);
     sendURL(event, target, 'image.load.fits', url,

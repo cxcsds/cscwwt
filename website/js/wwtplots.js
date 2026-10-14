@@ -200,7 +200,8 @@ const wwtplots = (function () {
       // simplifications.
       //
 
-      // Plot data
+      // Plot data.
+      //
       const sigB = [];
       const sigW = [];
       const fluxB = [];
@@ -216,7 +217,8 @@ const wwtplots = (function () {
       const r1 = [];
 
       catinfo.annotations.forEach(ann => {
-	const src = wwt.getCSCObject(ann.data);
+	// const src = wwt.getCSCObject(ann.data);
+	const src = ann.data;
 
 	if (src.err_ellipse_r0 !== null &&
             src.err_ellipse_r1 !== null) {
@@ -295,8 +297,8 @@ const wwtplots = (function () {
     //
     //   significance vs flux (b and w separately)
     //   hr (hm vs ms)
-    //   r0 vs r1
-    //   histogram of acis_num, hrc_num
+    //   r0 vs r1                             NO LONGER HAVE
+    //   histogram of acis_num, hrc_num       NO LONGER HAVE
     //
     function plotSources(catinfo) {
       if ((catinfo === null) || (catinfo.annotations === null)) {

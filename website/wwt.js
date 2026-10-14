@@ -76,6 +76,10 @@ var wwt = (function () {
   const keyKeypressFlag = "wwt-keypressflag";
   const keyMoveFlag = 'wwt-moveflag';
 
+  const keyStackName = 'www-stackname';
+  const keyStackFill = 'www-stackfill';
+  const keyStackOpacity = 'www-stackopacity';
+
   const keyCatalogColor = 'wwt-catalog-color';
   const keyCatalogOpacity = 'wwt-catalog-opacity';
   const keyCatalogSize = 'wwt-catalog-size';
@@ -96,6 +100,7 @@ var wwt = (function () {
 		  keySAMP, keyWelcome,
 		  keyMilkyWay, keyClipboardFormat,
 		  keyMoveFlag, keyKeypressFlag,
+		  keyStackName, keyStackFill, keyStackOpacity,
 		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize,
 		  keyXMMCatalogColor, keyXMMCatalogOpacity, keyXMMCatalogSize,
 		  keyeROSITACatalogColor, keyeROSITACatalogOpacity, keyeROSITACatalogSize
@@ -161,9 +166,16 @@ var wwt = (function () {
   // It should not be run multiple times (although it probably doesn't matter
   // if it does).
   //
+  // This is being co-opted to be a "version" number, so it can cover
+  // non-schema changes too.
+  //
+  function getSchema() {
+    return getState(keySchema);
+  };
+
   function updateSchema() {
-    trace('Setting schema version to 1');
-    window.localStorage.setItem(keySchema, '1');
+    trace('Setting schema version to 2');
+    window.localStorage.setItem(keySchema, '2');
   }
 
   // What is the minimum FOV size we want to try and "enforce"?
@@ -482,71 +494,6 @@ var wwt = (function () {
   // var sourceOpacity = 0.1;
   var sourceOpacity = 0.25;
 
-  // The CSC2 data is returned as an array of values
-  // which we used to convert to a Javascript object (ie
-  // one per row) since it makes it easier to handle.
-  // However, it bloats memory usage, so we now retain
-  // the array data and use the getCSCObject
-  // accessor functions.
-  //
-  // I hard code the expected row order for documentation
-  // (and because it is slightly simpler), but this could
-  // be set from the input data.
-  //
-  const catalogDataCols = [
-    'name',
-    'ra',
-    'dec',
-    'err_ellipse_r0',
-    'err_ellipse_r1',
-    'err_ellipse_ang',
-    'conf_flag',
-    'sat_src_flag',
-    'acis_num',
-    'hrc_num',
-    'var_flag',
-    'significance',
-    'fluxband',
-    'flux',
-    'flux_lolim',
-    'flux_hilim',
-    'nh_gal',
-    'hard_hm',
-    'hard_hm_lolim',
-    'hard_hm_hilim',
-    'hard_ms',
-    'hard_ms_lolim',
-    'hard_ms_hilim'
-  ];
-
-  // Given a row of catalogData, return the given column value,
-  // where column must be a member of catalogDataCols.
-  //
-  // row should catalogData[i] not i (does array access take much
-  // time in JS?)
-  //
-  function getCSCColIdx(column) {
-    const colidx = catalogDataCols.indexOf(column);
-    if (colidx < 0) {
-      etrace(`unknown CSC column "${column}"`);
-      return null;
-    }
-    return colidx;
-  }
-
-  // Convert a row to an object, to make data access easier.
-  //
-  function getCSCObject(row) {
-    const out = Object.create({});
-    zip([catalogDataCols, row]).forEach(el => { out[el[0]] = el[1] });
-    return out
-
-  }
-
-  // Indexes into the CSC 2 data array
-  const raIdx = getCSCColIdx('ra');
-  const decIdx = getCSCColIdx('dec');
-
   // Create an annotation "object" representing a source.
   // Really should make the add/remove code only call the WWT code once
   // (ie it can know if it is shown or not).
@@ -609,38 +556,11 @@ var wwt = (function () {
     return cir;
   }
 
-  // Note: set fill color if it has not been processed yet - not ideal
-  //       as no way to change this color.
-  //
-  // Sent in an object, since it is also used to create the plot
-  // properties, rather than the raw array.
-  //
+  // This used to be more complex as it had to support partially-complete
+  // data.
   function makeSource(color, size, src) {
-    if ((src.ra === null) || (src.dec === null)) {
-      etrace('Err, no location for source:');
-      console.log(src);
-      return null;
-    }
-
-    // Use nh as a proxy for whether we have the source properties or not
-    const unprocessed = src.nh_gal === null;
-
-    const lineColor = unprocessed ? 'grey' : color;
-    // const fillColor = unprocessed ? 'grey' : 'white';
-    const fillColor = lineColor;
-
-    const ann = makeCircle(src.ra, src.dec, size, 1,
-			   lineColor, fillColor,
-			   true, sourceOpacity);
-
-    // Note: add a label to indicate that this is unprocessed, so we know not to
-    //       change the color later.
-    //
-    if (unprocessed) {
-      ann.set_label('unprocessed');
-    }
-
-    return ann;
+      return makeCircle(src.ra, src.dec, size, 1, color, color,
+			true, sourceOpacity);
   }
 
   function makeXMMSource(color, size, src) {
@@ -667,25 +587,23 @@ var wwt = (function () {
   //    makeShape is a function that takes color, size, data item
   //      and returns a WWT annotation.
   //
-  // The sourcetype field is only needed for the XMM catalog, but is
-  // included for all of them. It indicates whether we are looking at
-  // sources or detections.
-  //
-  // This used to be nice, when I had csc20, csc11, xmm, but now
-  // we also have csc21 we need to add in a "current CSC" view
-  // of csc to complicate things. It is required that only
-  // one of csc21 or csc20 is valid for this process.
+  // Each catalog used to be handled the same way - that is, the user
+  // had to load the data and then this would be used by the interface to
+  // find the sources of interest. With the CSC 2.2 release the CSC
+  // catalog is now queried via the TAP service, which means some of the
+  // fields are no longer relevant for it.
   //
   const catalogProps = {
-      csc21: { label: 'CSC2.1', button: '#togglesources',
+      csc22: { label: 'CSC2.2', button: '#togglesources',
 	       keys: {size: keyCatalogSize,
 		      color: keyCatalogColor,
 		      opacity: keyCatalogOpacity},
                sourcetype: 'Sources',
                changeWidget: '#sourceprops',
                color: 'cyan', size: 5.0 / 3600.0, opacity: 0.25,
-	       loaded: false, data: null,
-	       getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	       loaded: false, data: null,  // always going to be unset
+	       // getPos: (d) => { return { ra: d[raIdx], dec: d[decIdx] }; },
+	       getPos: (d) => { etrace("why do we need getPos?"); },
 	       makeShape: makeSource,
                annotations: null },
 
@@ -693,7 +611,7 @@ var wwt = (function () {
 	     keys: {size: keyXMMCatalogSize,
 		    color: keyXMMCatalogColor,
 		    opacity: keyXMMCatalogOpacity},
-             sourcetype: 'Detections',
+             sourcetype: 'Sources',
              changeWidget: 'xmmsourceprops',
              color: 'green', size: 10.0 / 3600.0, opacity: 0.25,
 	     loaded: false, data: null,
@@ -738,7 +656,15 @@ var wwt = (function () {
   var stackAnnotations = {};
   var nearestFovs = [];
 
-  var stacksShown = false;
+  // This used to be a boolean but with the ability to highlight a
+  // single ensemble then it now becomes an enumaration.
+  // Although, at the moment, we only support "none" and "all" so it
+  // could have been left as a boolean.
+  //
+  const NO_STACK_SHOWN = "none";
+  const SOME_STACK_SHOWN = "some";
+  const ALL_STACK_SHOWN = "all";
+  var stacksShown = NO_STACK_SHOWN;
 
   // add this to a URL and, hey presto, as long as you don't call it
   // too often, we stop the cache.
@@ -765,11 +691,39 @@ var wwt = (function () {
     });
   }
 
+  // Assume arguments are in band.
   function setCoordinateGrid(flag) {
     wwt.settings.set_showGrid(flag);
     wwt.settings.set_showEquatorialGridText(flag);
     saveState(keyCoordinateGrid, flag);
   }
+
+  var stackFillSetting = true;
+  var stackOpacitySetting = 0.5;
+
+  // Assume that any element of nearestFovs should have the fill status
+  // changed. Should we rewrite the "changed" call?
+  //
+  // Note that nearestFovs doesn't have quite the meaning I am using
+  // here, but it's close (as we don't take advantage of the
+  // array much, at least at present).
+  //
+  function setStackFill(flag) {
+
+    stackFillSetting = flag;
+    saveState(keyStackFill, flag);
+
+    // We currently only care about the "selected" stacks, which are
+    // stored in nearestFovs.
+    nearestFovs.forEach(fov => fov.set_fill(flag));
+  }
+
+    /*** Currently unused; see changeStackOpacity
+  function setStackOpacity(opacity) {
+    stackOpacitySetting = opacity;
+    saveState(keyStackOpacity, opacity);
+  }
+  ***/
 
   function setCrosshairs(flag) {
     wwt.settings.set_showCrosshairs(flag);
@@ -836,6 +790,8 @@ var wwt = (function () {
      change: setClipboardFormat, defval: 'degrees'},
     {key: keyCoordinateGrid, sel: '#togglegrid',
      change: setCoordinateGrid, defval: true},
+    //{key: keyStackFill, sel: '#togglestackfill',
+    // change: setStackFill, defval: true},
     {key: keyCrosshairs, sel: '#togglecrosshair',
      change: setCrosshairs, defval: true},
     {key: keyConstellations, sel: '#toggleconstellations',
@@ -958,6 +914,11 @@ var wwt = (function () {
 	    return;
 	}
 
+	if (event.key === 'd') {
+	    toggleCSCSources();
+	    return;
+	}
+
 	if (event.key === 'o') {
 	    toggleStacks();
 	    return;
@@ -973,10 +934,91 @@ var wwt = (function () {
 	    return;
 	}
 
+	if (event.key === 'ArrowUp') {
+	    shiftLocationUp();
+	    return;
+	}
+
+	if (event.key === 'ArrowDown') {
+	    shiftLocationDown();
+	    return;
+	}
+
+	if (event.key === 'ArrowLeft') {
+	    shiftLocationLeft();
+	    return;
+	}
+
+	if (event.key === 'ArrowRight') {
+	    shiftLocationRight();
+	    return;
+	}
+
 	// console.log(`pressed=${event.key}`);
 
     });
     trace('.. keyboard support');
+  }
+
+  // Move the location by a fraction of the FOV. All the shifts are
+  // done with the "moveFlag" set to to avoid annoying animations (in
+  // most case it's not a problem but near the poles the E/W shifts
+  // have led to zoom in/out behavior so just turn it off).
+  //
+  const shiftMoveFlag = true;
+
+  function shiftLocationUp() {
+    let ra = 15.0 * wwt.getRA();
+    let dec = wwt.getDec();
+    let fov = wwt.get_fov();
+
+    var move = fov / 2;
+    let newdec = dec + move;
+    if (newdec >= 90.0) {
+      itrace("skipping shift: too close to the pole");
+      return;
+    }
+    wwt.gotoRaDecZoom(ra, newdec, fov, shiftMoveFlag);
+  }
+
+  function shiftLocationDown() {
+    let ra = 15.0 * wwt.getRA();
+    let dec = wwt.getDec();
+    let fov = wwt.get_fov();
+
+    var move = fov / 2;
+    let newdec = dec - move;
+    if (newdec <= -90.0) {
+      itrace("skipping shift: too close to the pole");
+      return;
+    }
+    wwt.gotoRaDecZoom(ra, newdec, fov, shiftMoveFlag);
+  }
+
+  function shiftLocationLeft() {
+    let ra = 15.0 * wwt.getRA();
+    let dec = wwt.getDec();
+    let fov = wwt.get_fov();
+
+    var move = fov / 2 / Math.cos(dec * Math.PI / 180);
+    let newra = ra + move;
+    if (newra >= 360.0) {
+      newra -= 360.0;
+    }
+    wwt.gotoRaDecZoom(newra, dec, fov, shiftMoveFlag);
+  }
+
+  function shiftLocationRight() {
+    let ra = 15.0 * wwt.getRA();
+    let dec = wwt.getDec();
+    let fov = wwt.get_fov();
+
+    var move = fov / 2 / Math.cos(dec * Math.PI / 180);
+    let newra = ra - move;
+    if (newra < 0.0) {
+      newra += 360.0;
+    }
+    wwt.gotoRaDecZoom(newra, dec, fov, shiftMoveFlag);
   }
 
   // Change the zoom level if it is not too small or large
@@ -1098,7 +1140,7 @@ var wwt = (function () {
     // https://github.com/WorldWideTelescope/wwt-webgl-engine/pull/238
     //
     function makeOpacityUpdate(props) {
-	return (newOpacity) => {
+        return (newOpacity) => {
 	    if ((newOpacity < 0) || (newOpacity > 1)) {
 		etrace(`Invalid source opacity: [${newOpacity}]`);
 		return;
@@ -1145,6 +1187,25 @@ var wwt = (function () {
 	    //});
 
 	};
+    }
+
+    function changeStackOpacity(newOpacity) {
+
+	if ((newOpacity < 0) || (newOpacity > 1)) {
+	    etrace(`Invalid stack opacity: [${newOpacity}]`);
+	    return;
+	}
+
+	saveState(keyStackOpacity, newOpacity);
+	stackOpacitySetting = newOpacity;
+
+	// Change the stack outlines and any "selected" outlines.
+	//
+	for (const [stack, fovs] of Object.entries(stackAnnotations)) {
+	    fovs.forEach(fov => fov.set_opacity(newOpacity));
+	}
+	nearestFovs.forEach(fov => fov.set_opacity(newOpacity));
+
     }
 
   // Unfortunately we can't make changeSourceSize a const as
@@ -1294,43 +1355,24 @@ var wwt = (function () {
     }
   }
 
-  // This updates the stackAnnotations dict
+  // Create the WWT annotations for a set of polygons (e.g. stack
+  // or ensemble).
   //
-  // All we care about from stack are
-  //    stack.status
-  //    stack.stackid
+  // It would be nice to set fillflag: true in the options
+  // but this really slows down WWT (it also requres having the
+  // polygon vertices in counter-clockwise order).
   //
-  function addStackFOV(stack, polygons) {
-
-    let edgeColor;
-    let fillColor = 'white';
-    let lineWidth = 1;
-    const opacity = 0.6;
-    const fillFlag = false;
-
-    // We now have the odd system of
-    //    status = 0  - unprocessed
-    //             1  - finished
-    //             2  - being processed
-    //
-    if (stack.status === 1) {
-      edgeColor = COLOR_FINISHED;
-      lineWidth = 2;
-    } else if (stack.status === 2) {
-      edgeColor = COLOR_PROCESSING;
-    } else {
-      edgeColor = COLOR_NOTDONE;
-    };
+  function makePolygonAnnotations(polygons, options) {
 
     const annotations = [];
-    // var ctr = 1;
     for (var i = 0; i < polygons.length; i++) {
 
-      // First is inclusive, the rest are exclusive
+      // We have now way to identify whether this is an include or
+      // exclude polygon.
       const shapes = polygons[i];
 
       for (var j = 0; j < shapes.length; j++) {
-        const fov = wwt.createPolygon(fillFlag);
+        const fov = wwt.createPolygon(options.fillFlag);
 
         /*
          * Belinda sees odd behavior when zooming in; it
@@ -1345,11 +1387,11 @@ var wwt = (function () {
          fov.set_showHoverLabel(true);
         */
 
-        fov.set_lineColor(edgeColor);
-        fov.set_lineWidth(lineWidth);
+        fov.set_lineColor(options.edgeColor);
+        fov.set_lineWidth(options.lineWidth);
 
-        fov.set_fillColor(fillColor);
-        fov.set_opacity(opacity);
+        fov.set_fillColor(options.fillColor);
+        fov.set_opacity(options.opacity);
 
         const polygon = shapes[j];
         for (var p in polygon) {
@@ -1358,11 +1400,53 @@ var wwt = (function () {
 
         wwt.addAnnotation(fov);
         annotations.push(fov);
-
-        // ctr += 1;
       }
     }
 
+    return annotations;
+  }
+
+  // This updates the stackAnnotations dict
+  //
+  // All we care about from stack are
+  //    stack.stacktype
+  //    stack.stackid
+  //
+  function addStackFOV(stack, polygons) {
+
+    let edgeColor = COLOR_FINISHED;
+    let fillColor = 'white';
+    let lineWidth = 2;
+    const fillFlag = false;
+
+    // Temporarily pick the color based on the stack type:
+    //    unchanged
+    //    updated
+    //    new
+    //
+    // The color names are labelled by the values used when
+    // the pipelines were still being run, so some stacks may not have
+    // been processed.
+    //
+    if (stack.stacktype === "unchanged") {
+	edgeColor = COLOR_FINISHED;
+	lineWidth = 2;
+    } else if (stack.stacktype === "updated") {
+	edgeColor = COLOR_PROCESSING;
+	lineWidth = 1;
+    } else {
+	// This is stacktype === "new"
+	edgeColor = COLOR_NOTDONE;
+	lineWidth = 1;
+    };
+
+    const annotations = makePolygonAnnotations(polygons,
+					       {fillFlag: fillFlag,
+						edgeColor: edgeColor,
+						lineWidth: lineWidth,
+						fillColor: fillColor,
+						opacity: stackOpacitySetting
+					       });
     stackAnnotations[stack.stackid] = annotations;
   }
 
@@ -1387,22 +1471,34 @@ var wwt = (function () {
   }
 
   // Let's see how the WWT does with all the stacks
+  var stackOutlineData = null;
   function addFOV(stackpolygons) {
 
+    stackOutlineData = stackpolygons;
     for (let stackid in inputStackData.stacks) {
       const polygons = stackpolygons[stackid];
       if (typeof polygons === 'undefined') {
-        trace(`Unable to find polygons for [${stack.stackid}]`);
+        trace(`Unable to find polygons for [${stackid}]`);
       } else {
         addStackFOV(inputStackData.stacks[stackid], polygons);
       }
     }
-    stacksShown = true;
+    stacksShown = ALL_STACK_SHOWN;
 
     trace('Added FOV');
 
     // If we are highlighting a stack then we can now do it.
+    // Over-ride any stored state with a value from the URL.
     //
+    if (userStackId === null) {
+	userStackId = getState(keyStackName);
+	if (userStackId !== null) {
+	    trace(`Restoring stack from internal state: ${userStackId}`);
+	}
+    } else {
+	trace(`User sent in stack: ${userStackId}`);
+    }
+
     if (userStackId !== null) {
       const stack = inputStackData.stacks[userStackId];
       if (typeof stack !== "undefined") {
@@ -1656,41 +1752,15 @@ var wwt = (function () {
     };
   }
 
-  // TODO: make this version agnostic.
-  //
-  // This requires that the input status data has been processed
-  function downloadCatalog21Data() {
-
-    // Safety check
-    if ((typeof inputStackData === "undefined") ||
-	(typeof inputStackData.nchunks === "undefined")) {
-      alert("Internal error: the stack status has not been loaded!");
-      return;
-    }
-
-    // number of chunks for the source properties
-    const NCHUNK = inputStackData.nchunks;
-    const chunks = new Array(NCHUNK).fill(false);
-
-    // Have to be careful about scoping rules, so make a function
-    // that returns a function to process the chunk
-    //
-    const processChunk = (x) => (d) => { processCatalogData(chunks, x, d); };
-
-    for (var ctr = 1; ctr <= NCHUNK; ctr++) {
-      const url = `wwtdata/wwt21_srcprop.${ctr}.json.gz` + cacheBuster();
-      const func = makeDownloadData(url, '#togglesources',
-				    'CSC2.1 catalog',
-				    processChunk(ctr));
-      func();
-    }
-  }
-
   // VERY experimental: load in the ensemble data for CXC testing
   //
-  const downloadEnsData = makeDownloadData('wwtdata/ens21.json.gz',
+  const downloadEnsData = makeDownloadData('wwtdata/ens22.json.gz',
 					   null, null,
 					   processEnsData);
+
+  const downloadEnsOutlineData = makeDownloadData('wwtdata/ens22.outlines.json.gz',
+						  null, null,
+						  processEnsOutlineData);
 
   // VERY experimental
   // stick in a cache-busting identifier to help
@@ -1866,7 +1936,7 @@ var wwt = (function () {
     };
   }
 
-  // Do we use these?
+  // Do we use these? We do for XMM at least
   var toggleSources = null;
   const toggleXMMSources = makeToggleCatalog(catalogProps.xmm,
                                              downloadXMMData);
@@ -2081,16 +2151,22 @@ var wwt = (function () {
   //
   function toggleStacks() {
     let func, label, selMode;
-    if (stacksShown) {
-      func = wwt.removeAnnotation;
-      label = 'Show Stack Outlines';
-      stacksShown = false;
-      selMode = 'nothing'; /* pick nothing as the best choice here */
-    } else {
+    if (stacksShown === NO_STACK_SHOWN) {
       func = wwt.addAnnotation;
       label = 'Hide Stack Outlines';
-      stacksShown = true;
+      stacksShown = ALL_STACK_SHOWN;
       selMode = 'stack';
+    } else if (stacksShown === ALL_STACK_SHOWN) {
+      func = wwt.removeAnnotation;
+      label = 'Show Stack Outlines';
+      stacksShown = NO_STACK_SHOWN;
+      selMode = 'nothing'; /* pick nothing as the best choice here */
+
+      wwtprops.clearOverlappingTable();
+    } else {
+	// FOR NOW DO NOTHING IF WE HAVE PARTIAL STACKS SHOWN
+	itrace("Skipping stack display change (partial)");
+	return;
     }
 
     for (var stack in stackAnnotations) {
@@ -2110,7 +2186,7 @@ var wwt = (function () {
     for (var idx = 0; idx < sel.options.length; idx++) {
       const opt = sel.options[idx];
       if (opt.value === 'stack') {
-	opt.disabled = !stacksShown;
+	opt.disabled = stacksShown === NO_STACK_SHOWN;
       }
       if (opt.value === selMode) {
 	opt.selected = true;
@@ -2125,175 +2201,40 @@ var wwt = (function () {
     }
   }
 
-  // Note: this *can* be called before the sources are loaded
-  //       (primarily when zooming to a new location)
+  var sourceCircle = null;
+
+  // Display a circle to represent the approximate search used
+  // (it's not great near the poles).
   //
-  function hideSources() {
-    _hideSources();
-
-    const props = catalogProps.csc;
-
-    // could cache these
-    if (props.loaded) {
-      // assume that the label can only have been changed
-      // if the sources have been loaded
-      document.querySelector('#togglesources').innerHTML =
-        `Show ${props.label} Sources`;
-    }
-
-    ['sourceprops', 'plot'].forEach(hideElement);
-
-    // Not 100% convinced whether we want this
-    // wwtprops.clearSourceInfo();
-    clearNearestSource();
-
-    // What is the best option to switch to here:
-    // stack or nothing?
-    //
-    const switchTo = stacksShown ? 'stack' : 'nothing';
-
-    const sel = document.querySelector('#selectionmode');
-    for (var idx = 0; idx < sel.options.length; idx++) {
-      const opt = sel.options[idx];
-      if ((opt.value === 'source') || (opt.value === 'polygon')) {
-	opt.disabled = true;
-      } else if (opt.value === switchTo) {
-	opt.selected = true;
-      }
-    }
-
-    try {
-      sel.dispatchEvent(new CustomEvent('change'));
-    }
-    catch (e) {
-      itrace(`unable to change selection mode: ${e}`);
-    }
-
-    // Hide the source window. Note that this can be called when
-    // explicitly calling the window (that is, it may already be
-    // closed).
-    //
-    wwtprops.clearSourceSelection();
-  }
-
-  function _hideSources() {
-
-    const props = catalogProps.csc;
-    if (props.annotations !== null) {
-      props.annotations.forEach(ann => ann.remove());
-      props.annotations = null;
-    }
-
-    if (typeof sourceCircle !== 'undefined') {
-      wwt.removeAnnotation(sourceCircle);
-      sourceCircle = undefined;
-    }
-
-    sourceRA = undefined;
-    sourceDec = undefined;
-    sourceFOV = undefined;
-  }
-
-  function showSources() {
-    const flag = _showSources();
-    const props = catalogProps.csc;
-    if (!flag) {
-      reportUpdateMessage(`No ${props.label} sources found in this area of the sky.`);
+  function addSourceCircle(ra, dec, fov) {
+    if (sourceCircle !== null) {
+      itrace(`Expected to add circle at ${ra} ${dec} ${fov} but one already exists.`);
       return;
     }
 
-    // could cache these
-    document.querySelector('#togglesources').innerHTML =
-      `Hide ${props.label} Sources`;
-
-    const sel = document.querySelector('#selectionmode');
-    for (var idx = 0; idx < sel.options.length; idx++) {
-      const opt = sel.options[idx];
-      if (opt.value === 'source') {
-	opt.disabled = false;
-	opt.selected = true;
-      } else if (opt.value === 'polygon') {
-	opt.disabled = false;
-      }
-    }
-
-    try {
-      sel.dispatchEvent(new CustomEvent('change'));
-    }
-    catch (e) {
-      itrace(`unable to change selection mode: ${e}`);
-    }
-
-    // Show the 'source window'.
-    //
-    wwtprops.addSourceSelection(sourceRA, sourceDec, sourceFOV, props);
-
-  }
-
-  var sourceCircle = undefined;
-  var sourceRA = undefined;
-  var sourceDec = undefined;
-  var sourceFOV = undefined;
-
-  // Display the sources
-  //
-  function _showSources() {
-    const ra0 = 15.0 * wwt.getRA(); // convert from hours
-    const dec0 = wwt.getDec();
-    const fov = wwt.get_fov();
-
-    _hideSources();
-
-    // Assume the FOV is the box size in degrees. Could
-    // filter to fov / 2.0, but leave as fov just so that
-    // if the user pans around a bit then the sources are
-    // still shown. It also helps at the corners.
-    //
-    //
-    const props = catalogProps.csc;
-    props.annotations = null;
-
-    const toStore = (row, pos) => {
-      // could access the elements without creating an object
-      // but I don't want to change existing code too much
-      const src = getCSCObject(row);
-      const shp = props.makeShape(props.color, props.size, src);
-      const ann = makeAnnotation(row, pos, shp);
-      ann.add();
-      return ann;
-    };
-
-    const selected = findNearestTo(ra0, dec0, fov, props.data,
-				   props.getPos, toStore);
-
-    // can bail out now if there are no sources
-    //
-    if (selected.length === 0) { return; }
-
-    // remove separation and store the results
-    //
-    props.annotations = selected.map(d => d[1]);
-
-    // Only draw on the circle if there are any sources
-    //
     // Could cache the annotation and just move it, but
     // let's just create a new one each time for now.
     sourceCircle = wwt.createCircle(false);
-    sourceCircle.setCenter(ra0, dec0);
+    sourceCircle.setCenter(ra, dec);
     sourceCircle.set_skyRelative(true);
     sourceCircle.set_radius(fov);
     sourceCircle.set_lineColor('orange');
 
     wwt.addAnnotation(sourceCircle);
+  }
 
-    sourceRA = ra0;
-    sourceDec = dec0;
-    sourceFOV = fov;
+  function removeSourceCircle() {
+    if (sourceCircle === null) {
+      itrace("No source circle to remove");
+      return;
+    }
 
-    return true;
+    wwt.removeAnnotation(sourceCircle);
+    sourceCircle = null;
   }
 
   // This is assumed to only be used for "processing" data.
+  // This is unsused in CSC 2.2.
   //
   function updateCompletionInfo(status) {
 
@@ -2344,7 +2285,7 @@ var wwt = (function () {
     if (el !== null) { el.innerHTML = status.lastupdate_db; }
 
     // How about the CSC 2.1 version (experimental)
-    //
+      // TODO: what is the status of this in 2.2?
     const el21 = document.querySelector('#csc21-warning-span');
     if (el21 !== null) {
       // Drop the HH:MM section
@@ -2568,7 +2509,7 @@ var wwt = (function () {
     if (mode === 'stack') {
       clickMode = processStackSelection;
     } else if (mode === 'source') {
-      clickMode = processSourceSelection
+      clickMode = processSourceSelection;
     } else if (mode === 'polygon') {
       clickMode = processRegionSelection;
       wwtprops.addPolygonPane();
@@ -2651,27 +2592,6 @@ var wwt = (function () {
     return store;
   }
 
-  // For use when changing a stack annotation; returns an item
-  // that can be used to restore the fov.
-  //
-  // selected indicates that this is the "selected" stack
-  // rather than a "nearby" one.
-  //
-  function changeFov(fov, selected, lineColor, lineWidth) {
-    const oldColor = fov.get_lineColor();
-    const oldWidth = fov.get_lineWidth();
-
-    const old = {fov: fov, selected: selected,
-		 reset: () => {
-		   fov.set_lineColor(oldColor);
-		   fov.set_lineWidth(oldWidth);
-		 }};
-
-    fov.set_lineColor(lineColor);
-    fov.set_lineWidth(lineWidth);
-    return old;
-  }
-
   // Show this stack using the "nearest stack" logic. The assumption is
   // that by using the stack location we will select this stack. The only
   // reason this wouldn't hold would be numerical errors, and the way the
@@ -2731,7 +2651,7 @@ var wwt = (function () {
     const getPos = stack => { return {ra: stack.pos[0], dec: stack.pos[1]}; };
     const toStore = (stack, p) => stack;
 
-    // We used to have a list ot stacks but now we have it stored
+    // We used to have a list of stacks but now we have it stored
     // as a dictionary, so for now just create a temporary list.
     //
     var stacklist = [];
@@ -2771,14 +2691,20 @@ var wwt = (function () {
     // Update the closest ensembles by drawing them in a different color.
     //
     nearest.forEach(d => {
-      const stack = d[1];
-      stackAnnotations[stack.stackid].forEach(fov => {
-	nearestFovs.push(changeFov(fov, false, 'cyan', 2));
-      });
+	const stack = d[1];
+
+	const polygons = stackOutlineData[stack.stackid];
+	const annotations = makePolygonAnnotations(polygons,
+						   {fillFlag: false,
+						    edgeColor: 'cyan',
+						    lineWidth: 2,
+						    fillColor: fillColor,
+						    opacity: stackOpacitySetting
+						   });
+	annotations.forEach(fov => nearestFovs.push(fov));
     });
 
-    wwtprops.addNearestStackTable(stackAnnotations, stack0, nearest,
-				  nearestFovs);
+    wwtprops.addNearestStackTable(stackAnnotations, stack0, nearest);
 
     console.log("DBG-START: nearest"); console.log(nearest); console.log("DBG-END:   nearest");
   }
@@ -2789,8 +2715,19 @@ var wwt = (function () {
 
     clearNearestStack();
 
-    const fovs = stackAnnotations[stack.stackid];
-    fovs.forEach(fov => nearestFovs.push(changeFov(fov, true, 'cyan', 4)));
+    // We could identify if we have any "holes" here and perhaps
+    // decide to display them differently.
+    //
+    const polygons = stackOutlineData[stack.stackid];
+    const annotations = makePolygonAnnotations(polygons,
+					       {fillFlag: stackFillSetting,
+						edgeColor: 'cyan',
+						lineWidth: 4,
+						fillColor: 'white',
+						opacity: stackOpacitySetting
+					       });
+    annotations.forEach(fov => nearestFovs.push(fov));
+    trace(`Added ${annotations.length} FOVs for the stack`);
 
     // What version info do we have (aka can we export the data products
     // via SAMP) for this stack?
@@ -2800,7 +2737,38 @@ var wwt = (function () {
       if (stackVersionTable[n] === null) { return; }
       versionInfo[n] = getVersion(stackVersionTable[n], stack);
     });
-    wwtprops.addStackInfo(stack, versionInfo);
+
+    // What stacks are in this ensemble?
+    const ensId = stkToEns[stack.stackid];
+    const ensInfo = ensData[ensId];
+    var otherStacks = [];
+    if (ensInfo.nstacks > 1) {
+	otherStacks = ensInfo.stacks.filter((s) => s !== stack.stackid);
+    }
+
+    // Order this list by distance to this stack (maybe overlap or
+    // some other metric would be better).
+    // We do not want to drop any stacks, so just pick a big
+    // maxSep. For now do not carry the separation through to
+    // addStackInfo.
+    //
+    const sortedStacks = findNearestTo(stack.pos[0], stack.pos[1],
+				       80, otherStacks,
+				       d => {
+					   const pos = inputStackData.stacks[d].pos;
+					   return {ra: pos[0], dec: pos[1]}
+				       },
+				       (d, p) => d
+				      );
+
+    if (otherStacks.length !== sortedStacks.length) {
+      etrace("Stacks have been lost!");
+    }
+
+    wwtprops.addStackInfo(stack, versionInfo, sortedStacks, ensId);
+
+    // Record this as the selected stack
+    saveState(keyStackName, stack.stackid);
   }
 
   // Can we lasso a region?
@@ -2911,7 +2879,7 @@ var wwt = (function () {
 
     const props = catalogProps.csc;
     if ((props.annotations === null) || (props.annotations.length === 0)) {
-      itrace('processSouece selection called ' +
+      itrace('processSource selection called ' +
 	     `with annotations=${props.annotations}`);
       return;
     }
@@ -2937,7 +2905,7 @@ var wwt = (function () {
     // Let the user know what was selected.
     //
     selectSource(ann0.ann);
-    wwtprops.addSourceInfo(getCSCObject(src0));
+    wwtprops.addSourceInfo(src0);
 
     if (!displayNearestSources) { return; }
 
@@ -2958,18 +2926,7 @@ var wwt = (function () {
     //
     const neighbors = neighborsAll.slice(1, 11);
 
-    const indexes = {
-      name: getCSCColIdx('name'),
-      significance: getCSCColIdx('significance'),
-      variability: getCSCColIdx('var_flag'),
-      fluxband: getCSCColIdx('fluxband'),
-      flux: getCSCColIdx('flux'),
-      nacis: getCSCColIdx('acis_num'),
-      nhrc: getCSCColIdx('hrc_num'),
-      nh: getCSCColIdx('nh_gal')
-    };
-
-    wwtprops.addNearestSourceTable(indexes, neighbors);
+    wwtprops.addNearestSourceTable(neighbors);
   }
 
   // It is not clear if the handlers stack, or overwrite, when
@@ -3331,7 +3288,7 @@ var wwt = (function () {
     const ras = decode(coords.slice(0, 7));
     const decs = decode(coords.slice(8));
 
-    // the third ra coponent is multiplied by 10 to avoid
+    // the third ra component is multiplied by 10 to avoid
     // a decimal point, so need to correct that here
     const ra = 15.0 * (ras[0] + (ras[1] + (ras[2] / 600.0)) / 60.0);
     let dec = decs[0] + (decs[1] + (decs[2] / 60.0)) / 60.0;
@@ -3340,10 +3297,19 @@ var wwt = (function () {
   }
 
   function clearNearestStack() {
-    nearestFovs.forEach(fov => fov.reset());
+    nearestFovs.forEach(fov => wwt.removeAnnotation(fov));
     nearestFovs = [];
+
+    // Also clear any "ensemble" display
+    for (const key in ensembleAnnotations) {
+	ensembleAnnotations[key].forEach(fov => wwt.removeAnnotation(fov));
+    }
+    ensembleAnnotations = {};
+
     wwtprops.clearStackInfo();
     wwtprops.clearNearestStackTable();
+
+    window.localStorage.removeItem(keyStackName);
   }
 
   function clearNearestSource() {
@@ -3568,47 +3534,65 @@ var wwt = (function () {
    * hand-built versions.
    */
   const stackExample =
-    { stackid: 'acisfJ0618409m705956_001',
-      stacktype: "unchanged", /* CSC 2.1 */
+    { stackid: 'acisfJ0618409m705956_001',  /* a single-stack ensemble */
+      stacktype: "unchanged", /* CSC 2.2 */
       nobs: 4,
+      nsource: 129,
       obis: ["13794_000","13795_000","14469_000","15541_000"],
       names: ["GRB 120711A"],
       pos: decodeStackName('acisfJ0618409m705956_001'),
-      description: 'The stack contains 4 ACIS observations.',
+      description: 'The stack has not changed from CSC 2.1 and contains 4 ACIS observations. It contains 129 sources.',
       status: 1,
       lastmod: 1653359578 /* CSC 2.1 */
   };
 
+  // A stack with overlaps
+  const stackExample2 =
+    { stackid: 'acisfJ1138037p031503_002',
+      stacktype: "updated", /* CSC 2.2 */
+      nobs: 5,
+      nsource: 71,
+      obis: ["07759_000", "14962_000", "23803_001", "24461_000", "24983_001"],
+      new_obis: ["23803_001", "24461_000", "24983_001"],
+      names: ["SDSS 1138+0314", "SDSS J1138+0314", "SDSS1138+0314"],
+      pos: decodeStackName('acisfJ1138037p031503_002'),
+      description: 'The stack contains five observations (in CSC 2.1 it contained two). It contains 71 sources.',
+      status: 1,
+      lastmod: 1653359578 /* CSC 2.1 */
+  };
+
+  const overlappingStacksExample2 = [[27.4 / 60, 'acisfJ1139121p033629_001']];
+
   // '2CXO J061859.6-705831'
   const sourceExample =
-    ['2CXO J061859.6-705831',
-     94.74868,
-     -70.97541,
-     0.93,
-     0.61,
-     25.5,
-     0,
-     0,
-     3,
-     0,
-     0,
-     2.78,
-     0,
-     8.111e-16,
-     4.442e-16,
-     1.159e-15,
-     8.76,
-     -0.2561,
-     -0.634,
-     0.1418,
-     -0.1549,
-     -0.4716,
-     0.203];
+	{name: '2CXO J061859.6-705831',
+	 ra: 94.74868,
+	 dec: -70.97541,
+	 err_ellipse_r0: 0.93,
+	 err_ellipse_r1: 0.61,
+	 err_ellipse_ang: 25.5,
+	 significance: 2.78,
+	 fluxband: 0,
+	 flux: 8.111e-16,
+	 flux_lolim: 4.442e-16,
+	 flux_hilim: 1.159e-15,
+	 nh_gal: 8.76,
+	 acis_num: 3,
+	 hrc_num: 0,
+	 conf_flag: false,
+	 extent_flag: false,
+	 sat_src_flag: false,
+	 var_flag: true,
+	 hard_hm: -0.2561,
+	 hard_hm_lolim: -0.634,
+	 hard_hm_hilim: 0.1418,
+	 hard_ms: -0.1549,
+	 hard_ms_lolim: -0.4716,
+	 hard_ms_hilim: 0.203
+	};
 
-  // base on sourceExample
-  //
-  const raExample = 94.74868;
-  const decExample = -70.97541;
+  const raExample = sourceExample.ra;
+  const decExample = sourceExample.dec;
   const rExample = 30.0 / 3600.0;
 
   // define as a function because
@@ -3617,10 +3601,9 @@ var wwt = (function () {
   //      available when the code is first processed (I think).
   //
   function makeSourceSelectionExample() {
-    const csc = catalogProps.csc;
-    const pos = csc.getPos(sourceExample);
     return {
-      annotations: [makeAnnotation(sourceExample, pos, null)]
+	annotations: [makeAnnotation(sourceExample, sourceExample, null)],
+	label: catalogProps.csc.label
     };
   }
 
@@ -3863,21 +3846,11 @@ var wwt = (function () {
     return num;
   }
 
-  // Process the wwt<n>_stacks.json file. Note that the fields
-  // differ depending on the versionString.
+  // Process the wwt<n>_stacks.json file.
   //
   function createStackData(json) {
 
     inputStackData = {stacks: {}};
-
-    // Version 2.0 did not set this in the status file, but
-    // as we don't have a 2.0 status file we can hard-code it
-    // here.
-    //
-    if (isVersion20()) {
-        inputStackData.nsources = 315868;
-        inputStackData.nchunks = 8;
-    }
 
     for (let stackid in json) {
       var inst;
@@ -3900,41 +3873,35 @@ var wwt = (function () {
         obis: obis,
         names: stackData.names,
         nobs: nobi,
+	nsource: stackData.nsource
       };
 
-      var desc = `The stack contains ${num} ${inst} observation${suffix}.`;
+      store.stacktype = stackData.stacktype;
+      store.new_obis = stackData.new_obsids;
 
-      if (isVersion21()) {
-        store.stacktype = stackData.stacktype;
-        store.new_obis = stackData.new_obsids;
+      var desc;
+      if (store.stacktype === "new") {
+        desc = `The stack is new in CSC 2.2 and contains ${num} ${inst} observation${suffix}.`;
+      } else if (store.stacktype === "unchanged") {
+          desc = `The stack has not changed from CSC 2.1 and contains ${num} ${inst} observation${suffix}.`;
+      } else {
+        const nold = store.obis.length - store.new_obis.length;
+	desc = `The stack contains ${num} ${inst} observation${suffix} `;
+          desc += ` (in CSC 2.1 it contained ${intToStr(nold)}).`;
+      }
 
-	if (stackData.stacktype === "new") {
-          desc = `The stack is new in CSC 2.1 and contains ${num} ${inst} observation${suffix}.`;
-        } else if (stackData.stacktype === "unchanged") {
-          desc = `The stack has not changed from CSC 2.0 and contains ${num} ${inst} observation${suffix}.`;
+	const nsrc = store.nsource;
+	if (typeof nsrc === 'undefined') {
+	    etrace(`No source count for stack: ${stackid}`);
+	} else if (nsrc === 0) {
+	    desc += " It contains no sources.";
+	} else if (nsrc === 1) {
+	    desc += " It contains 1 source.";
 	} else {
-          const nold = store.obis.length - store.new_obis.length;
-          var osuffix = "s";
-          if (nold === 1) {
-	    osuffix = "";
-          }
-	  const ostr = intToStr(nold);
-          desc += ` In CSC 2.0 it contained ${ostr} observation${osuffix}.`;
-        }
-      }
-
-      if (isVersion20()) {
-        // The status used to be false or true but it's now
-        //    0 - unprocessed / pending
-        //    1 - finished
-        //    2 - benig processed
-        // which is a bit of an odd system.
-        //
-        store.status = 1;
-      }
+	    desc += ` It contains ${intToStr(nsrc)} sources.`;
+	}
 
       store.description = desc;
-
       inputStackData.stacks[stackid] = store;
     }
 
@@ -3942,13 +3909,6 @@ var wwt = (function () {
   }
 
   var versionString = undefined;
-
-  function isVersion(ver) {
-    return versionString === ver;
-  }
-
-  function isVersion20() { return isVersion("2.0"); }
-  function isVersion21() { return isVersion("2.1"); }
 
   // See https://github.com/WorldWideTelescope/wwt-webgl-engine/issues/199
   //
@@ -3975,6 +3935,60 @@ var wwt = (function () {
 
     // Are there user-saved values we need to support?
     //
+    function restoreStackProperties() {
+
+	trace('restoring stack properties');
+	trace(`  old fill    = ${stackFillSetting}`);
+	trace(`  old opacity = ${stackOpacitySetting}`);
+
+	// If we have saved values then use them (and update the elements)
+	// otherwise pick up the values from the elements.
+	//
+	const el_fill = document.querySelector("#stackfill");
+	if (el_fill === null) {
+	    etrace('unable to find #stackfill; that is worrying');
+	} else {
+	    trace(`#stackfill.checked = ${el_fill.checked}`);
+	}
+
+	const el_opacity = document.querySelector("#stackopacity");
+	if (el_opacity === null) {
+	    etrace('unable to find #stackopacity; that is worrying');
+	} else {
+	    trace(`#stackopacity.valueAsNumber = ${el_opacity.valueAsNumber}`);
+	}
+
+	const fill = getState(keyStackFill);
+	const opacity = toNumber(getState(keyStackOpacity));
+
+	if (fill !== null) {
+	    const fillflag = fill === "true";
+	    trace(`restoring stack fill to ${fillflag} [${typeof fillflag}]`);
+	    stackFillSetting = fillflag;
+	    if (el_fill !== null) {
+		el_fill.checked = fillflag;
+	    }
+	} else if (el_fill !== null) {
+	    stackFillSetting = el_fill.checked;
+	}
+
+	if (opacity !== null) {
+	    trace(`restoring stack opacity to ${opacity} [${typeof opacity}]`);
+	    stackOpacitySetting = opacity;
+	    if (el_opacity !== null) {
+		el_opacity.valueAsNumber = opacity * 100;
+	    }
+	} else if (el_opacity !== null) {
+	    stackOpacitySetting = el_opacity.valueAsNumber;
+	}
+
+	trace(`  new fill    = ${stackFillSetting}`);
+	trace(`  new opacity = ${stackOpacitySetting}`);
+	trace(`#stackfill.checked = ${el_fill.checked}`);
+	trace(`#stackopacity.valueAsNumber = ${el_opacity.valueAsNumber}`);
+    }
+
+
     function restoreCatalogSourceProperties(cat) {
 	const label = cat.label;
 	const keys = cat.keys;
@@ -4174,16 +4188,13 @@ var wwt = (function () {
     //
     // The downloadCatalogxxData routine could be made generic.
     //
-    catalogProps.csc = catalogProps.csc21;
-
-    toggleSources = makeToggleCatalog(catalogProps.csc,
-                                      downloadCatalog21Data,
-                                      showSources,
-                                      hideSources);
+    catalogProps.csc = catalogProps.csc22;
 
     const nprops = restoreCatalogSourceProperties(catalogProps.csc);
     const xmmnprops = restoreCatalogSourceProperties(catalogProps.xmm);
     const eROSITAnprops = restoreCatalogSourceProperties(catalogProps.eROSITA);
+
+    restoreStackProperties();
 
     // These used to be const variables.
     //
@@ -4191,16 +4202,6 @@ var wwt = (function () {
 
     // Experiment
     changeSourceOpacity = makeOpacityUpdate(catalogProps.csc);
-
-    // Now we have the toggle-sources code we can set the onclick
-    // handler.
-    //
-    const toggle = document.querySelector("#togglesources");
-    if (toggle === null) {
-      alert("Internal error: unable to find the toggle-source button");
-      return;
-    }
-    toggle.addEventListener("click", toggleSources, false);
 
     // This should exist, but just in case
     const size = document.querySelector("#sourcesize");
@@ -4258,6 +4259,20 @@ var wwt = (function () {
 
     toggleOptionalBehavior();
 
+    // Do we want to let the user know about the change in CSC 2.1
+    // source loading?
+    // This is a temporary change.
+    //
+    const schema = getSchema();
+    if ((schema !== null) && (schema === "1")) {
+	const el = document.querySelector("#csc21-load-change");
+	if (el !== null) {
+	  el.style.display = 'block';
+	} else {
+          etrace('no #csc21-load-change element to display!');
+	}
+    }
+
     // In case the local-storage schema ever needs to be updated.
     updateSchema();
 
@@ -4281,6 +4296,7 @@ var wwt = (function () {
 
     // TODO: need to be version specific
     downloadEnsData();
+    downloadEnsOutlineData();
 
     // We don't care about the return value here.
     //
@@ -4306,7 +4322,8 @@ var wwt = (function () {
     wwtprops.addSourceSelectionHelp(raExample, decExample, rExample,
 				    makeSourceSelectionExample());
     wwtprops.addStackInfoHelp(stackExample);
-    wwtprops.addSourceInfoHelp(getCSCObject(sourceExample));
+    wwtprops.addStackInfo2Help(stackExample2, overlappingStacksExample2);
+    wwtprops.addSourceInfoHelp(sourceExample);
 
     // TODO: should this check that the name is not blank/empty?
     const tfind = host.querySelector('#targetFind');
@@ -4552,7 +4569,7 @@ var wwt = (function () {
     //
     setTargetName(label);
 
-    hideSources();
+    hideCSCSources();
     clearNearestStack();
 
     wwt.gotoRaDecZoom(ra, dec, fov, moveFlag);
@@ -4912,27 +4929,40 @@ var wwt = (function () {
     trace(' <- removed spinner');
   }
 
+  // This used to find the target from the database, but now
+  // it just decodes the name (which means we can not identify an
+  // invalid name). We could change to run a TAP query but that seems
+  // excessive and is it a problem if a name is mis-typed?
+  //
   function find2CXO(target) {
-    const props = catalogProps.csc;
-    if (!props.loaded) {
-      reportLookupFailure(`<p>The ${props.label} sources must be loaded ` +
-                          'before they can be used in a search.</p>');
-      return true; // TODO: should probably return false here
-    }
 
-    const nameIdx = getCSCColIdx('name');
-    const matches = props.data.filter(d => d[nameIdx] === target);
-
-    // Take the first match if any (shouldn't be multiple matches)
+    // target is assumed to start with '2CXO J', and do not worry
+    // about trailing values (or if it doesn't match the expected
+    // formatting). The string formatting is different to how stack
+    // names are encoded (relevant for the RA term).
     //
-    if (matches.length > 0) {
-      const pos = props.getPos(matches[0]);
-      setPosition(pos.ra, pos.dec, target);
+    const coords = target.slice(6, 21);
+
+    try {
+      const rastr = coords.slice(0, 8);
+      const rah = parseInt(rastr.slice(0, 2));
+      const ram = parseInt(rastr.slice(2, 4));
+      const ras = parseFloat(rastr.slice(4));
+      const ra = 15 * (rah + (ram + (ras / 60.0)) / 60.0);
+
+      const decs = decode(coords.slice(9));
+      let dec = decs[0] + (decs[1] + (decs[2] / 60.0)) / 60.0;
+      if (coords[8] === '-') { dec *= -1; }
+
+      setPosition(ra, dec, target);
       reportLookupSuccess(`Moving to ${target}`);
       return true;
+
+    } catch (e) {
+      itrace(`unable to decode source name: ${target}`);
+      return false;
     }
 
-    return false;
   }
 
   // Supported formats:
@@ -4983,6 +5013,99 @@ var wwt = (function () {
     setPosition(coords.ra, coords.dec, `Ensemble ${ens}`);
     reportLookupSuccess(`Moving to ensemble ${ens}`);
     return true;
+  }
+
+  // Show only the stacks in the selected ensemble.
+  // Actually, for now just draw the ensemble outline.
+  //
+  // Returns true if the annotations were turned on and false if
+  // turned off.
+  function toggleEnsemble(stackid) {
+      if (ensData === null) {
+	  etrace(`Unable to identify ensemble ${ensId} as no data!`);
+	  return;
+      }
+
+      const ensId = stkToEns[stackid];
+      if (typeof ensId === 'undefined') {
+	  etrace(`No ensemble info for stack: ${stackid}`);
+	  return;
+      }
+
+      const polygons = ensOutlineData[ensId];
+      if (typeof polygons === 'undefined') {
+	  etrace(`Unknown ensemble: ${ensId}`);
+	  return;
+      }
+
+      // Do the annotations already exist?
+      if (ensId in ensembleAnnotations) {
+	  ensembleAnnotations[ensId].forEach(fov => wwt.removeAnnotation(fov));
+	  delete ensembleAnnotations[ensId];
+	  return false;
+      }
+
+      const annotations = makePolygonAnnotations(polygons,
+						 {fillFlag: true,
+						  edgeColor: "gray",
+						  lineWidth: 1,
+						  fillColor: "orange",
+						  opacity: 0.8
+						 });
+      ensembleAnnotations[ensId] = annotations;
+      return true;
+  }
+
+  // highlight (or remove) the stack outline.
+  // We assume there's only one outline shown at a time.
+  //
+  // We only draw anything if the ensemble outline is not being
+  // shown (this check is only made when selected is true).
+  //
+  var stackOutlineAnnotations = [];
+  function toggleStackOutline(stackid, selected) {
+
+      if (selected === false) {
+	  if (stackOutlineAnnotations.length === 0) {
+	      trace(`no stack outline for [${stackid}]`);
+	  } else {
+	      stackOutlineAnnotations.forEach(wwt.removeAnnotation);
+	      stackOutlineAnnotations = [];
+	  }
+	  return;
+      }
+
+      if (stackOutlineAnnotations.length !== 0) {
+	  trace(`found stack outlines to remove`);
+	  stackOutlineAnnotations.forEach(wwt.removeAnnotation);
+	  stackOutlineAnnotations = [];
+      }
+
+      // If the ensemble outline for this stack is shown then do
+      // nothing.
+      //
+      const ensId = stkToEns[stackid];
+      if (typeof ensId === 'undefined') {
+	  etrace(`No ensemble info for stack: ${stackid}`);
+	  return;
+      }
+      if (ensId in ensembleAnnotations) {
+	  trace(`Note that ensemble ${ensId} for stack ${stackid} is being shown; skipping stack outline`);
+	  return;
+      }
+
+      const polygons = stackOutlineData[stackid];
+      if (typeof polygons === 'undefined') {
+	  etrace(`Unknown stack: ${stackid}`);
+	  return;
+      }
+      stackOutlineAnnotations = makePolygonAnnotations(polygons,
+						       {fillFlag: true,
+							edgeColor: "gray",
+							lineWidth: 1,
+							fillColor: "orange",
+							opacity: 0.8
+						       });
   }
 
   // Is it a stack-like name that may be
@@ -5055,12 +5178,11 @@ var wwt = (function () {
       return;
     }
 
-    // Maybe it's a 2CXO name?
-    // We have support for this if the catalog data has been loaded,
-    // but we can also now rely on NED for when the data has not been
-    // loaded.
+    // Maybe it's a 2CXO name? As of CSC 2.2 w no longer load the
+    // source names, so we always just try to deccode the name
+    // (without checking if such a name is valid).
     //
-    if (target.startsWith('2CXO J') && catalogProps.csc.loaded) {
+    if (target.startsWith('2CXO J')) {
       find2CXO(target);
       return;
     }
@@ -5156,6 +5278,156 @@ var wwt = (function () {
 
   }
 
+  // Find nearby source information or hide them.
+  //
+  function toggleCSCSources() {
+
+    // If there are are any annotations then assume this is "Hide"
+    // otherwise "Show".
+    const props = catalogProps.csc;
+    if (props.annotations === null) {
+	showCSCSources();
+    } else {
+	hideCSCSources();
+    }
+  }
+
+  // This runs a cone search to find the data to display.
+  //
+  function showCSCSources() {
+
+    const button = document.querySelector('#togglesources');
+    if (button === null) {
+      etrace("-- unable to find #togglesources");
+      return;
+    }
+
+    const props = catalogProps.csc;
+
+    const ra0 = 15.0 * wwt.getRA();
+    const dec0 = wwt.getDec();
+    const fov = wwt.get_fov();
+
+    const hideSourceLabel = () => {
+      button.innerHTML = `Hide ${props.label} Sources`;
+    };
+    // How do we enforce this when the source properties window is
+    // closed?
+    //
+    // const showSourceLabel = () => {
+    //   button.innerHTML = `Show ${props.label} Sources`;
+    // };
+
+    const success = (sources) => {
+	if (sources.length === 0) {
+	    reportUpdateMessage(`No ${props.label} sources found in this area of the sky.`);
+	    return;
+	}
+
+	reportUpdateMessage(`Found ${sources.length} sources in ${props.label}.`);
+
+	props.annotations = [];
+	sources.forEach((row) => {
+	    const shp = props.makeShape(props.color, props.size, row);
+	    const ann = makeAnnotation(row, row, shp);
+	    ann.add();
+	    props.annotations.push(ann);
+	});
+
+	addSourceCircle(ra0, dec0, fov);
+	hideSourceLabel();
+
+	// Display the plot data.
+	//
+    const sel = document.querySelector('#selectionmode');
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if (opt.value === 'source') {
+	opt.disabled = false;
+	opt.selected = true;
+      } else if (opt.value === 'polygon') {
+	opt.disabled = false;
+      }
+    }
+
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      itrace(`unable to change selection mode: ${e}`);
+    }
+
+    // Show the 'source window'.
+    //
+    wwtprops.addSourceSelection(ra0, dec0, fov, props);
+
+    };
+
+    const failure = (flag) => {
+      reportUpdateMessage(`Unable to query ${props.label}!`);
+    };
+
+    cone.coneSearch(ra0, dec0, fov, success, failure);
+  }
+
+  function hideCSCSources() {
+
+    const button = document.querySelector('#togglesources');
+    if (button === null) {
+      etrace("-- unable to find #togglesources");
+      return;
+    }
+
+    const props = catalogProps.csc;
+
+    // Clear out any existing sources (the assumption is that they
+    // exist, but allow for them not too).
+    //
+    if (props.annotations !== null) {
+      props.annotations.forEach(ann => ann.remove());
+      props.annotations = null;
+    } else {
+      itrace("Expected annotations but found none");
+    }
+
+    removeSourceCircle();
+
+    // Change the label
+    //
+    button.innerHTML = `Show ${props.label} Sources`;
+
+    // Clear out the source-selection window, if it exists.
+    wwtprops.clearSourceSelection();
+
+    // from hideSources
+    ['sourceprops', 'plot'].forEach(hideElement);
+    clearNearestSource();
+
+    // What is the best option to switch to here:
+    // stack, nothing, or leave as is if not source-related?
+    //
+    const switchTo = stacksShown === ALL_STACK_SHOWN ? 'stack' : 'nothing';
+
+    const sel = document.querySelector('#selectionmode');
+    for (var idx = 0; idx < sel.options.length; idx++) {
+      const opt = sel.options[idx];
+      if ((opt.value === 'source') || (opt.value === 'polygon')) {
+	opt.disabled = true;
+      } else if (opt.value === switchTo) {
+	opt.selected = true;
+      }
+    }
+
+    try {
+      sel.dispatchEvent(new CustomEvent('change'));
+    }
+    catch (e) {
+      itrace(`unable to change selection mode: ${e}`);
+    }
+
+  }
+
+
   // Based on
   // https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
   //
@@ -5201,89 +5473,59 @@ var wwt = (function () {
     saveState(keyForeground, name);
   }
 
-  // Extract the data from this chunk and, if all chunks have
-  // been read in, finalize things.
-  //
-  function processCatalogData(chunks, ctr, json) {
-    if (json === null) {
-      wtrace(`unable to download catalog data ${ctr}`);
-      return;
-    }
-
-    trace(`Finalizing chunk ${ctr}`);
-
-    // Validate the "schema"
-    //
-    const ncols = catalogDataCols.length;
-    if (ncols !== json.cols.length) {
-      console.log('ERROR: The catalog data is not correctly formatted!');
-      return;
-    }
-
-    const diff = zip([catalogDataCols, json.cols]).reduce(
-      (oflag, xs) => oflag || (xs[0] !== xs[1]),
-      false);
-    if (diff) {
-      console.log('ERROR: invalid CSC schema!');
-      console.log(' expected: ' + catalogDataCols);
-      console.log(' received: ' + json.cols);
-      return;
-    }
-
-    const props = catalogProps.csc;
-    if (props.data === null) {
-      props.data = new Array(json.ntotal);
-    }
-
-    // What is the best way to fill in a slice of values of an array?
-    //
-    let i;
-    for (i = 0; i < json.rows.length; i++) {
-      props.data[json.start + i] = json.rows[i];
-    }
-
-    chunks[ctr - 1] = true;
-    const haveCatalogData = chunks.reduce((a, v) => a && v, true);
-    if (!haveCatalogData) { return; }
-
-    props.loaded = true;
-
-    const nsrcs = props.data.length;
-    if (nsrcs !== json.ntotal) {
-      wtrace(`${props.label} count expected ${json.ntotal} got ${nsrcs}`);
-    }
-
-    trace(`== ${props.label} contains ${nsrcs} sources`);
-
-    // Report any missing sources
-    //
-    let nmiss = props.data.reduce((a, v) => {
-      return a + typeof v === 'undefined' ? 1 : 0;
-    }, 0);
-    if (nmiss !== 0) {
-      wtrace(`there are ${nmiss} missing sources in ${props.label}!`);
-    }
-
-    // Let the user know they can "show sources"
-    //
-    const el = document.querySelector('#togglesources');
-    el.innerHTML = `Show ${props.label} Sources`;
-    el.disabled = false;
-
-    showBlockElement('sourcecolor');
-    document.querySelector('#togglesourceprops')
-      .style.display = 'inline-block';
-
-    trace(`Loaded ${props.label} data`);
-  }
-
   var ensData = null;
+  var stkToEns = null; // This shouldbe added to inputData.stacks instead
   function processEnsData(json) {
     if (json === null) {
       console.log('ERROR: unable to download ensemble data');
       return;
     }
     ensData = json;
+
+    stkToEns = {};
+    for (const [ens, info] of Object.entries(ensData)) {
+      for (const stk of info.stacks) {
+        stkToEns[stk] = ens;
+      }
+    }
+  }
+
+  // Return all the stacks that overlap stackid, including stackid.
+  function findOverlappingStacks(stackid) {
+      const ensId = stkToEns[stackid];
+      if (typeof ensId === "undefined") {
+	  etrace(`Error: unknown stack '${stackid}'`);
+	  return null;
+      }
+      return ensData[ensId].stacks;
+  }
+
+  var ensOutlineData = null;
+  function processEnsOutlineData(json) {
+    if (json === null) {
+      console.log('ERROR: unable to download ensemble outline data');
+      return;
+    }
+    ensOutlineData = json;
+  }
+
+  var ensembleAnnotations = {};
+  function addEnsembleOutlineFOV() {
+    if(ensOutlineData === null) {
+      etrace('no ensenble outline data loaded!');
+      return;
+    }
+
+    for (const ensemble in ensOutlineData) {
+      const polygons = ensOutlineData[ensemble];
+      const annotations = makePolygonAnnotations(polygons,
+						 {fillFlag: false,
+						  edgeColor: "gray",
+						  lineWidth: 1,
+						  fillColor: "orange",
+						  opacity: 0.2});
+      ensembleAnnotations[ensemble] = annotations;
+    }
   }
 
   // The CHS stuff is for testing, so do not try to optimise it just
@@ -5526,16 +5768,14 @@ var wwt = (function () {
     //
     getWWTControl: () => { return wwt; },
 
-    // NOte: we have two concepts of getVersion here
+    // Note: we have two concepts of getVersion here
     getVersion: () => { return versionString; },
-
-    getCSCObject: getCSCObject,
 
     setPosition: setPosition,
     moveTo: moveTo,
 
-    hideSources: hideSources,
-    showSources: showSources,
+    hideSources: hideCSCSources,
+    // showSources: showCSCSources,
     toggleXMMSources: toggleXMMSources,
     toggleeROSITASources: toggleeROSITASources,
     toggleStacks: toggleStacks,
@@ -5579,6 +5819,9 @@ var wwt = (function () {
     changeeROSITASourceSize: changeeROSITASourceSize,
     changeeROSITASourceOpacity: changeeROSITASourceOpacity,
 
+    changeStackOpacity: changeStackOpacity,
+    setStackFill: setStackFill,
+
     strToRA: strToRA, strToDec: strToDec,
 
     getProps: () => catalogProps,
@@ -5592,6 +5835,8 @@ var wwt = (function () {
     resetCatalog: resetCatalog,
     resetXMMCatalog: resetXMMCatalog,
     reseteROSITACatalog: reseteROSITACatalog,
+
+    toggleCSCSources: toggleCSCSources,
 
     startSpinner: startSpinner,
     stopSpinner: stopSpinner,
@@ -5609,7 +5854,20 @@ var wwt = (function () {
     outlines21_annotations: () => { return outlines21_annotations; },
 
     downloadEFEDSData: () => { return downloadEFEDSData; },
-    displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); }
+    displayEFEDSData: () => { return showAllCatalog(catalogProps.efeds); },
+
+    toggleEnsemble: toggleEnsemble,
+    toggleStackOutline: toggleStackOutline,
+
+    findOverlappingStacks: findOverlappingStacks,
+
+    addEnsembles: addEnsembleOutlineFOV,
+    getEnsembles: () => { return ensembleAnnotations; },
+    makePolygonAnnotations: makePolygonAnnotations,
+    getNearestFOVs: () => { return nearestFovs; },
+    getEnsData: () => { return ensData; },
+    getEnsOutlineData: () => { return ensOutlineData; },
+    getStkToEns: () => { return stkToEns; },
 
   };
 

@@ -200,13 +200,13 @@ output#dec_s { width: 2.5em; }
  */
 div.stackinfopane , div.sourceinfopane , div.sourceselectionpane,
 div.neareststackinfopane , div.nearestsourceinfopane ,
-div.polygoninfopane {
+div.polygoninfopane, div.overlappingstacksinfopane {
   background: rgba(255, 255, 255, 0.6);
   border: 2px solid white;
   padding: 0;
 }
 
-div#stackinfo , div#sourceinfo , div#sourceselection {
+div#stackinfo , div#sourceinfo , div#sourceselection, div#overlappingstacksinfo {
   cursor: move;
   display: none;
   overflow: auto;  /* scroll bar looks ugly when shown */
@@ -279,6 +279,17 @@ div.sourceselectionpane div.main , div.polygoninfopane div.main {
 div.not-semantic-name {
   display: flex;
   flex-direction: row;
+}
+
+div.button-bar-horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+div.button-bar-horizontal button {
+  /* margin-left: 1em; */
+  margin-right: 1em;
+  width: auto;
 }
 
 div.coords {
@@ -537,7 +548,7 @@ option:disabled {
   color: rgba(0, 0, 0, 0.4);
 }
 
-#sourcebar , #source11bar , #xmmsourcebar, #eROSITAsourcebar {
+#stackbar, #sourcebar, #source11bar , #xmmsourcebar, #eROSITAsourcebar {
   display: flex;
   flex-direction: row;
 }
@@ -561,14 +572,14 @@ option:disabled {
   -webkit-transform: translateY(-100%);
 }
 
-#togglesources , #togglesources11 , #toggleXMMsources, #toggleeROSITAsources {
+#togglestacks, #togglesources, #togglesources11, #toggleXMMsources, #toggleeROSITAsources {
   flex: auto;
 }
 
 /* Looks like may need to explicitly replace margin/padding settings
  * as seeing significant variations on different browsers
  */
-#togglesourceprops , #togglesource11props , #togglexmmsourceprops, #toggleeROSITAsourceprops {
+#togglestackprops, #togglesourceprops, #togglesource11props, #togglexmmsourceprops, #toggleeROSITAsourceprops {
   border-radius: 0.5em;
   display: none;
   flex: 18px;

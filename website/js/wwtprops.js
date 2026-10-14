@@ -222,6 +222,12 @@ const wwtprops = (function () {
     return div;
   }
 
+  function mkP(className) {
+    const elem = document.createElement('p');
+    elem.setAttribute('class', className);
+    return elem;
+  }
+
   // width and height can be null
   // className can contain spaces (i.e. multiple classes)
   function mkImg(alt, src, width, height, className) {
@@ -601,15 +607,44 @@ const wwtprops = (function () {
   // stack - object, stack details
   // versionTable - fields with version numbers (or null)
   // active - boolean, if true then links and handlers are used
+  // overlappingStacks - list of distance,stack id pairs for those stacks in
+  //                     in the same enemble, with distance being their
+  //                     separation
+  // ensembleId - string, the ensemble identifier (internal use)
   //
   // The text depends on the available data.
   //
-  function addStackInfoContents(parent, stack, versionTable, active) {
+  function addStackInfoContents(parent, stack, versionTable, active,
+                                overlappingStacks, ensembleId) {
+
+    // Special case: close the overlapping-stacks table IFF this is
+    // from a different ensemble. The idea being that if it's the
+    // same ensemble we don't want to remove the display to make it
+    // easy to jump around. One question is whether the overlapping
+    // stacks display should be updated to center on this stack.
+    //
+    {
+	const paneid = 'overlappingstacksinfo';
+	const pane_el = document.querySelector(`#${paneid}`);
+	if ((pane_el !== null) && (pane_el.style.display !== 'none')) {
+	    const ensId = pane_el.getAttribute('data-ensembleid');
+	    wwt.trace(`Found overlapping stacks pane: ensemble ${ensId}`);
+	    if ((ensId !== null) && (ensId != ensembleId)) {
+		pane_el.style.display = 'none';
+	    }
+	}
+    }
 
     parent.setAttribute('data-stackid', stack.stackid);
+    parent.setAttribute('data-ensembleid', ensembleId);
+
+    const close = () => {
+	wwt.clearNearestStack();
+	clearOverlappingTable();  // TODO: is this what we want?
+    }
     const mainDiv = addControlElements(parent,
 				       `Stack: ${stack.stackid}`,
-				       wwt.clearNearestStack,
+				       close,
 				       active);
 
     const binfoDiv = mkDiv('basicinfo');
@@ -618,6 +653,17 @@ const wwtprops = (function () {
     addSpanLink(binfoDiv, 'clipboard',
 		'Copy stack name to clipboard',
 		active ? (event) => wwt.copyToClipboard(event, stack.stackid) : null);
+
+    // Only add this if we have overlapping stacks
+    if (overlappingStacks.length > 0) {
+      const allStackNames = [stack.stackid].
+          concat(overlappingStacks.map((elem) => elem[1]));
+      const allStackName = allStackNames.join(",");
+      addSpanLink(binfoDiv, 'clipboard',
+                  'Copy all stack names to clipboard',
+                  active ? (event) => wwt.copyToClipboard(event, allStackName) : null);
+    }
+
     addSpanLink(binfoDiv, 'zoomto', 'Zoom to stack',
 		active ? () => wwt.zoomToStack(stack.stackid) : null);
 
@@ -661,36 +707,12 @@ const wwtprops = (function () {
     const descPara = document.createElement('p');
     descPara.setAttribute('class', 'description');
 
-    // Do we want to note the completed date?
+    // Drop the "is this being processed" logic that was based on
+    // the status flag. Assume everything has been processed
+    // and do not bother with the processing data as we don't
+    // track it in CSC 2.2.
     //
     var desc = stack.description;
-    if (stack.status === 1) {
-      // Do not need the exact time, just the day
-      var date = new Date(stack.lastmod * 1e3);
-      desc += ' The stack was processed on '
-           + dayName[date.getUTCDay()] + ', '
-           + date.getUTCDate().toString() + ' '
-           + monthName[date.getUTCMonth()] + ', '
-           + date.getUTCFullYear().toString()
-           + '.';
-
-	const nsrc = stack.nsource;
-      if (typeof nsrc !== 'undefined') {
-	    const num = wwt.intToStr(nsrc);
-	    let suffix = "s";
-	    if (nsrc === 1) { suffix = ""; }
-
-	    desc += ` The stack contains ${num} source${suffix}.`;
-      }
-
-    } else if (stack.status === 2) {
-      // Note: should not be releavant now
-      desc += ' The stack is being processed.';
-    } else {
-      // Note: should not be releavant now
-      desc += ' The stack has not been fully processed.';
-    }
-
     addText(descPara, desc);
 
     mainDiv.appendChild(descPara);
@@ -719,7 +741,7 @@ const wwtprops = (function () {
     }
 
     const nseen = Object.keys(seen).length;
-    const seenDiv = mkDiv('stack-obsids');
+    const seenDiv = mkP('stack-obsids');
     mainDiv.appendChild(seenDiv);
 
     addText(seenDiv, 'Stack observation');
@@ -729,7 +751,7 @@ const wwtprops = (function () {
 
     addText(seenDiv, ': ');
 
-    // Do we have CSC 2.1 "new obsids" data?
+    // Do we have CSC 2.2 "new obsids" data?
     //
     let new_obis = [];
     if (typeof stack.new_obis !== "undefined") {
@@ -761,7 +783,7 @@ const wwtprops = (function () {
 	addText(a, obsid.toString());
 	seenDiv.appendChild(a);
 
-        // If this is new in 2.1 note this
+        // If this is new in 2.2 note this
         //
         if (new_obis.indexOf(obis[i]) !== -1) {
            addText(seenDiv, " [new]");
@@ -771,25 +793,119 @@ const wwtprops = (function () {
       }
     }
 
+    // Are there are any other stacks in this ensemble?
+    // This is limited to N_OVERLAP_STACK to avoid getting a
+    // stupid display. The assumption is that the stack list has
+    // been sorted so that they are close to the selected stack, but
+    // that is an input issue.
+    const N_OVERLAP_STACK = 5;
+    const noverlap = overlappingStacks.length;
+    if (noverlap > 0) {
+      const ensDiv = mkP('stack-overlapping');
+      mainDiv.appendChild(ensDiv);
+
+      addText(ensDiv, 'Overlapping stack');
+      if (noverlap > 1) {
+          addText(ensDiv, 's (' + noverlap.toString() + ')');
+      }
+      addText(ensDiv, ': ');
+
+      let firstEns = true;
+      const maxCtr = Math.min(noverlap, N_OVERLAP_STACK);
+
+      for (i = 0; i < maxCtr; i++) {
+	const overlapStack = overlappingStacks[i][1];
+
+	if (firstEns) {
+	  firstEns = false;
+	} else {
+	  addText(ensDiv, ', ');
+	}
+
+	// Make this an "active" link, but I do not think "zoom" is
+	// the action we want, so try processSelectionyName
+        addSpanLink(ensDiv, 'zoomto', overlapStack,
+		    active ? () => wwt.processStackSelectionByName(overlapStack) : null
+		   );
+
+      }
+
+      if (maxCtr !== noverlap) {
+        addText(ensDiv, ', …');  // U+2026
+      }
+
+      addText(ensDiv, '.');
+
+      const highlightBtn1 = document.createElement('button');
+      highlightBtn1.id = `overlap-${stack.stackid}`;
+
+      highlightBtn1.setAttribute('class', 'button');
+      highlightBtn1.setAttribute('type', 'button');
+
+      highlightBtn1.addEventListener('click', (event) => {
+	  const paneid = 'overlappingstacksinfo';
+	  const pane_el = document.querySelector(`#${paneid}`);
+	  if ((pane_el === null) || (pane_el.style.display === 'none')) {
+              wwt.trace(`Show overlapping stacks for stack: ${stack.stackid}`);
+	      addOverlappingTable(stack.stackid, overlappingStacks, ensembleId)
+              highlightBtn1.innerText = 'Hide overlapping stacks';
+	  } else {
+              wwt.trace(`Hide overlapping stacks for stack: ${stack.stackid}`);
+	      pane_el.style.display = 'none';
+	      removeChildren(pane_el);
+              highlightBtn1.innerText = 'List overlapping stacks';
+	  }
+      });
+
+      addText(highlightBtn1, 'List overlapping stacks');
+
+      const highlightBtn2 = document.createElement('button');
+      highlightBtn2.id = `highlight-${stack.stackid}`;
+
+      highlightBtn2.setAttribute('class', 'button');
+      highlightBtn2.setAttribute('type', 'button');
+
+      highlightBtn2.addEventListener('click', (event) => {
+          wwt.trace(`Highlighting ensemble for stack: ${stack.stackid}`);
+          const added = wwt.toggleEnsemble(stack.stackid);
+	  if (added) {
+              highlightBtn2.innerText = 'Hide overlapping stacks';
+	  } else {
+              highlightBtn2.innerText = 'Draw overlapping stacks';
+	  }
+      });
+
+      addText(highlightBtn2, 'Draw overlapping stacks');
+
+      const highlightButtons = document.createElement('div');
+      highlightButtons.appendChild(highlightBtn1);
+      highlightButtons.appendChild(highlightBtn2);
+
+      highlightButtons.setAttribute('class', 'button-bar-horizontal');
+      mainDiv.appendChild(highlightButtons);
+    }
+
     // SAMP: send stack event file
     //
     addSendStackEvtFile(active, mainDiv, stack, versionTable);
 
     // border color depends on the processing status; this is an
     // attempt to subtly reinforce the color scheme
+    // ACTUALLY, for CSC 2.2 we now follow the stack status (new,
+    // changed, unchanged).
     //
     let bcol;
-    switch (stack.status) {
-      case 1:
+    switch (stack.stacktype) {
+      case "unchanged":
         bcol = wwt.COLOR_FINISHED;
         break;
 
-      case 2:
+      case "updated":
         bcol = wwt.COLOR_PROCESSING;
         break;
 
       default:
-        bcol = wwt.COLOR_NOTDONE;
+        bcol = wwt.COLOR_NOTDONE;  // "new"
     }
 
     parent.style.borderColor = bcol;
@@ -866,17 +982,20 @@ const wwtprops = (function () {
 
   // Add the info for this stack to the main screen. versionTable is
   // expected to have fields that give the version number for the given
-  // filetype (or null if it is missing)
+  // filetype (or null if it is missing), overlappingStacks gives the
+  // other stacks in the same ensemble (may be the empty list)
   //
-  function addStackInfo(stack, versionTable) {
+  function addStackInfo(stack, versionTable, overlappingStacks, ensembleId) {
     const parent = findStackInfo();
     if (parent === null) { return; }
-    addStackInfoContents(parent, stack, versionTable, true);
+    addStackInfoContents(parent, stack, versionTable, true,
+			 overlappingStacks, ensembleId);
   }
 
   // Add the info for this stack to the help pane; this is an
   // inactive pane.
   //
+  // Assume this is a single-stack ensemble.
   function addStackInfoHelp(stack) {
     const parent = document.querySelector('#stackinfoexample');
     if (parent === null) {
@@ -887,7 +1006,22 @@ const wwtprops = (function () {
     // Need version values for the SAMP button to appear, but doesn't
     // really matter what it is.
     const versionTable = {stkevt3: 20, sensity: 22};
-    addStackInfoContents(parent, stack, versionTable, false);
+    addStackInfoContents(parent, stack, versionTable, false, [], '0');
+  }
+
+  // This is more complex example
+  function addStackInfo2Help(stack, overlappingStacks) {
+    const parent = document.querySelector('#stackinfo2example');
+    if (parent === null) {
+      wwt.itrace('no #stackinfo found');
+      return;
+    }
+
+    // Need version values for the SAMP button to appear, but doesn't
+    // really matter what it is.
+    const versionTable = {stkevt3: 20, sensity: 22};
+    addStackInfoContents(parent, stack, versionTable, false,
+			 overlappingStacks, '0');
   }
 
   // Hide the element, remove its children, and return it.
@@ -995,6 +1129,10 @@ const wwtprops = (function () {
   // Add the table of source properties (if they exist) to the
   // given element.
   //
+  // This tries to support the "load all the data first" and
+  // the "load via conesearch" code, which have different
+  // fields (the latter is more restrictive).
+  //
   function addSourceProperties(parent, src, active) {
     if (typeof active === 'undefined') { active = true; }
 
@@ -1002,14 +1140,15 @@ const wwtprops = (function () {
     // finalised (the values don't seem to match up, so may
     // not be including the correct data).
     //
-    if (src.nh_gal === null) {
-      const noDataPara = document.createElement('p');
-      addText(noDataPara,
-	      'Source properties have not been calculated for ' +
-	      'this source yet.');
-      parent.appendChild(noDataPara);
-      return;
-    }
+    // THIS SHOULD NOT BE NEEDED AYMORE
+    //if (src.nh_gal === null) {
+    //  const noDataPara = document.createElement('p');
+    //  addText(noDataPara,
+    //	      'Source properties have not been calculated for ' +
+    //	      'this source yet.');
+    //  parent.appendChild(noDataPara);
+    //  return;
+    //}
 
     // Support new and old labelling (1 or TRUE)
     const confused = (src.conf_flag === 1) || (src.conf_flag === 'TRUE');
@@ -1029,7 +1168,7 @@ const wwtprops = (function () {
       addPara(parent, stext);
     }
 
-    if ((src.var_flag === 1) || (src.var_flag === 'TRUE')) {
+    if (typeof src.var_flag !== 'undefined' && ((src.var_flag === 1) || (src.var_flag === 'TRUE'))) {
       addPara(parent,
 	      'Source is variable (within or between observations).');
     }
@@ -1045,22 +1184,32 @@ const wwtprops = (function () {
 
     // Only include the angle if the ellipse is not circular.
     //
-    let errlbl = src.err_ellipse_r0.toString() + '" by ' +
-	src.err_ellipse_r1.toString() + '"';
-    if (src.err_ellipse_ang !== 0) {
-      errlbl += ' at ' + src.err_ellipse_ang + '°';
-    }
+    if (typeof src.err_ellipse_r1 !== 'undefined') {
+      let errlbl = src.err_ellipse_r0.toString() + '" by ' +
+  	  src.err_ellipse_r1.toString() + '"';
+      if (src.err_ellipse_ang !== 0) {
+        errlbl += ' at ' + src.err_ellipse_ang + '°';
+      }
 
-    addLinkRow(tbody, 'columns/positions.html',
-	       '95% confidence position error ellipse',
-	       errlbl, active);
+      addLinkRow(tbody, 'columns/positions.html',
+  	         '95% confidence position error ellipse',
+	         errlbl, active);
+    } else {
+      let errlbl = src.err_ellipse_r0.toString() + '"';
+
+      addLinkRow(tbody, 'columns/positions.html',
+  	         '95% confidence position r0 error',
+	         errlbl, active);
+    }
 
     // TODO: should we convert to the appropriate power of 10,
     //       or always leave as 10^20?
     //
-    addRow(tbody,
-	   'Galactic n<sub>H</sub> column density',
-	   src.nh_gal + ' × 10²⁰ cm⁻²');
+    if (typeof src.nh_gal !== 'undefined') {
+      addRow(tbody,
+	     'Galactic n<sub>H</sub> column density',
+	     src.nh_gal + ' × 10²⁰ cm⁻²');
+    }
 
     // Support old and new system)
     const hasFluxes = ['broad', 'wide', 0, 1];
@@ -1112,8 +1261,10 @@ const wwtprops = (function () {
 		   active);
     }
 
-    addRow(tbody, 'Number of ACIS observations', src.acis_num);
-    addRow(tbody, 'Number of HRC observations', src.hrc_num);
+    if (typeof src.acis_num !== 'undefined') {
+      addRow(tbody, 'Number of ACIS observations', src.acis_num);
+      addRow(tbody, 'Number of HRC observations', src.hrc_num);
+    }
 
     // add a warning about the values
     const warnPara = document.createElement('p');
@@ -1596,26 +1747,15 @@ const wwtprops = (function () {
     }
   }
 
-  function addNearestStackTable(stackAnnotations, stack0, neighbors,
-				nearestFovs) {
+  // CURRENTLY UNUSED
+  function addNearestStackTable(stackAnnotations, stack0, neighbors) {
     const n = neighbors.length;
     if (n === 0) { return; }
 
     const pane = findNearestStackInfo();
     if (pane === null) { return; }
 
-    const close = () => {
-      clearNearestStackTable();
-
-      // clear out the "nearest" stack outline; the easiest way is
-      // to just change them but do not change the nearestFovs array,
-      // since this will get done in a later call
-      nearestFovs.forEach(fov => {
-	if (fov.selected) { return; }
-	fov.reset();
-      });
-
-    };
+    const close = () => clearNearestStackTable();
     const mainDiv = addControlElements(pane,
 				       'Nearest stack' + (n > 1 ? 's' : ''),
 				       close,
@@ -1692,25 +1832,14 @@ const wwtprops = (function () {
     pane.style.display = 'block';
   }
 
-  function addNearestSourceTable(indexes, neighbors) {
+  function addNearestSourceTable(neighbors) {
     const n = neighbors.length;
     if (n === 0) { return; }
 
     const pane = findNearestSourceInfo();
     if (pane === null) { return; }
 
-    const close = () => {
-      clearNearestSourceTable()
-
-      // Are we going to be highlighting the nearby sources in any way?
-      //
-      /***
-      nearestFovs.forEach(fov => {
-	if (fov.selected) { return; }
-	fov.reset();
-      });
-      ***/
-    };
+    const close = () => clearNearestSourceTable();
     const mainDiv = addControlElements(pane,
 				       'Nearest source' + (n > 1 ? 's' : ''),
 				       close,
@@ -1736,7 +1865,8 @@ const wwtprops = (function () {
     trow.appendChild(mkElem('th', 'Separation'));
     trow.appendChild(mkElem('th', 'Significance'));
 
-    trow.appendChild(mkElem('th', 'NACIS, NHRC'));
+    trow.appendChild(mkElem('th', 'NACIS'));
+    trow.appendChild(mkElem('th', 'NHRC'));
 
     trow.appendChild(mkElem('th', 'Variable'));
     trow.appendChild(mkElem('th', 'flux band'));
@@ -1746,17 +1876,8 @@ const wwtprops = (function () {
     const tbody = document.createElement('tbody');
     tbl.appendChild(tbody);
 
-    const nameIdx = indexes.name;
-    const sigIdx = indexes.significance;
-    const nacisIdx = indexes.nacis;
-    const nhrcIdx = indexes.nhrc;
-    const varIdx = indexes.variability;
-    const bandIdx = indexes.fluxband;
-    const fluxIdx = indexes.flux;
-    const nhIdx = indexes.nh;
-
     const mkSrcLink = (src, ra, dec, ann, origColor) => {
-      const name = src[nameIdx];
+      const name = src.name;
       const lnk = document.createElement('a');
       lnk.setAttribute('href', '#');
       addText(lnk, name);
@@ -1817,16 +1938,23 @@ const wwtprops = (function () {
 
       trow.appendChild(mkSrcLink(src, ra, dec, ann, origColor));
       trow.appendChild(mkElem('td', mkSep(sep)));
-      trow.appendChild(mkElem('td', src[sigIdx]));
+      trow.appendChild(mkElem('td', sprintf("%.2f", src.significance)));
 
-      trow.appendChild(mkElem('td',
-			      `${src[nacisIdx]},${src[nhrcIdx]}`));
+      trow.appendChild(mkElem('td', src.acis_num));
+      trow.appendChild(mkElem('td', src.hrc_num));
 
-      trow.appendChild(mkButton(src[varIdx]));
+      trow.appendChild(mkButton(src.var_flag));
 
-      trow.appendChild(mkElem('td', getFluxBand(src[bandIdx])));
-      trow.appendChild(mkElem('td', src[fluxIdx]));
-      trow.appendChild(mkElem('td', src[nhIdx]));
+      trow.appendChild(mkElem('td', getFluxBand(src.fluxband)));
+
+      // Special case a flux of 0
+      if (src.flux <= 0) {
+        trow.appendChild(mkElem('td', "0"));
+      } else {
+        trow.appendChild(mkElem('td', sprintf("%.2e", src.flux)));
+      }
+
+      trow.appendChild(mkElem('td', src.nh_gal));
     });
 
     pane.style.display = 'block';
@@ -1913,11 +2041,214 @@ const wwtprops = (function () {
     catch (e) {
       wwt.itrace(`unable to change selection mode: ${e}`);
     }
+  }
 
+  // Delete the table (if it exists) and then add the subset of the
+  // selected range.
+  //
+  function makeOverlapSubset(tbody, arrayInfo, overlaps, startIdx) {
+
+      const nelem = 10;
+
+      removeChildren(tbody);
+      overlaps.slice(startIdx, startIdx + nelem).forEach(row => {
+	  tbody.appendChild(row);
+      });
+
+      removeChildren(arrayInfo);
+      const leftIdx = startIdx - nelem;
+      const rightIdx = startIdx + nelem;
+      if (leftIdx >= 0) {
+	  const left = document.createElement('span');
+
+	  const img = mkImg('Left icon (circle with a left symbol in it)',
+			    'wwtimg/fa/circle-chevron-left-solid-full.svg',
+			    null, null,
+			    'icon');
+	  left.appendChild(img);
+	  addText(left, ` ${leftIdx / nelem + 1}`);
+
+	  // replicate img.icon styling
+	  left.style.cursor = 'pointer';
+	  left.style.height = '1em';
+	  left.style.width = '1em';
+	  left.addEventListener('click', () => {
+	      makeOverlapSubset(tbody, arrayInfo, overlaps, leftIdx)
+	  }, false);
+
+	  arrayInfo.appendChild(left);
+      }
+
+      if (overlaps.length > nelem) {
+	  const count = document.createElement('span');
+
+	  addText(count, `${Math.ceil(overlaps.length / nelem)}`);
+
+	  // UGH:
+	  count.style.position = 'sticky';
+	  count.style.left = '50%';
+	  count.style.right = '50%';
+
+	  arrayInfo.appendChild(count);
+      }
+
+      if (rightIdx < overlaps.length) {
+	  const right = document.createElement('span');
+
+	  const img = mkImg('Right icon (circle with a right symbol in it)',
+			    'wwtimg/fa/circle-chevron-right-solid-full.svg',
+			    null, null,
+			    'icon');
+	  // UGH:
+	  right.style.position = 'sticky';
+	  right.style.left = '100%';
+
+	  addText(right, `${rightIdx / nelem + 1} `);
+	  right.appendChild(img);
+
+	  // replicate img.icon styling
+	  right.style.cursor = 'pointer';
+	  right.style.height = '1em';
+	  right.style.width = '1em';
+	  right.addEventListener('click', () => {
+	      makeOverlapSubset(tbody, arrayInfo, overlaps, rightIdx)
+	  }, false);
+
+	  arrayInfo.appendChild(right);
+      }
+  }
+
+  // Display all the stacks in the ensemble
+  //
+  // Should this do nothing for a single-stack ensemble?
+  // TODO: number the stacks (so use a table not a list)
+  //       how do we restrict the height of this window?
+  //
+  // otherstacks is a list of (distance, stack name) tuples
+  // for the other stacks in this ensemble.
+  function addOverlappingTable(stack, otherstacks, ensembleId) {
+
+    wwt.trace(`In addOverlappingTable: [${stack}]`);
+
+    const paneid = 'overlappingstacksinfo';
+    const pane = findPane(paneid, {left: '0.5em', bottom: '0.5em'}, true);
+    if (pane === null) { return; }
+
+    var store_rows = [];
+    var idx = 1;
+
+    function add_row(dist, name) {
+	const tr = document.createElement('tr');
+
+	// Add mouseenter/leave handlers for the row
+	//
+	tr.addEventListener('mouseenter', () => {
+	  tr.classList.add('selected');  // TODO is this what we want?
+	  wwt.toggleStackOutline(name, true);
+	}, false);
+
+	tr.addEventListener('mouseleave', () => {
+	  tr.classList.remove('selected');  // TODO is this what we want?
+	  wwt.toggleStackOutline(name, false);
+	}, false);
+
+	const td1 = document.createElement('td');
+	const td2 = document.createElement('td');
+	const td3 = document.createElement('td');
+
+	td1.innerHTML = `${idx}`;
+	idx += 1;
+
+	if (dist !== null) {
+	    td2.innerHTML = dist;
+
+	    const lnk = document.createElement('a');
+	    lnk.setAttribute('href', '#');
+	    addText(lnk, name);
+
+	    // The mouseleave event will not fire if a user clicks on a link,
+	    // so ensure we clean up.
+	    //
+	    lnk.addEventListener('click', () => {
+		wwt.processStackSelectionByName(name);
+	    }, false);
+
+	    td3.appendChild(lnk);
+
+	} else {
+	    td2.innerHTML = "-";
+	    td3.innerHTML = name;
+	}
+
+	tr.appendChild(td1);
+	tr.appendChild(td2);
+	tr.appendChild(td3);
+	store_rows.push(tr);
+    }
+
+    // First row is the input stack
+    add_row(null, stack);
+    otherstacks.forEach(el => {
+	  add_row(mkSep(el[0]), el[1]);
+    });
+
+    removeChildren(pane);
+
+    pane.setAttribute('data-ensembleid', ensembleId);
+
+    const n = otherstacks.length;
+    // const s = n > 0 ? 's' : '';
+    // const title = `Stack${s} overlapping ${stack}`;
+    const title = `Overlaps of ${stack}`;
+    const mainDiv = addControlElements(pane,
+				       title,
+				       clearOverlappingTable,
+				       true);
+
+    const table = document.createElement('table');
+    mainDiv.appendChild(table);
+
+    table.setAttribute('class', 'standard-table');
+
+    const thead = document.createElement('thead');
+    table.appendChild(thead);
+
+    const tr = document.createElement('tr');
+    thead.appendChild(tr);
+
+    const th1 = document.createElement('th');
+    th1.innerHTML = "#";
+    const th2 = document.createElement('th');
+    th2.innerHTML = "Distance";
+    const th3 = document.createElement('th');
+    th3.innerHTML = "Stack";
+
+    tr.appendChild(th1);
+    tr.appendChild(th2);
+    tr.appendChild(th3);
+
+    const tbody = document.createElement('tbody');
+    table.appendChild(tbody);
+
+    const arrayInfo = document.createElement('div');
+    // arrayInfo.style.display = 'flex';  // TODO CSS
+    // arrayInfo.style.flexDirection = 'row';  // TODO CSS
+    arrayInfo.style.fontSize = 'large';   // TODO CSS
+
+    mainDiv.appendChild(arrayInfo);
+
+    makeOverlapSubset(tbody, arrayInfo, store_rows, 0);
+
+    pane.style.display = 'block';
+  }
+
+  function clearOverlappingTable() {
+    clearElement('#overlappingstacksinfo');
   }
 
   return { addStackInfo: addStackInfo,
 	   addStackInfoHelp: addStackInfoHelp,
+	   addStackInfo2Help: addStackInfo2Help,
 	   clearStackInfo: clearStackInfo,
 
 	   addSourceInfo: addSourceInfo,
@@ -1935,6 +2266,9 @@ const wwtprops = (function () {
 
 	   addPolygonPane: addPolygonPane,
 	   closePolygonPane: closePolygonPane,
+
+	   addOverlappingTable: addOverlappingTable,
+	   clearOverlappingTable: clearOverlappingTable,
 
 	   refreshSAMPClientList: refreshSAMPClientList,
 
