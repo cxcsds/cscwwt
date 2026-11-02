@@ -2164,6 +2164,7 @@ const wwtprops = (function () {
 	const td2 = document.createElement('td');
 	const td3 = document.createElement('td');
 	const td4 = document.createElement('td');
+	const td5 = document.createElement('td');
 
 	td1.innerHTML = `${idx}`;
 	idx += 1;
@@ -2190,14 +2191,17 @@ const wwtprops = (function () {
 	}
 
 	// What is the "state" of this stack
-	if (typeof allStacks[name] !== "undefined") {
-	    addText(td4, allStacks[name].stacktype);
+	const stackInfo = allStacks[name];
+	if (typeof stackInfo !== "undefined") {
+	    addText(td4, stackInfo.stacktype);
+	    addText(td5, stackInfo.names[0]);
 	}
 	
 	tr.appendChild(td1);
 	tr.appendChild(td2);
 	tr.appendChild(td3);
 	tr.appendChild(td4);
+	tr.appendChild(td5);
 	store_rows.push(tr);
     }
 
@@ -2239,11 +2243,14 @@ const wwtprops = (function () {
     th3.innerHTML = "Stack";
     const th4 = document.createElement('th');
     th4.innerHTML = "Status";
+    const th5 = document.createElement('th');
+    th5.innerHTML = "Name";
 
     tr.appendChild(th1);
     tr.appendChild(th2);
     tr.appendChild(th3);
     tr.appendChild(th4);
+    tr.appendChild(th5);
 
     const tbody = document.createElement('tbody');
     table.appendChild(tbody);
