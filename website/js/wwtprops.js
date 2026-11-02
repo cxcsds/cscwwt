@@ -611,11 +611,13 @@ const wwtprops = (function () {
   //                     in the same enemble, with distance being their
   //                     separation
   // ensembleId - string, the ensemble identifier (internal use)
+  // allStacks - the dict of stack information (inputStackData.stacks) or null
   //
   // The text depends on the available data.
   //
   function addStackInfoContents(parent, stack, versionTable, active,
-                                overlappingStacks, ensembleId) {
+                                overlappingStacks, ensembleId,
+			        allStacks) {
 
     // Special case: close the overlapping-stacks table IFF this is
     // from a different ensemble. The idea being that if it's the
@@ -847,7 +849,8 @@ const wwtprops = (function () {
 	  const pane_el = document.querySelector(`#${paneid}`);
 	  if ((pane_el === null) || (pane_el.style.display === 'none')) {
               wwt.trace(`Show overlapping stacks for stack: ${stack.stackid}`);
-	      addOverlappingTable(stack.stackid, overlappingStacks, ensembleId)
+	      addOverlappingTable(stack.stackid, overlappingStacks,
+				  ensembleId, allStacks)
               highlightBtn1.innerText = 'Hide overlapping stacks';
 	  } else {
               wwt.trace(`Hide overlapping stacks for stack: ${stack.stackid}`);
@@ -985,11 +988,12 @@ const wwtprops = (function () {
   // filetype (or null if it is missing), overlappingStacks gives the
   // other stacks in the same ensemble (may be the empty list)
   //
-  function addStackInfo(stack, versionTable, overlappingStacks, ensembleId) {
+  function addStackInfo(stack, versionTable, overlappingStacks,
+			ensembleId, allStacks) {
     const parent = findStackInfo();
     if (parent === null) { return; }
     addStackInfoContents(parent, stack, versionTable, true,
-			 overlappingStacks, ensembleId);
+			 overlappingStacks, ensembleId, allStacks);
   }
 
   // Add the info for this stack to the help pane; this is an
@@ -1006,7 +1010,7 @@ const wwtprops = (function () {
     // Need version values for the SAMP button to appear, but doesn't
     // really matter what it is.
     const versionTable = {stkevt3: 20, sensity: 22};
-    addStackInfoContents(parent, stack, versionTable, false, [], '0');
+      addStackInfoContents(parent, stack, versionTable, false, [], '0', null);
   }
 
   // This is more complex example
@@ -1021,7 +1025,7 @@ const wwtprops = (function () {
     // really matter what it is.
     const versionTable = {stkevt3: 20, sensity: 22};
     addStackInfoContents(parent, stack, versionTable, false,
-			 overlappingStacks, '0');
+			 overlappingStacks, '0', null);
   }
 
   // Hide the element, remove its children, and return it.
@@ -2126,7 +2130,11 @@ const wwtprops = (function () {
   //
   // otherstacks is a list of (distance, stack name) tuples
   // for the other stacks in this ensemble.
-  function addOverlappingTable(stack, otherstacks, ensembleId) {
+  // allStacks is used to pass around whether any of the stacks
+  // are "unchanged in CSC 2.2, changed in 2.2, or new in 2.2". This should
+  // not be null.
+  //
+  function addOverlappingTable(stack, otherstacks, ensembleId, allStacks) {
 
     wwt.trace(`In addOverlappingTable: [${stack}]`);
 
@@ -2155,6 +2163,7 @@ const wwtprops = (function () {
 	const td1 = document.createElement('td');
 	const td2 = document.createElement('td');
 	const td3 = document.createElement('td');
+	const td4 = document.createElement('td');
 
 	td1.innerHTML = `${idx}`;
 	idx += 1;
@@ -2180,9 +2189,15 @@ const wwtprops = (function () {
 	    td3.innerHTML = name;
 	}
 
+	// What is the "state" of this stack
+	if (typeof allStacks[name] !== "undefined") {
+	    addText(td4, allStacks[name].stacktype);
+	}
+	
 	tr.appendChild(td1);
 	tr.appendChild(td2);
 	tr.appendChild(td3);
+	tr.appendChild(td4);
 	store_rows.push(tr);
     }
 
@@ -2222,10 +2237,13 @@ const wwtprops = (function () {
     th2.innerHTML = "Distance";
     const th3 = document.createElement('th');
     th3.innerHTML = "Stack";
+    const th4 = document.createElement('th');
+    th4.innerHTML = "Status";
 
     tr.appendChild(th1);
     tr.appendChild(th2);
     tr.appendChild(th3);
+    tr.appendChild(th4);
 
     const tbody = document.createElement('tbody');
     table.appendChild(tbody);

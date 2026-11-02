@@ -2765,7 +2765,8 @@ var wwt = (function () {
       etrace("Stacks have been lost!");
     }
 
-    wwtprops.addStackInfo(stack, versionInfo, sortedStacks, ensId);
+    wwtprops.addStackInfo(stack, versionInfo, sortedStacks, ensId,
+			  inputStackData.stacks);
 
     // Record this as the selected stack
     saveState(keyStackName, stack.stackid);
