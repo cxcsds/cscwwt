@@ -75,6 +75,7 @@ var wwt = (function () {
   const keyClipboardFormat = 'wwt-clipboardformat';
   const keyKeypressFlag = "wwt-keypressflag";
   const keyMoveFlag = 'wwt-moveflag';
+  const keyNameLookupServer = 'wwt-namelookupserver';
 
   const keyStackName = 'www-stackname';
   const keyStackFill = 'www-stackfill';
@@ -99,6 +100,7 @@ var wwt = (function () {
 		  keyCrosshairs, keyConstellations, keyBoundaries,
 		  keySAMP, keyWelcome,
 		  keyMilkyWay, keyClipboardFormat,
+		  keyNameLookupServer,
 		  keyMoveFlag, keyKeypressFlag,
 		  keyStackName, keyStackFill, keyStackOpacity,
 		  keyCatalogColor, keyCatalogOpacity, keyCatalogSize,
@@ -308,6 +310,18 @@ var wwt = (function () {
     }
     clipboardFormat = format;
     saveState(keyClipboardFormat, clipboardFormat);
+  }
+
+  // What SIMBAD mirror should be used for the name server?
+  //
+  var nameLookupServer = 'cfa';  // should be taken from lookup.js
+  function setNameLookupServer(nameserver) {
+    if (!lookup.set_base_url(nameserver)) {
+      etrace(`Unable to set the kookup server to [${nameserver}]`);
+      return;
+    }
+    nameLookupServer = nameserver;
+    saveState(keyNameLookupServer, nameserver);
   }
 
   // Do we respond to keypresses?
@@ -788,6 +802,8 @@ var wwt = (function () {
      change: setMoveFlag, defval: false},
     {key: keyClipboardFormat, sel: '#clipboardformat',
      change: setClipboardFormat, defval: 'degrees'},
+    {key: keyNameLookupServer, sel: '#namelookupserver',
+     change: setNameLookupServer, defval: 'cfa'},
     {key: keyCoordinateGrid, sel: '#togglegrid',
      change: setCoordinateGrid, defval: true},
     //{key: keyStackFill, sel: '#togglestackfill',
@@ -5245,7 +5261,9 @@ var wwt = (function () {
 
     startSpinner();
 
-    reportLookupSuccess(`Searching for ${target}`, false);
+    // Add in the SIMBAD location
+    const label = lookup.get_label();
+    reportLookupSuccess(`Searching for ${target} (${label})`, false);
 
     // disable both the target widgets; note that on success both get re-enabled,
     // which is okay because the user-entered target is still

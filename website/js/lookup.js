@@ -29,9 +29,12 @@ const lookup = (() => {
   // not tied to UI (i.e. there's no way for a user to change it).
   //
   const base_urls = {
-	cds: 'https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame',
-	cfa: 'https://vizier.cfa.harvard.edu/viz-bin/Sesame',
-	za: 'https://vizier.idia.ac.za/viz-bin/nph-sesame',
+    cds: {url: 'https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame',
+	  label: 'CDS'},
+    cfa: {url: 'https://vizier.cfa.harvard.edu/viz-bin/Sesame',
+	  label: 'CfA'},
+    za: {url: 'https://vizier.idia.ac.za/viz-bin/nph-sesame',
+	 label: 'South Africa' },
   };
 
   // What URL should we use: the argument must be a key for
@@ -40,11 +43,21 @@ const lookup = (() => {
   var base_url_name = 'cfa';
   function set_base_url(label) {
     if (!base_urls.hasOwnProperty(label)) {
-      wwt.etrace(`Unknown base url label: [${label}]`);
       return false;
     }
     base_url_name = label;
-    wwt.trace(`Changing search URL to: ${label}`);
+    return true;
+  }
+
+  // This could return the actual URL but leave as is for symmetry and
+  // because there may be a use for access to this data.
+  //
+  function get_base_url() {
+    return base_url_name;
+  }
+
+  function get_label() {
+    return base_urls[base_url_name].label;
   }
 
   // Look up the name and if there is a success call
@@ -61,7 +74,7 @@ const lookup = (() => {
     }
 
     // This should use the caching that Sesame supports
-    const base_url = base_urls[base_url_name];
+    const base_url = base_urls[base_url_name].url;
     var src = base_url + '/-ox/SNV?' + cleanQueryValue(objectName);
     wwt.trace(`Search URL: [${src}]`)
 
@@ -111,7 +124,9 @@ const lookup = (() => {
   }
 
   return { lookupName: lookupName,
+	   get_base_url: get_base_url,
 	   set_base_url: set_base_url,
+	   get_label: get_label
 	 };
 
 })();
