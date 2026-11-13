@@ -25,6 +25,41 @@ const lookup = (() => {
       .replace(/%0A/g, '\n');
   }
 
+  // Try to support different endpoints, but this is currently
+  // not tied to UI (i.e. there's no way for a user to change it).
+  //
+  const base_urls = {
+    cds: {url: 'https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame',
+	  label: 'CDS'},
+    cfa: {url: 'https://vizier.cfa.harvard.edu/viz-bin/Sesame',
+	  label: 'CfA'},
+    za: {url: 'https://vizier.idia.ac.za/viz-bin/nph-sesame',
+	 label: 'South Africa' },
+  };
+
+  // What URL should we use: the argument must be a key for
+  // base_urls.
+  //
+  var base_url_name = 'cfa';
+  function set_base_url(label) {
+    if (!base_urls.hasOwnProperty(label)) {
+      return false;
+    }
+    base_url_name = label;
+    return true;
+  }
+
+  // This could return the actual URL but leave as is for symmetry and
+  // because there may be a use for access to this data.
+  //
+  function get_base_url() {
+    return base_url_name;
+  }
+
+  function get_label() {
+    return base_urls[base_url_name].label;
+  }
+
   // Look up the name and if there is a success call
   //      callback(ra, dec)
   // and error handler (string argument, representing HTML for the
@@ -39,8 +74,9 @@ const lookup = (() => {
     }
 
     // This should use the caching that Sesame supports
-    var src = 'https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-ox/SNV?' +
-      cleanQueryValue(objectName);
+    const base_url = base_urls[base_url_name].url;
+    var src = base_url + '/-ox/SNV?' + cleanQueryValue(objectName);
+    wwt.trace(`Search URL: [${src}]`)
 
     // Why am I not using d here?
     lup.onreadystatechange = (d) => {
@@ -87,6 +123,10 @@ const lookup = (() => {
     callback(ra, dec);
   }
 
-  return { lookupName: lookupName };
+  return { lookupName: lookupName,
+	   get_base_url: get_base_url,
+	   set_base_url: set_base_url,
+	   get_label: get_label
+	 };
 
 })();

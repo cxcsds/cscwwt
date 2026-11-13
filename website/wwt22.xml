@@ -719,6 +719,11 @@ main#content div.wrap {
 	      The stack details panel is now restored when the interface
 	      is re-started (only on the same browser).
 	    </li>
+	    <li>
+	      The location of the SIMBAD name server can be changed from
+	      the Settings panel (to choose between CDS, CfA, and South
+	      Africa).
+	    </li>
 	  </list>
 
 	  <h3>What do all the icons mean?</h3>
@@ -1374,6 +1379,21 @@ main#content div.wrap {
 	      </label>
 	    </div>
 
+	    <div>
+	      <!-- do not style this as a "button" -->
+	      <select id="namelookupserver" name="namelookupserver">
+		<!-- this needs to match to the lookup.js options
+		     it couldbe auto generated but for now hard-code them
+		     -->
+		<option value="cds">CDS</option>
+		<option value="cfa" selected="1">CfA</option>
+		<option value="za">South Africa</option>
+	      </select>
+	      <label for="namelookupserver">
+		SIMBAD mirror to use for name searches
+	      </label>
+	    </div>
+	    
 	  </div> <!-- .options -->
 
 	  <p>
